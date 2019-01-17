@@ -1,0 +1,28 @@
+{
+  "format_version": 1
+, "imports": [
+    {
+      "target_table": "ORG_GEONAMES_BASE_LANG_LANGUAGECODES"
+    , "source_data" : {
+        "data_type" : "CSV"
+      , "file_name" : "ISOLanguageCodes.csv"
+      , "has_header" : true
+      }
+    , "import_settings" : {
+        "import_columns" : [
+          "ISO639_3"
+        , "ISO639_2"
+        , "ISO639_1"
+        , "LANGUAGENAME"
+        ]
+      , "include_filter" : []
+      }
+    , "column_mappings" : {
+          "ISO639_3"     : "ISO639_3"
+        , "ISO639_2"     : "ISO639_2"
+        , "ISO639_1"     : "ISO639_1"
+        , "LANGUAGENAME" : "LanguageName"
+      }
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "format_version": 1
+, "imports": [
+    {
+      "target_table": "ORG_GEONAMES_BASE_GEO_CONTINENTS"
+    , "source_data" : {
+        "data_type" : "CSV"
+      , "file_name" : "ContinentCodes.csv"
+      , "has_header" : true
+      }
+    , "import_settings" : {
+        "import_columns" : [
+          "CONTINENTCODE"
+        , "CONTINENTNAME"
+        ]
+      , "include_filter" : []
+      }
+    , "column_mappings" : {
+        "CONTINENTCODE" : "ContinentCode"
+      , "CONTINENTNAME" : "ContinentName"
+      }
+    }
+
+
+
+
+  , {
+      "target_table": "ORG_GEONAMES_BASE_GEO_COUNTRIES"
+    , "source_data" : {
+        "data_type" : "CSV"
+      , "file_name" : "CountryInfo.csv"
+      , "has_header" : true
+      }
+    , "import_settings" : {
+        "import_columns" : [
+          "ISO2"
+        , "ISO3"
+        , "ISONUMERIC"
+        , "FIPS"
+        , "COUNTRYNAME"
+        , "CAPITAL"
+        , "AREA"
+        , "POPULATION"
+        , "CONTINENT_CONTINENTCODE"
+        , "TLD"
+        , "CURRENCYCODE"
+        , "CURRENCYNAME"
+        , "DIALLINGCODE"
+        , "POSTALCODEFORMAT"
+        , "POSTALCODEREGEX"
+        , "LANGUAGES"
+        , "NEIGHBOURS"
+        ]
+      , "include_filter" : []
+      }
+    , "column_mappings" : {
+          "ISO2"                    : "ISO2"
+        , "ISO3"                    : "ISO3"
+        , "ISONUMERIC"              : "ISONumeric"
+        , "FIPS"                    : "FIPS"
+        , "COUNTRYNAME"             : "CountryName"
+        , "CAPITAL"                 : "Capital"
+        , "AREA"                    : "Area"
+        , "POPULATION"              : "Population"
+        , "CONTINENT_CONTINENTCODE" : "Continent"
+        , "TLD"                     : "TLD"
+        , "CURRENCYCODE"            : "CurrencyCode"
+        , "CURRENCYNAME"            : "CurrencyName"
+        , "DIALLINGCODE"            : "DiallingCode"
+        , "POSTALCODEFORMAT"        : "PostalCodeFormat"
+        , "POSTALCODEREGEX"         : "PostalCodeRegex"
+        , "LANGUAGES"               : "Languages"
+        , "NEIGHBOURS"              : "Neighbours"
+      }
+    }
+  ]
+}

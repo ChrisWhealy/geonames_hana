@@ -1,0 +1,30 @@
+{
+  "format_version": 1
+, "imports": [
+    {
+      "target_table": "ORG_GEONAMES_BASE_TIME_TIMEZONES"
+    , "source_data" : {
+        "data_type" : "CSV"
+      , "file_name" : "Timezones.csv"
+      , "has_header" : true
+      }
+    , "import_settings" : {
+        "import_columns" : [
+          "COUNTRYCODE_ISO2"
+        , "TIMEZONENAME"
+        , "GMTOFFSET"
+        , "DSTOFFSET"
+        , "RAWOFFSET"
+        ]
+      , "include_filter" : []
+      }
+    , "column_mappings" : {
+        "COUNTRYCODE_ISO2"  : "ISO2"
+      , "TIMEZONENAME"      : "TimezoneName"
+      , "GMTOFFSET"         : "GMT_Offset"
+      , "DSTOFFSET"         : "DST_Offset"
+      , "RAWOFFSET"         : "RAW_Offset"
+      }
+    }
+  ]
+}

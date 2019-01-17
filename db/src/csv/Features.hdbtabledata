@@ -1,0 +1,50 @@
+{
+  "format_version": 1
+, "imports": [
+    {
+      "target_table": "ORG_GEONAMES_BASE_FEATURE_CLASSES"
+    , "source_data" : {
+        "data_type" : "CSV"
+      , "file_name" : "FeatureClasses.csv"
+      , "has_header" : true
+      }
+    , "import_settings" : {
+        "import_columns" : [
+          "FEATURECLASS"
+        , "DESCRIPTION"
+        ]
+      , "include_filter" : []
+      }
+    , "column_mappings" : {
+        "FEATURECLASS" : "FeatureClass"
+      , "DESCRIPTION"  : "Description"
+      }
+    }
+
+
+
+  , {
+      "target_table": "ORG_GEONAMES_BASE_FEATURE_CODES"
+    , "source_data" : {
+        "data_type" : "CSV"
+      , "file_name" : "FeatureCodes.csv"
+      , "has_header" : true
+      }
+    , "import_settings" : {
+        "import_columns" : [
+          "FEATURECODE"
+        , "FEATURECLASS_FEATURECLASS"
+        , "SHORTDESCRIPTION"
+        , "LONGDESCRIPTION"
+        ]
+      , "include_filter" : []
+      }
+    , "column_mappings" : {
+        "FEATURECODE"               : "FeatureCode"
+      , "FEATURECLASS_FEATURECLASS" : "FeatureClass"
+      , "SHORTDESCRIPTION"          : "ShortDescription"
+      , "LONGDESCRIPTION"           : "LongDescription"
+      }
+    }
+  ]
+}

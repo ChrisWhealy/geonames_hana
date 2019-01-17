@@ -1,0 +1,10 @@
+FeatureClass,Description
+A,"Area: Country, State, Province, Region..."
+H,"Hydrographic feature: Water body, Lake, River, Stream..."
+L,"Leisure: Parks, Designated or Reserved Area..."
+P,"Population centre: City, Town, Village..."
+R,"Roadway: Highway, Road, Street, Track, Railroad..."
+S,"Spot: Building, Farm, Business Location..."
+T,"Terrain feature: Mountain, Hill, Valley,..."
+U,"Undersea feature: Reef, Sandbank, Plateau..."
+V,"Vegetation feature: Forest, Meadow, Grassland, Heath..."

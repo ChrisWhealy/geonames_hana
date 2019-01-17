@@ -1,0 +1,669 @@
+FeatureClass,FeatureCode,ShortDescription,LongDescription
+A,ADM1,First-Order Administrative Division,"A primary administrative division of a country, such as a state in the United States"
+A,ADM1H,Historical First-Order Administrative Division,A former first-order administrative division
+A,ADM2,Second-Order Administrative Division,A subdivision of a first-order administrative division
+A,ADM2H,Historical Second-Order Administrative Division,A former second-order administrative division
+A,ADM3,Third-Order Administrative Division,A subdivision of a second-order administrative division
+A,ADM3H,Historical Third-Order Administrative Division,A former third-order administrative division
+A,ADM4,Fourth-Order Administrative Division,A subdivision of a third-order administrative division
+A,ADM4H,Historical Fourth-Order Administrative Division,A former fourth-order administrative division
+A,ADM5,Fifth-Order Administrative Division,A subdivision of a fourth-order administrative division
+A,ADMD,Administrative Division,"An administrative division of a country, undifferentiated as to administrative level"
+A,ADMDH,Historical Administrative Division,"A former administrative division of a political entity, undifferentiated as to administrative level"
+A,LTER,Leased Area,"A tract of land leased to another country, usually for military installations"
+A,PCL,Political Entity,
+A,PCLD,Dependent Political Entity,
+A,PCLF,Freely Associated State,
+A,PCLH,Historical Political Entity,A former political entity
+A,PCLI,Independent Political Entity,
+A,PCLIX,Section of Independent Political Entity,
+A,PCLS,Semi-Independent Political Entity,
+A,PRSH,Parish,An ecclesiastical district
+A,TERR,Territory,
+A,ZN,Zone,
+A,ZNB,Buffer Zone,A zone recognized as a buffer between two nations in which military presence is minimal or absent
+H,AIRS,Seaplane Landing Area,A place on a waterbody where floatplanes land and take off
+H,ANCH,Anchorage,An area where vessels may anchor
+H,BAY,Bay,"A coastal indentation between two capes or headlands, larger than a cove but smaller than a gulf"
+H,BAYS,Bays,"Coastal indentations between two capes or headlands, larger than a cove but smaller than a gulf"
+H,BGHT,Bight(s),An open body of water forming a slight recession in a coastline
+H,BNK,Bank(s),"An elevation, typically located on a shelf, over which the depth of water is relatively shallow but sufficient for most surface navigation"
+H,BNKR,Stream Bank,A sloping margin of a stream channel which normally confines the stream to its channel on land
+H,BNKX,Section of Bank,
+H,BOG,Bog(s),"A wetland characterized by peat forming sphagnum moss, sedge, and other acid-water plants"
+H,CAPG,Icecap,A dome-shaped mass of glacial ice covering an area of mountain summits or other high lands; smaller than an ice sheet
+H,CHN,Channel,"The deepest part of a stream, bay, lagoon or strait, through which the main current flows"
+H,CHNL,Lake Channel(s),"That part of a lake having water deep enough for navigation between islands, shoals, etc."
+H,CHNM,Marine Channel,That part of a body of water deep enough for navigation through an area otherwise not suitable
+H,CHNN,Navigation Channel,A buoyed channel of sufficient depth for the safe navigation of vessels
+H,CNFL,Confluence,A place where two or more streams or intermittent streams flow together
+H,CNL,Canal,An artificial watercourse
+H,CNLA,Aqueduct,A conduit used to carry water
+H,CNLB,Canal Bend,A conspicuously curved or bent section of a canal
+H,CNLD,Drainage Canal,An artificial waterway carrying water away from a wetland or from drainage ditches
+H,CNLI,Irrigation Canal,A canal which serves as a main conduit for irrigation water
+H,CNLN,Navigation Canal(s),A watercourse constructed for navigation of vessels
+H,CNLQ,Abandoned Canal,
+H,CNLSB,Underground Irrigation Canal(s),A gently inclined underground tunnel bringing water for irrigation from aquifers
+H,CNLX,Section of Canal,
+H,COVE,Cove(s),"A small coastal indentation, smaller than a bay"
+H,CRKT,Tidal Creek(s),A meandering channel in a coastal wetland subject to bi-directional tidal currents
+H,CRNT,Current,A horizontal flow of water in a given direction with uniform velocity
+H,CUTF,Cutoff,A channel formed as a result of a stream cutting through a meander neck
+H,DCK,Dock(s),"A waterway between two piers, or cut into the land for the berthing of ships"
+H,DCKB,Docking Basin,A part of a harbour where ships dock
+H,DOMG,Icecap Dome,A comparatively elevated area on an icecap
+H,DPRG,Icecap Depression,A comparatively depressed area on an icecap
+H,DTCH,Ditch,A small artificial watercourse dug for draining or irrigating the land
+H,DTCHD,Drainage Ditch,A ditch which serves to drain the land
+H,DTCHI,Irrigation Ditch,A ditch which serves to distribute irrigation water
+H,DTCHM,Ditch Mouth(s),"An area where a drainage ditch enters a lagoon, lake or bay"
+H,ESTY,Estuary,A funnel-shaped stream mouth or embayment where fresh water mixes with sea water under tidal influences
+H,FISH,Fishing Area,"A fishing ground, bank or area where fish are caught"
+H,FJD,Fjord,"A long, narrow, steep-walled, deep-water arm of the sea at high latitudes, usually along mountainous coasts"
+H,FJDS,Fjords,"Long, narrow, steep-walled, deep-water arms of the sea at high latitudes, usually along mountainous coasts"
+H,FLLS,Waterfall(s),A perpendicular or very steep descent of the water of a stream
+H,FLLSX,Section of Waterfall(s),
+H,FLTM,Mud Flat(s),"A relatively level area of mud either between high and low tide lines, or subject to flooding"
+H,FLTT,Tidal Flat(s),A large flat area of mud or sand attached to the shore and alternately covered and uncovered by the tide
+H,GLCR,Glacier(s),"A mass of ice, usually at high latitudes or high elevations with sufficient thickness to flow away from the source area in lobes, tongues, or masses"
+H,GULF,Gulf,"A large recess in the coastline, larger than a bay"
+H,GYSR,Geyser,A type of hot spring with intermittent eruptions of jets of hot water and steam
+H,HBR,Harbour(s),A haven or space of deep water so sheltered by the adjacent land as to afford a safe anchorage for ships
+H,HBRX,Section of Harbour,
+H,INLT,Inlet,"A narrow waterway extending into the land, or connecting a bay or lagoon with a larger body of water"
+H,INLTQ,Former Inlet,"An inlet which has been filled in, or blocked by deposits"
+H,LBED,Lake Bed(s),A dried up or drained area of a former lake
+H,LGN,Lagoon,"A shallow coastal waterbody, completely or partly separated from a larger body of water by a barrier island, coral reef or other depositional feature"
+H,LGNS,Lagoons,"Shallow coastal waterbodies, completely or partly separated from a larger body of water by a barrier island, coral reef or other depositional feature"
+H,LGNX,Section of Lagoon,
+H,LK,Lake,A large inland body of standing water
+H,LKC,Crater Lake,A lake in a crater or caldera
+H,LKI,Intermittent Lake,
+H,LKN,Salt Lake,An inland body of salt water with no outlet
+H,LKNI,Intermittent Salt Lake,
+H,LKO,Oxbow Lake,A crescent-shaped lake commonly found adjacent to meandering streams
+H,LKOI,Intermittent Oxbow Lake,
+H,LKS,Lakes,Large inland bodies of standing water
+H,LKSB,Underground Lake,A standing body of water in a cave
+H,LKSC,Crater Lakes,Lakes in a crater or caldera
+H,LKSI,Intermittent Lakes,
+H,LKSN,Salt Lakes,Inland bodies of salt water with no outlet
+H,LKSNI,Intermittent Salt Lakes,
+H,LKX,Section of Lake,
+H,MFGN,Salt Evaporation Ponds,Diked salt ponds used in the production of solar evaporated salt
+H,MGV,Mangrove Swamp,A tropical tidal mud flat characterized by mangrove vegetation
+H,MOOR,Moor(s),An area of open ground overlaid with wet peaty soils
+H,MRSH,Marsh(es),A wetland dominated by grass-like vegetation
+H,MRSHN,Salt Marsh,"A flat area, subject to periodic salt water inundation, dominated by grassy salt-tolerant plants"
+H,NRWS,Narrows,"A navigable narrow part of a bay, strait, river, etc."
+H,OCN,Ocean,One of the major divisions of the vast expanse of salt water covering part of the earth
+H,OVF,Overfalls,An area of breaking waves caused by the meeting of currents or by waves moving against the current
+H,PND,Pond,A small standing waterbody
+H,PNDI,Intermittent Pond,
+H,PNDN,Salt Pond,"A small standing body of salt water often in a marsh or swamp, usually along a seacoast"
+H,PNDNI,Intermittent Salt Pond(s),
+H,PNDS,Ponds,Small standing waterbodies
+H,PNDSF,Fishponds,Ponds or enclosures in which fish are kept or raised
+H,PNDSI,Intermittent Ponds,
+H,PNDSN,Salt Ponds,"Small standing bodies of salt water often in a marsh or swamp, usually along a seacoast"
+H,POOL,Pool(s),"A small and comparatively still, deep part of a larger body of water such as a stream or harbour; or a small body of standing water"
+H,POOLI,Intermittent Pool,
+H,RCH,Reach,A straight section of a navigable stream or channel between two bends
+H,RDGG,Icecap Ridge,A linear elevation on an icecap
+H,RDST,Roadstead,An open anchorage affording less protection than a harbour
+H,RF,Reef(s),A surface-navigation hazard composed of consolidated material
+H,RFC,Coral Reef(s),A surface-navigation hazard composed of coral
+H,RFX,Section of Reef,
+H,RPDS,Rapids,"A turbulent section of a stream associated with a steep, irregular stream bed"
+H,RSV,Reservoir(s),An artificial pond or lake
+H,RSVI,Intermittent Reservoir,
+H,RSVT,Water Tank,"A contained pool or tank of water at, below or above ground level"
+H,RVN,Ravine(s),"A small, narrow, deep, steep-sided stream channel, smaller than a gorge"
+H,SBKH,Sabkha(s),A salt flat or salt encrusted plain subject to periodic inundation from flooding or high tides
+H,SD,Sound,A long arm of the sea forming a channel between the mainland and an island or islands; or connecting two larger bodies of water
+H,SEA,Sea,A large body of salt water more or less confined by continuous land or chains of islands forming a subdivision of an ocean
+H,SHOL,Shoal(s),A surface-navigation hazard composed of unconsolidated material
+H,SILL,Sill,"The low part of an underwater gap or saddle separating basins, including a similar feature at the mouth of a fjord"
+H,SPNG,Spring(s),A place where ground water flows naturally out of the ground
+H,SPNS,Sulphur Spring(s),A place where sulphur ground water flows naturally out of the ground
+H,SPNT,Hot Spring(s),A place where hot ground water flows naturally out of the ground
+H,STM,Stream,A body of running water moving to a lower level in a channel on land
+H,STMA,Anabranch,A diverging branch flowing out of a main stream and rejoining it downstream
+H,STMB,Stream Bend,A conspicuously curved or bent segment of a stream
+H,STMC,Canalized Stream,"A stream that has been substantially ditched, diked, or straightened"
+H,STMD,Distributary(-ies),"A branch which flows away from the main stream as in a delta or irrigation canal"
+H,STMH,Headwaters,"The source and upper part of a stream, including the upper drainage basin"
+H,STMI,Intermittent Stream,
+H,STMIX,Section of Intermittent Stream,
+H,STMM,Stream Mouth(s),"A place where a stream discharges into a lagoon, lake or the sea"
+H,STMQ,Abandoned Watercourse,"A former stream or distributary no longer carrying flowing water, but still evident due to lakes, wetland, topographic or vegetation patterns"
+H,STMS,Streams,Bodies of running water moving to a lower level in a channel on land
+H,STMSB,Lost River,"A surface stream that disappears into an underground channel or dries up in an arid area"
+H,STMX,Section of Stream,
+H,STRT,Strait,"A relatively narrow waterway, usually narrower and less extensive than a sound, connecting two larger bodies of water"
+H,SWMP,Swamp,A wetland dominated by tree vegetation
+H,SYSI,Irrigation System,"A network of ditches and one or more of the following elements: water supply, reservoir, canal, pump, well, drain etc."
+H,TNLC,Canal Tunnel,A tunnel through which a canal passes
+H,WAD,Wadi,"A valley or ravine bounded by relatively steep banks which, in the rainy season, becomes a watercourse.  Found primarily in North Africa and the Middle East"
+H,WADB,Wadi Bend,A conspicuously curved or bent segment of a wadi
+H,WADJ,Wadi Junction,A place where two or more wadies join
+H,WADM,Wadi Mouth,"The lower terminus of a wadi where it widens into an adjoining floodplain, depression or waterbody"
+H,WADS,Wadies,"Valleys or ravines, bounded by relatively steep banks which, in the rainy season, become watercourses.  Found primarily in North Africa and the Middle East"
+H,WADX,Section of Wadi,
+H,WHRL,Whirlpool,"A turbulent, rotating movement of water in a stream"
+H,WLL,Well,"A cylindrical hole, pit or tunnel drilled or dug down to a depth from which water, oil or gas can be pumped or brought to the surface"
+H,WLLQ,Abandoned Well,
+H,WLLS,Wells,"Cylindrical holes, pits or tunnels drilled or dug down to a depth from which water, oil or gas can be pumped or brought to the surface"
+H,WTLD,Wetland,"An area subject to inundation, usually characterized by bog, marsh or swamp vegetation"
+H,WTLDI,Intermittent Wetland,
+H,WTRC,Watercourse,"A natural, well-defined channel produced by flowing water or an artificial channel designed to carry flowing water"
+H,WTRH,Waterhole(s),"A natural hole, hollow or small depression that contains water.  Used by man and animals, especially in arid areas"
+L,AGRC,Agricultural Colony,A tract of land set aside for agricultural settlement
+L,AMUS,Amusement Park,"Theme or adventure parks offering entertainment similar to funfairs, but with a fixed location"
+L,AREA,Area,A tract of land without homogeneous character or boundaries
+L,BSND,Drainage Basin,An area drained by a stream
+L,BSNP,Petroleum Basin,An area underlain by an oil-rich structural basin
+L,BTL,Battlefield,A site of a land battle of historical importance
+L,CLG,Clearing,An area in a forest with trees removed
+L,CMN,Common,A park or pasture for community use
+L,CNS,Concession Area,A lease of land by a government for economic development.  E.G. Mining or Forestry
+L,COLF,Coalfield,A region in which coal deposits of possible economic value occur
+L,CONT,Continent,"Continent: Europe, Africa, Asia, North America, South America, Oceania, Antarctica"
+L,CST,Coast,A zone of variable width straddling the shoreline
+L,CTRB,Business Centre,A place where a number of businesses are located
+L,DEVH,Housing Development,A tract of land on which many houses of similar design are built according to a development plan
+L,FLD,Field(s),An open as opposed to wooded area
+L,FLDI,Irrigated Field(s),A tract of level or terraced land which is irrigated
+L,GASF,Gasfield,An area containing a subterranean store of natural gas of economic value
+L,GRAZ,Grazing Area,An area of grasses and shrubs used for grazing
+L,GVL,Gravel Area,An area covered with gravel
+L,INDS,Industrial Area,An area characterized by industrial activity
+L,LAND,Arctic Land,A tract of land in the Arctic
+L,LCTY,Locality,A minor area or place of unspecified or mixed character and indefinite boundaries
+L,MILB,Military Base,"A place used by an army or other armed service for storing arms and supplies, and for accommodating and training troops, or a base from which operations can be initiated"
+L,MNA,Mining Area,An area of mine sites where minerals and ores are extracted
+L,MVA,Manoeuvre Area,A tract of land where military field exercises are carried out
+L,NVB,Naval Base,"An area used to store supplies, provide barracks for troops and naval personnel.  A port for naval vessels and from which operations are initiated"
+L,OAS,Oasis(-es),An area in a desert made productive by the availability of water
+L,OILF,Oilfield,An area containing a subterranean store of petroleum of economic value
+L,PEAT,Peat Cutting Area,An area where peat is harvested
+L,PRK,Park,"An area, often of forested land, maintained as a place of beauty or for recreation"
+L,PRT,Port,"A place provided with terminal and transfer facilities for loading and discharging waterborne cargo or passengers, usually located in a harbour"
+L,QCKS,Quicksand,"An area where loose sand with water moving through it may become unstable when heavy objects are placed at the surface, causing them to sink"
+L,RES,Reserve,A tract of public land reserved for future use or restricted as to use
+L,RESA,Agricultural Reserve,A tract of land reserved for agricultural reclamation and/or development
+L,RESF,Forest Reserve,A forested area set aside for preservation or controlled use
+L,RESH,Hunting Reserve,A tract of land used primarily for hunting
+L,RESN,Nature Reserve,An area reserved for the maintenance of a natural habitat
+L,RESP,Palm Tree Reserve,An area of palm trees where use is controlled
+L,RESV,Reservation,"A tract of land set aside for aboriginal, tribal or native populations"
+L,RESW,Wildlife Reserve,A tract of public land reserved for the preservation of wildlife
+L,RGN,Region,An area distinguished by one or more observable physical or cultural characteristics
+L,RGNE,Economic Region,A region of a country established for economic development or for statistical purposes
+L,RGNH,Historical Region,A former historic area distinguished by one or more observable physical or cultural characteristics
+L,RGNL,Lake Region,A tract of land distinguished by numerous lakes
+L,RNGA,Artillery Range,A tract of land used for artillery firing practice
+L,SALT,Salt Area,A shallow basin or flat where salt accumulates after periodic inundation
+L,SNOW,Snowfield,An area of permanent snow and ice forming the accumulation area of a glacier
+L,TRB,Tribal Area,A tract of land used by nomadic or other tribes
+P,PPL,Populated Place,"A city, town, village or other agglomeration of buildings where people live and work"
+P,PPLA,Seat of a First-Order Administrative Division,Seat of a first-order administrative division (PPLC takes precedence over PPLA)
+P,PPLA2,Seat of a Second-Order Administrative Division,
+P,PPLA3,Seat of a Third-Order Administrative Division,
+P,PPLA4,Seat of a Fourth-Order Administrative Division,
+P,PPLC,Capital of a Political Entity,
+P,PPLCH,Historical Capital of a Political Entity,A former capital of a political entity
+P,PPLF,Farm Village,A populated place where the population is largely engaged in agricultural activities
+P,PPLG,Seat of Government of a Political Entity,
+P,PPLH,Historical Populated Place,A populated place that no longer exists
+P,PPLL,Populated Locality,An area similar to a locality but with a small group of dwellings or other buildings
+P,PPLQ,Abandoned Populated Place,
+P,PPLR,Religious Populated Place,A populated place whose population is largely engaged in religious occupations
+P,PPLS,Populated Places,"Cities, towns, villages or other agglomerations of buildings where people live and work"
+P,PPLW,Destroyed Populated Place,"A village, town or city destroyed by a natural disaster or by war"
+P,PPLX,Section of Populated Place,
+P,STLMT,Israeli Settlement,
+R,CSWY,Causeway,A raised roadway across wet ground or shallow water
+R,OILP,Oil Pipeline,A pipeline used for transporting oil
+R,PRMN,Promenade,"A place for public walking, usually along a beach front"
+R,PTGE,Portage,"A place where boats or goods, etc. are carried overland between navigable waters"
+R,RD,Road,"An open way with improved surface for transportation of animals, people and vehicles"
+R,RDA,Ancient Road,The remains of a road used by ancient cultures
+R,RDB,Road Bend,A conspicuously curved or bent section of a road
+R,RDCUT,Road Cut,An excavation cut through a hill or ridge for a road
+R,RDJCT,Road Junction,A place where two or more roads join
+R,RJCT,Railroad Junction,A place where two or more railroad tracks join
+R,RR,Railroad,A permanent twin steel-rail track on which freight and passenger cars move long distances
+R,RRQ,Abandoned Railroad,
+R,RTE,Caravan Route,The route taken by caravans
+R,RYD,Railroad Yard,"A system of tracks used for the making up of trains, and switching and storing freight cars"
+R,ST,Street,A paved urban thoroughfare
+R,STKR,Stock Route,A route taken by livestock herds
+R,TNL,Tunnel,A subterranean passageway for transportation
+R,TNLN,Natural Tunnel,A cave that is open at both ends
+R,TNLRD,Road Tunnel,A tunnel through which a road passes
+R,TNLRR,Railroad Tunnel,A tunnel through which a railroad passes
+R,TNLS,Tunnels,Subterranean passageways for transportation
+R,TRL,Trail,"A path, track or route used by pedestrians, animals or off-road vehicles"
+S,ADMF,Administrative Facility,A government building
+S,AGRF,Agricultural Facility,A building and/or tract of land used for improving agriculture
+S,AIRB,Airbase,"An area used to store supplies, provide barracks for air force personnel, hangars and runways for aircraft, and from which operations are initiated"
+S,AIRF,Airfield,A place on land where aircraft land and take off; no facilities provided for the commercial handling of passengers and cargo
+S,AIRH,Heliport,A place where helicopters land and take off
+S,AIRP,Airport,"A place where aircraft regularly land and take off, with runways, navigational aids, and major facilities for the commercial handling of passengers and cargo"
+S,AIRQ,Abandoned Airfield,
+S,AMTH,Amphitheatre,An oval or circular structure with rising tiers of seats about a stage or open space
+S,ANS,Ancient Site,"A place where archaeological remains, old structures or cultural artefacts are located"
+S,AQC,Aquaculture Facility,"Facility or area for the cultivation of aquatic animals and plants, especially fish, shellfish and seaweed, in natural or controlled marine or freshwater environments; underwater agriculture"
+S,ARCH,Arch,A natural or man-made structure in the form of an arch
+S,ASTR,Astronomical Station,A point on the earth whose position has been determined by observations of celestial bodies
+S,ASYL,Asylum,A facility where the insane are cared for and protected
+S,ATHF,Athletic Field,"A tract of land used for playing team sports, and athletic track and field events"
+S,ATM,Automatic Teller Machine,"An unattended electronic machine in a public place, connected to a data system and related equipment and activated by a bank customer to obtain cash withdrawals and other banking services."
+S,BANK,Bank,"A business establishment in which money is kept for saving or commercial purposes or is invested, supplied for loans or exchanged."
+S,BCN,Beacon,A fixed artificial navigation mark
+S,BDG,Bridge,"A structure erected across an obstacle such as a river, road, etc. in order to carry roads, railroads and pedestrians across"
+S,BDGQ,Ruined Bridge,A destroyed or decayed bridge which is no longer functional
+S,BLDG,Building(s),"A structure built for permanent use, as a house, factory, etc."
+S,BLDO,Office Building,Commercial building where business and/or services are conducted
+S,BP,Boundary Marker,A fixture marking a point along a boundary
+S,BRKS,Barracks,A building for lodging military personnel
+S,BRKW,Breakwater,A structure erected to break the force of waves at the entrance to a harbour or port
+S,BSTN,Baling Station,A facility for baling agricultural products
+S,BTYD,Boatyard,"A waterside facility for servicing, repairing and building small vessels"
+S,BUR,Burial Cave(s),A cave used for human burials
+S,BUSTN,Bus Station,"A facility comprising ticket office, platforms, etc. For loading and unloading passengers"
+S,BUSTP,Bus Stop,A place lacking station facilities
+S,CARN,Cairn,A heap of stones erected as a landmark or for other purposes
+S,CAVE,Cave(s),"An underground passageway, chamber or cavity on the side of a cliff"
+S,CH,Church,A building for public Christian worship
+S,CMP,Camp(s),"A site occupied by tents, huts or other shelters for temporary use"
+S,CMPL,Logging Camp,A camp used by loggers
+S,CMPLA,Labour Camp,A camp used by migrant or temporary labourers
+S,CMPMN,Mining Camp,A camp used by miners
+S,CMPO,Oil Camp,A camp used by oilfield workers
+S,CMPQ,Abandoned Camp,
+S,CMPRF,Refugee Camp,A camp used by refugees
+S,CMTY,Cemetery,A burial place or ground
+S,COMC,Communication Centre,"A facility, including buildings, antennae, towers and electronic equipment for receiving and transmitting information"
+S,CRRL,Corral(s),A pen or enclosure for confining or capturing animals
+S,CSNO,Casino,A building used for gambling
+S,CSTL,Castle,A large fortified building or set of buildings
+S,CSTM,Customs House,"A building in a port where customs and duties are paid, and where vessels are entered and cleared"
+S,CTHSE,Courthouse,A building in which courts of law are held
+S,CTRA,Atomic Centre,A facility where atomic research is carried out
+S,CTRCM,Community Centre,A facility for community recreation and other activities
+S,CTRF,Facility Centre,A place where more than one facility is situated
+S,CTRM,Medical Centre,"A complex of health care buildings including two or more of the following: hospital, medical school, clinic, pharmacy, doctor's offices, etc."
+S,CTRR,Religious Centre,"A facility where more than one religious activity is carried out.  E.G. Retreat, school, monastery, worship"
+S,CTRS,Space Centre,"A facility for launching, tracking or controlling satellites and space vehicles"
+S,CVNT,Convent,A building where a community of Nuns lives in seclusion
+S,DAM,Dam,A barrier constructed across a stream to impound water
+S,DAMQ,Ruined Dam,A destroyed or decayed dam which is no longer functional
+S,DAMSB,Sub-Surface Dam,A dam put down to bedrock in a sand river
+S,DARY,Dairy,"A facility for the processing, sale and distribution of milk or milk products"
+S,DCKD,Dry Dock,"A dock providing support for a vessel, and a means of removing the water in order to expose the vessel’s hull"
+S,DCKY,Dockyard,"A facility for servicing, building or repairing ships"
+S,DIKE,Dike,An earth or stone embankment usually constructed for flood or stream control
+S,DIP,Diplomatic Facility,"Office, residence or facility of a foreign government, which may include an Embassy, Consulate, Chancery, Office of Charge d'Affaires or other diplomatic, economic, military or cultural mission"
+S,DPOF,Fuel Depot,An area where fuel is stored
+S,EST,Estate(s),A large commercialized agricultural landholding with associated buildings and other facilities
+S,ESTO,Oil Palm Plantation,An estate specializing in the cultivation of oil palm trees
+S,ESTR,Rubber Plantation,An estate which specializes in growing and tapping rubber trees
+S,ESTSG,Sugar Plantation,An estate that specializes in growing sugar cane
+S,ESTT,Tea Plantation,An estate which specializes in growing tea bushes
+S,ESTX,Section of Estate,
+S,FCL,Facility,"A building or buildings housing a centre, institute, foundation, hospital, prison, mission or courthouse, etc."
+S,FNDY,Foundry,A building or works where metal casting is carried out
+S,FRM,Farm,A tract of land with associated buildings devoted to agriculture
+S,FRMQ,Abandoned Farm,
+S,FRMS,Farms,Tracts of land with associated buildings devoted to agriculture
+S,FRMT,Farmstead,The buildings and adjacent service areas of a farm
+S,FT,Fort,A defensive structure or earthworks
+S,FY,Ferry,A boat or other floating conveyance and terminal facilities regularly used to transport people and vehicles across a waterbody
+S,GATE,Gate,A controlled access entrance or exit
+S,GDN,Garden(s),An enclosure for displaying selected plant or animal life
+S,GHAT,Ghat,"A set of steps leading to a river, which are of religious significance, and at their base is usually a platform for bathing"
+S,GHSE,Guest House,A house used to provide lodging for paying guests
+S,GOSP,Gas-Oil Separator Plant,A facility for separating gas from oil
+S,GOVL,Local Government Office,"A facility housing local governmental offices, usually in a city, town or village hall"
+S,GRVE,Grave,A burial site
+S,HERM,Hermitage,"A secluded residence, usually for religious sects"
+S,HLT,Halting Place,A place where caravans stop for rest
+S,HMSD,Homestead,"A residence, owner's or manager's on a sheep or cattle station, woolshed, outcamp or aboriginal outstation.  Specific to Australia and New Zealand"
+S,HSE,House(s),A building used as a human habitation
+S,HSEC,Country House,"A large house, mansion or chateau on a large estate"
+S,HSP,Hospital,"A building in which sick or injured people, especially those confined to bed, receive medical treatment"
+S,HSPC,Clinic,A medical facility associated with a hospital for outpatients
+S,HSPD,Dispensary,A building where medical or dental aid is dispensed
+S,HSPL,Leprosarium,An asylum or hospital for lepers
+S,HSTS,Historical Site,A place of historical importance
+S,HTL,Hotel,A building providing lodging and/or meals for the public
+S,HUT,Hut,A small primitive house
+S,HUTS,Huts,Small primitive houses
+S,INSM,Military Installation,A facility for use of and control by armed forces
+S,ITTR,Research Institute,A facility where research is carried out
+S,JTY,Jetty,A structure built out into the water at a river mouth or harbour entrance to regulate currents and silting
+S,LDNG,Landing,"A place where boats receive or discharge passengers and freight, but lacking most port facilities"
+S,LEPC,Leper Colony,"A settled area, in relative isolation, inhabited by people suffering from leprosy"
+S,LIBR,Library,"A place in which information resources such as books are kept for reading, reference or lending."
+S,LNDF,Landfill,A place for trash and garbage disposal in which the waste is buried between layers of earth to build up low-lying land
+S,LOCK,Lock(s),A basin in a waterway with gates at each end by means of which vessels are passed from one water level to another
+S,LTHSE,Lighthouse,A distinctive structure exhibiting a major navigation light
+S,MALL,Mall,"A large, often enclosed shopping complex containing various stores, businesses and restaurants usually accessible by common passageways."
+S,MAR,Marina,"A harbour facility for small boats, yachts, etc."
+S,MFG,Factory,"One or more buildings where goods are manufactured, processed or fabricated"
+S,MFGB,Brewery,One or more buildings where beer is brewed
+S,MFGC,Cannery,A building where food items are canned
+S,MFGCU,Copper Works,A facility for processing copper ore
+S,MFGLM,Limekiln,A furnace in which limestone is reduced to lime
+S,MFGM,Munitions Plant,A factory where ammunition is made
+S,MFGPH,Phosphate Works,A facility for producing fertilizer
+S,MFGQ,Abandoned Factory,
+S,MFGSG,Sugar Refinery,A facility for converting raw sugar into refined sugar
+S,MKT,Market,A place where goods are bought and sold at regular intervals
+S,ML,Mill(s),"A building housing machines for transforming, shaping, finishing, grinding or extracting products"
+S,MLM,Ore Treatment Plant,A facility for improving the metal content of ore by concentration
+S,MLO,Olive Oil Mill,A mill where oil is extracted from olives
+S,MLSG,Sugar Mill,A facility where sugar cane is processed into raw sugar
+S,MLSGQ,Former Sugar Mill,A sugar mill no longer used as a sugar mill
+S,MLSW,Sawmill,A mill where logs or lumber are sawn to specified shapes and sizes
+S,MLWND,Windmill,A mill or water pump powered by wind
+S,MLWTR,Water Mill,A mill powered by running water
+S,MN,Mine(s),A site where mineral ores are extracted from the ground by excavating surface pits and subterranean passages
+S,MNAU,Gold Mine(s),A mine where gold ore or alluvial gold is extracted
+S,MNC,Coal Mine(s),A mine where coal is extracted
+S,MNCR,Chrome Mine(s),A mine where chrome ore is extracted
+S,MNCU,Copper Mine(s),A mine where copper ore is extracted
+S,MNFE,Iron Mine(s),A mine where iron ore is extracted
+S,MNMT,Monument,A commemorative structure or statue
+S,MNN,Salt Mine(s),A mine from which salt is extracted
+S,MNQ,Abandoned Mine,
+S,MNQR,Quarry(-ies),"A surface mine where building stone or gravel and sand, etc. are extracted"
+S,MOLE,Mole,A massive structure of masonry or large stones serving as a pier or breakwater
+S,MSQE,Mosque,A building for public Islamic worship
+S,MSSN,Mission,"A place characterized by dwellings, school, church, hospital and other facilities operated by a religious group for the purpose of providing charitable services and to propagate religion"
+S,MSSNQ,Abandoned Mission,
+S,MSTY,Monastery,A building and grounds where a community of Monks lives in seclusion
+S,MTRO,Metro Station,"Metro station (Underground, Tube or Metro)"
+S,MUS,Museum,A building where objects of permanent interest in one or more of the arts and sciences are preserved and exhibited
+S,NOV,Novitiate,A religious house or school where novices are trained
+S,NSY,Nursery(-ies),A place where plants are propagated for transplanting or grafting
+S,OBPT,Observation Point,A wildlife or scenic observation point
+S,OBS,Observatory,A facility equipped for observation of atmospheric or space phenomena
+S,OBSR,Radio Observatory,A facility equipped with an array of antennae for receiving radio waves from space
+S,OILJ,Oil Pipeline Junction,A section of an oil pipeline where two or more pipes join together
+S,OILQ,Abandoned Oil Well,
+S,OILR,Oil Refinery,A facility for converting crude oil into refined petroleum products
+S,OILT,Tank Farm,"A tract of land occupied by large, cylindrical, metal tanks in which oil or liquid petrochemicals are stored"
+S,OILW,Oil Well,A well from which oil may be pumped
+S,OPRA,Opera House,A theatre designed chiefly for the performance of operas.
+S,PAL,Palace,"A large stately house, often a royal or presidential residence"
+S,PGDA,Pagoda,"A tower-like storied structure, usually a Buddhist shrine"
+S,PIER,Pier,A structure built out into navigable water on piles providing berthing for ships and recreation
+S,PKLT,Parking Lot,An area used for parking vehicles
+S,PMPO,Oil Pumping Station,A facility for pumping oil through a pipeline
+S,PMPW,Water Pumping Station,A facility for pumping water from a major well or through a pipeline
+S,PO,Post Office,"A public building in which mail is received, sorted and distributed"
+S,PP,Police Post,A building in which police are stationed
+S,PPQ,Abandoned Police Post,
+S,PRKGT,Park Gate,A controlled access to a park
+S,PRKHQ,Park Headquarters,A park administrative facility
+S,PRN,Prison,A facility for confining prisoners
+S,PRNJ,Reformatory,"A facility for confining, training and reforming young law offenders"
+S,PRNQ,Abandoned Prison,
+S,PS,Power Station,A facility for generating electric power
+S,PSH,Hydroelectric Power Station,A building where electricity is generated from water power
+S,PSTB,Border Post,A post or station at an international boundary for the regulation of movement of people and goods
+S,PSTC,Customs Post,A building at an international boundary where customs and duties are paid on goods
+S,PSTP,Patrol Post,A post from which patrols are sent out
+S,PYR,Pyramid,An ancient massive structure of square ground plan with four triangular faces meeting at a point and used for enclosing tombs
+S,PYRS,Pyramids,Ancient massive structures of square ground plan with four triangular faces meeting at a point and used for enclosing tombs
+S,QUAY,Quay,A structure of solid construction along a shore or bank which provides berthing for ships and which generally provides cargo handling facilities
+S,RDCR,Traffic Circle,A road junction formed around a central circle about which traffic moves in one direction only
+S,RECG,Golf Course,A recreation field where golf is played
+S,RECR,Racetrack,A track where races are held
+S,REST,Restaurant,A place where meals are served to the public
+S,RET,Store,A building where goods and/or services are offered for sale
+S,RHSE,Resthouse,A structure maintained for the rest and shelter of travellers
+S,RKRY,Rookery,A breeding place of a colony of birds or seals
+S,RLG,Religious Site,An ancient site of significant religious importance
+S,RLGR,Retreat,"A place of temporary seclusion, especially for religious groups"
+S,RNCH,Ranch(es),A large farm specializing in extensive grazing of livestock
+S,RSD,Railroad Siding,A short track parallel to and joining the main track
+S,RSGNL,Railroad Signal,A signal at the entrance of a particular section of track governing the movement of trains
+S,RSRT,Resort,"A specialized facility for vacation, health or participation sports activities"
+S,RSTN,Railroad Station,"A facility comprising ticket office, platforms, etc. For loading and unloading train passengers and freight"
+S,RSTNQ,Abandoned Railroad Station,
+S,RSTP,Railroad Stop,A place lacking station facilities where trains stop to pick up and unload passengers and freight
+S,RSTPQ,Abandoned Railroad Stop,
+S,RUIN,Ruin(s),A destroyed or decayed structure which is no longer functional
+S,SCH,School,Building(s) where instruction in one or more branches of knowledge takes place
+S,SCHA,Agricultural School,A school with a curriculum focused on agriculture
+S,SCHC,College,The grounds and buildings of an institution of higher learning
+S,SCHL,Language School,Language schools & institutions
+S,SCHM,Military School,A school at which military science forms the core of the curriculum
+S,SCHN,Maritime School,A school at which maritime sciences form the core of the curriculum
+S,SCHT,Technical School,Post-secondary school with a specifically technical or vocational curriculum
+S,SECP,State Exam Prep Centre,State exam preparation centres
+S,SHPF,Sheepfold,A fence or wall enclosure for sheep and other small herd animals
+S,SHRN,Shrine,A structure or place memorializing a person or religious concept
+S,SHSE,Storehouse,"A building for storing goods, especially provisions"
+S,SLCE,Sluice,"A conduit or passage for carrying off surplus water from a waterbody, usually regulated by means of a sluice gate"
+S,SNTR,Sanatorium,A facility where victims of physical or mental disorders are treated
+S,SPA,Spa,A resort area usually developed around a medicinal spring
+S,SPLY,Spillway,"A passage or outlet through which surplus water flows over, around or through a dam"
+S,SQR,Square,"A broad, open, public area near the centre of a town or city"
+S,STBL,Stable,"A building for the shelter and feeding of farm animals, especially horses"
+S,STDM,Stadium,A structure with an enclosure for athletic games with tiers of seats for spectators
+S,STNB,Scientific Research Base,A scientific facility used as a base from which research is carried out or monitored
+S,STNC,Coast Guard Station,A facility from which the coast is guarded by armed vessels
+S,STNE,Experiment Station,A facility for carrying out experiments
+S,STNF,Forest Station,A collection of buildings and facilities for carrying out forest management
+S,STNI,Inspection Station,"A station at which vehicles, goods and people are inspected"
+S,STNM,Meteorological Station,A station at which weather elements are recorded
+S,STNR,Radio Station,A facility for producing and transmitting information by radio waves
+S,STNS,Satellite Station,A facility for tracking and communicating with orbiting satellites
+S,STNW,Whaling Station,A facility for butchering and processing whales
+S,STPS,Steps,Stones or slabs placed for ease in ascending or descending a steep slope
+S,SWT,Sewage Treatment Plant,Facility for the processing of sewage and/or wastewater
+S,THTR,Theatre,"A building, room or outdoor structure for the presentation of plays, films or other dramatic performances"
+S,TMB,Tomb(s),A structure for interring bodies
+S,TMPL,Temple(s),An edifice dedicated to religious worship
+S,TNKD,Cattle Dipping Tank,A small artificial pond used for immersing cattle in chemically treated water for disease control
+S,TOWR,Tower,"A high conspicuous structure, typically much higher than its diameter"
+S,TRANT,Transit Terminal,Facilities for the handling of vehicular freight and passengers
+S,TRIG,Triangulation Station,A point on the earth whose position has been determined by triangulation
+S,TRMO,Oil Pipeline Terminal,A tank farm or loading facility at the end of an oil pipeline
+S,TWO,Temp Work Office,Temporary work offices
+S,UNIP,University Prep School,University preparation schools & institutions
+S,UNIV,University,An institution for higher learning with teaching and research facilities constituting a graduate school and professional schools that award master's degrees and doctorates and an undergraduate division that awards bachelor's degrees.
+S,USGE,United States Government Establishment,A facility operated by the United States Government in Panama
+S,VETF,Veterinary Facility,A building or camp at which veterinary services are available
+S,WALL,Wall,"A thick masonry structure, usually enclosing a field or building, or forming the side of a structure"
+S,WALLA,Ancient Wall,The remains of a linear defensive stone structure
+S,WEIR,Weir(s),"A small dam in a stream, designed to raise the water level or to divert stream flow through a desired channel"
+S,WHRF,Wharf(-ves),A structure of open rather than solid construction along a shore or a bank which provides berthing for ships and cargo-handling facilities
+S,WRCK,Wreck,The site of the remains of a wrecked vessel
+S,WTRW,Waterworks,A facility for supplying potable water through a water source and a system of pumps and filtration beds
+S,ZNF,Free Trade Zone,"An area, usually a section of a port, where goods may be received and shipped free of customs duty and of most customs regulations"
+S,ZOO,Zoo,A zoological garden or park where wild animals are kept for exhibition
+T,ASPH,Asphalt Lake,A small basin containing naturally occurring asphalt
+T,ATOL,Atoll(s),A ring-shaped coral reef which has closely spaced islands on it encircling a lagoon
+T,BAR,Bar,"A shallow ridge or mound of coarse unconsolidated material in a stream channel, at the mouth of a stream, estuary or lagoon and in the wave-break zone along coasts"
+T,BCH,Beach,A shore zone of coarse unconsolidated sediment that extends from the low-water line to the highest reach of storm waves
+T,BCHS,Beaches,A shore zone of coarse unconsolidated sediment that extends from the low-water line to the highest reach of storm waves
+T,BDLD,Badlands,"An area characterized by a maze of very closely spaced, deep, narrow, steep-sided ravines and sharp crests and pinnacles"
+T,BLDR,Boulder Field,"A high altitude or high latitude bare, flat area covered with large angular rocks"
+T,BLHL,Blowhole(s),A hole in coastal rock through which sea water is forced by a rising tide or waves and spurted through an outlet into the air
+T,BLOW,Blowout(s),"A small depression in sandy terrain, caused by wind erosion"
+T,BNCH,Bench,"A long, narrow bedrock platform bounded by steeper slopes above and below, usually overlooking a waterbody"
+T,BUTE,Butte(s),"A small, isolated, usually flat-topped hill with steep sides"
+T,CAPE,Cape,"A land area, more prominent than a point, projecting into the sea and marking a notable change in coastal direction"
+T,CFT,Cleft(s),"A deep narrow slot, notch or groove in a coastal cliff"
+T,CLDA,Caldera,A depression measuring kilometres across formed by the collapse of a volcanic mountain
+T,CLF,Cliff(s),"A high, steep to perpendicular slope overlooking a waterbody or lower area"
+T,CNYN,Canyon,"A deep, narrow valley with steep sides cutting into a plateau or mountainous area"
+T,CONE,Cone(s),A conical landform composed of mud or volcanic material
+T,CRDR,Corridor,A strip or area of land having significance as an access way
+T,CRQ,Cirque,A bowl-like hollow partially surrounded by cliffs or steep slopes at the head of a glaciated valley
+T,CRQS,Cirques,Bowl-like hollows partially surrounded by cliffs or steep slopes at the head of a glaciated valley
+T,CRTR,Crater(s),A generally circular saucer or bowl-shaped depression caused by volcanic or meteorite explosive action
+T,CUET,Cuesta(s),An asymmetric ridge formed on tilted strata
+T,DLTA,Delta,A flat plain formed by alluvial deposits at the mouth of a stream
+T,DPR,Depression(s),A low area surrounded by higher land and usually characterized by interior drainage
+T,DSRT,Desert,A large area with little or no vegetation due to extreme environmental conditions
+T,DUNE,Dune(s),"A wave form, ridge or star shape feature composed of sand"
+T,DVD,Divide,A line separating adjacent drainage basins
+T,ERG,Sandy Desert,An extensive tract of shifting sand and sand dunes
+T,FAN,Fan(s),A fan-shaped wedge of coarse alluvium with apex merging with a mountain stream bed and the fan spreading out at a low angle slope onto an adjacent plain
+T,FORD,Ford,A shallow part of a stream which can be crossed on foot or by land vehicle
+T,FSR,Fissure,A crack associated with volcanism
+T,GAP,Gap,"A low place in a ridge, not used for transportation"
+T,GRGE,Gorge(s),"A short, narrow, steep-sided section of a stream valley"
+T,HDLD,Headland,A high projection of land extending into a large body of water beyond the line of the coast
+T,HLL,Hill,A rounded elevation of limited extent rising above the surrounding land with local relief of less than 300m
+T,HLLS,Hills,Rounded elevations of limited extent rising above the surrounding land with local relief of less than 300m
+T,HMCK,Hammock(s),"A patch of ground, distinct from and slightly above the surrounding plain or wetland. Often occurs in groups"
+T,HMDA,Rock Desert,"A relatively sand-free, high bedrock plateau in a hot desert, with or without a gravel veneer"
+T,INTF,Interfluve,A relatively undissected upland between adjacent stream valleys
+T,ISL,Island,"A tract of land, smaller than a continent, surrounded by water at high water"
+T,ISLET,Islet,"Small island, bigger than rock, smaller than island."
+T,ISLF,Artificial Island,"An island created by landfill or diking and filling in a wetland, bay or lagoon"
+T,ISLM,Mangrove Island,A mangrove swamp surrounded by a waterbody
+T,ISLS,Islands,"Tracts of land, smaller than a continent, surrounded by water at high water"
+T,ISLT,Land-Tied Island,"A coastal island connected to the mainland by barrier beaches, levees or dikes"
+T,ISLX,Section of Island,
+T,ISTH,Isthmus,A narrow strip of land connecting two larger land masses and bordered by water
+T,KRST,Karst Area,"A distinctive landscape developed on soluble rock such as limestone characterized by sinkholes, caves, disappearing streams and underground drainage"
+T,LAVA,Lava Area,An area of solidified lava
+T,LEV,Levee,A natural low embankment bordering a distributary or meandering stream; often built up artificially to control floods
+T,MESA,Mesa(s),"A flat-topped, isolated elevation with steep slopes on all sides, less extensive than a plateau"
+T,MND,Mound(s),"A low, isolated, rounded hill"
+T,MRN,Moraine,"A mound, ridge or other accumulation of glacial till"
+T,MT,Mountain,"An elevation standing high above the surrounding area with small summit area, steep slopes and local relief of 300m or more"
+T,MTS,Mountains,A mountain range or a group of mountains or high ridges
+T,NKM,Meander Neck,A narrow strip of land between the two limbs of a meander loop at its narrowest point
+T,NTK,Nunatak,A rock or mountain peak protruding through glacial ice
+T,NTKS,Nunataks,Rocks or mountain peaks protruding through glacial ice
+T,PAN,Pan,"A near-level shallow, natural depression or basin, usually containing an intermittent lake, pond or pool"
+T,PANS,Pans,"Near-level shallow, natural depressions or basins, usually containing intermittent lakes, ponds or pools"
+T,PASS,Pass,"A break in a mountain range or other high obstruction, used for transportation from one side to the other [see also gap]"
+T,PEN,Peninsula,An elongate area of land projecting into a body of water and nearly surrounded by water
+T,PENX,Section of Peninsula,
+T,PK,Peak,"A pointed elevation atop a mountain, ridge or other hypsographic feature"
+T,PKS,Peaks,"Pointed elevations atop a mountain, ridge or other hypsographic features"
+T,PLAT,Plateau,"An elevated plain with steep slopes on one or more sides, and often with incised streams"
+T,PLATX,Section of Plateau,
+T,PLDR,Polder,An area reclaimed from the sea by diking and draining
+T,PLN,Plain(s),"An extensive area of comparatively level to gently undulating land, lacking surface irregularities, and usually adjacent to a higher area"
+T,PLNX,Section of Plain,
+T,PROM,Promontory(-Ies),A bluff or prominent hill overlooking or projecting into a lowland
+T,PT,Point,"A tapering piece of land projecting into a body of water, less prominent than a cape"
+T,PTS,Points,"Tapering pieces of land projecting into a body of water, less prominent than a cape"
+T,RDGB,Beach Ridge,"A ridge of sand just inland and parallel to the beach, usually in series"
+T,RDGE,Ridge(s),"A long narrow elevation with steep sides, and a more or less continuous crest"
+T,REG,Stony Desert,A desert plain characterized by a surface veneer of gravel and stones
+T,RK,Rock,"A conspicuous, isolated rocky mass"
+T,RKFL,Rockfall,An irregular mass of fallen rock at the base of a cliff or steep slope
+T,RKS,Rocks,"Conspicuous, isolated rocky masses"
+T,SAND,Sand Area,A tract of land covered with sand
+T,SBED,Dry Stream Bed,A channel formerly containing the water of a stream
+T,SCRP,Escarpment,A long line of cliffs or steep slopes separating level surfaces above and below
+T,SDL,Saddle,"A broad, open pass crossing a ridge or between hills or mountains"
+T,SHOR,Shore,"A narrow zone bordering a waterbody which is covered and uncovered at high and low water, respectively"
+T,SINK,Sinkhole,"A small, usually circular, depression in a karst area, that tends to appear suddenly and without warning"
+T,SLID,Slide,A mound of earth material at the base of a slope and the associated scoured area
+T,SLP,Slope(s),A surface with a relatively uniform slope angle
+T,SPIT,Spit,"A narrow, straight or curved continuation of a beach into a waterbody"
+T,SPUR,Spur(s),"A subordinate ridge projecting outward from a hill, mountain or other elevation"
+T,TAL,Talus Slope,A steep concave slope formed by an accumulation of loose rock fragments at the base of a cliff or steep slope
+T,TRGD,Interdune Trough(s),A long wind-swept trough between parallel longitudinal dunes
+T,TRR,Terrace,"A long, narrow alluvial platform bounded by steeper slopes above and below, usually overlooking a waterbody"
+T,UPLD,Upland,An extensive interior region of high land with low to moderate surface relief
+T,VAL,Valley,An elongated depression usually traversed by a stream
+T,VALG,Hanging Valley,A valley the floor of which is notably higher than the valley or shore to which it leads; most common in areas that have been glaciated
+T,VALS,Valleys,Elongated depressions usually traversed by a stream
+T,VALX,Section of Valley,
+T,VLC,Volcano,A conical elevation composed of volcanic materials with a crater at the top
+U,APNU,Apron,"A gentle slope, with a generally smooth surface, particularly found around groups of islands and seamounts"
+U,ARCU,Arch,A low bulge around the south-eastern end of the island of Hawaii
+U,ARRU,Arrugado,An area of subdued corrugations off Baja California
+U,BDLU,Borderland,"A region adjacent to a continent, normally occupied by or bordering a shelf, that is highly irregular with depths well in excess of those typical of a shelf"
+U,BKSU,Banks,"Elevations, typically located on a shelf, over which the depth of water is relatively shallow but sufficient for safe surface navigation"
+U,BNKU,Bank,"An elevation, typically located on a shelf, over which the depth of water is relatively shallow but sufficient for safe surface navigation"
+U,BSNU,Basin,A depression more or less equidimensional in plan and of variable extent
+U,CDAU,Cordillera,"An entire mountain system including the subordinate ranges, interior plateaus and basins"
+U,CNSU,Canyons,"Relatively narrow, deep depressions with steep sides, the bottom of which generally has a continuous slope"
+U,CNYU,Canyon,"A relatively narrow, deep depression with steep sides, the bottom of which generally has a continuous slope"
+U,CRSU,Continental Rise,A gentle slope rising from oceanic depths towards the foot of a continental slope
+U,DEPU,Deep,"A localized deep area within the confines of a larger feature, such as a trough, basin or trench"
+U,EDGU,Shelf Edge,A line along which there is a marked increase of slope at the outer margin of a continental shelf or island shelf
+U,ESCU,Escarpment (Or Scarp),An elongated and comparatively steep slope separating flat or gently sloping areas
+U,FANU,Fan,A relatively smooth feature normally sloping away from the lower termination of a canyon or canyon system
+U,FLTU,Flat,A small level or nearly level area
+U,FRZU,Fracture Zone,"An extensive linear zone of irregular topography of the sea floor, characterized by steep-sided or asymmetrical ridges, troughs or escarpments"
+U,FURU,Furrow,"A closed, linear, narrow, shallow depression"
+U,GAPU,Gap,A narrow break in a ridge or rise
+U,GLYU,Gully,A small valley-like feature
+U,HLLU,Hill,An elevation rising generally less than 500 meters
+U,HLSU,Hills,Elevations rising generally less than 500 meters
+U,HOLU,Hole,A small depression of the sea floor
+U,KNLU,Knoll,"An elevation rising generally more than 500 meters and less than 1000 meters and of limited extent across the summit"
+U,KNSU,Knolls,"Elevations rising generally more than 500 meters and less than 1000 meters and of limited extent across the summits"
+U,LDGU,Ledge,"A rocky projection or outcrop, commonly linear and near shore"
+U,LEVU,Levee,"An embankment bordering a canyon, valley or seachannel"
+U,MESU,Mesa,"An isolated, extensive, flat-topped elevation on the shelf, with relatively steep sides"
+U,MNDU,Mound,"A low, isolated, rounded hill"
+U,MOTU,Moat,"An annular depression that may not be continuous, located at the base of many seamounts, islands and other isolated elevations"
+U,MTU,Mountain,A well-delineated subdivision of a large and complex positive feature
+U,PKSU,Peaks,"Prominent elevations, part of a larger feature, either pointed or of very limited extent across the summit"
+U,PKU,Peak,"A prominent elevation, part of a larger feature, either pointed or of very limited extent across the summit"
+U,PLNU,Plain,"A flat, gently sloping or nearly level region"
+U,PLTU,Plateau,"A comparatively flat-topped feature of considerable extent, dropping off abruptly on one or more sides"
+U,PNLU,Pinnacle,"A high tower or spire-shaped pillar of rock or coral, alone or cresting a summit"
+U,PRVU,Province,A region identifiable by a group of similar physiographic features whose characteristics are markedly in contrast with surrounding areas
+U,RDGU,Ridge,A long narrow elevation with steep sides
+U,RDSU,Ridges,Long narrow elevations with steep sides
+U,RFSU,Reefs,Surface-navigation hazards composed of consolidated material
+U,RFU,Reef,A surface-navigation hazard composed of consolidated material
+U,RISU,Rise,"A broad elevation that rises gently and generally smoothly, from the sea floor"
+U,SCNU,Seachannel,"A continuously sloping, elongated depression commonly found in fans or plains and customarily bordered by levees on one or two sides"
+U,SCSU,Seachannels,"Continuously sloping, elongated depressions commonly found in fans or plains and customarily bordered by levees on one or two sides"
+U,SDLU,Saddle,"A low part, resembling in shape a saddle, in a ridge or between contiguous seamounts"
+U,SHFU,Shelf,A zone adjacent to a continent (or around an island) that extends from the low water line to a depth at which there is usually a marked increase of slope towards oceanic depths
+U,SHLU,Shoal,A surface-navigation hazard composed of unconsolidated material
+U,SHSU,Shoals,Hazards to surface navigation composed of unconsolidated material
+U,SHVU,Shelf Valley,"A valley on the shelf, generally the shoreward extension of a canyon"
+U,SILU,Sill,The low part of a gap or saddle separating basins
+U,SLPU,Slope,The slope seaward from the shelf edge to the beginning of a continental rise or the point where there is a general reduction in slope
+U,SMSU,Seamounts,Elevations rising generally more than 1000 meters and of limited extent across the summit
+U,SMU,Seamount,An elevation rising generally more than 1000 meters and of limited extent across the summit
+U,SPRU,Spur,"A subordinate elevation, ridge or rise projecting outward from a larger feature"
+U,TERU,Terrace,"A relatively flat horizontal or gently inclined surface, sometimes long and narrow, which is bounded by a steeper ascending slope on one side and by a steep descending slope on the opposite side"
+U,TMSU,Tablemounts (Or Guyots),"Seamounts having a comparatively smooth, flat top"
+U,TMTU,Tablemount (Or Guyot),"A seamount having a comparatively smooth, flat top"
+U,TNGU,Tongue,An elongate (tongue-like) extension of a flat sea floor into an adjacent higher feature
+U,TRGU,Trough,"A long depression of the sea floor characteristically flat bottomed and steep sided, and normally shallower than a trench"
+U,TRNU,Trench,"A long, narrow, characteristically very deep and asymmetrical depression of the sea floor, with relatively steep sides"
+U,VALU,Valley,"A relatively shallow, wide depression, the bottom of which usually has a continuous gradient"
+U,VLSU,Valleys,"Relatively shallow, wide depressions, the bottoms of which usually have a continuous gradient"
+V,BUSH,Bush(es),A small clump of conspicuous bushes in an otherwise bare area
+V,CULT,Cultivated Area,An area under cultivation
+V,FRST,Forest(s),An area dominated by tree vegetation
+V,FRSTF,Fossilized Forest,A forest fossilized by geologic processes and now exposed at the earth's surface
+V,GRSLD,Grassland,An area dominated by grass vegetation
+V,GRVC,Coconut Grove,A planting of coconut trees
+V,GRVO,Olive Grove,A planting of olive trees
+V,GRVP,Palm Grove,A planting of palm trees
+V,GRVPN,Pine Grove,A planting of pine trees
+V,HTH,Heath,An upland moor or sandy area dominated by low shrubby vegetation including heather
+V,MDW,Meadow,"A small, poorly drained area dominated by grassy vegetation"
+V,OCH,Orchard(s),A planting of fruit or nut trees
+V,SCRB,Scrubland,"An area of low trees, bushes and shrubs stunted by some environmental limitation"
+V,TREE,Tree(s),A conspicuous tree used as a landmark
+V,TUND,Tundra,"A marshy, treeless, high latitude plain, dominated by mosses, lichens and low shrub vegetation under permafrost conditions"
+V,VIN,Vineyard,A planting of grapevines
+V,VINS,Vineyards,Plantings of grapevines
+V,ll,Not Available,
