@@ -1,5 +1,5 @@
 ID: geonames
-_schema-version: '2.1'
+_schema-version: 2.0.0
 description: Holds geopolitical data from geonames.org
 version: 0.0.1
 modules:
@@ -8,6 +8,14 @@ modules:
     path: db
     parameters:
       memory: 256M
+      disk-quota: 256M
+    requires:
+      - name: geonames-hdi
+  - name: geonames-loader-srv
+    type: nodejs
+    path: srv
+    parameters:
+      memory: 512M
       disk-quota: 256M
     requires:
       - name: geonames-hdi

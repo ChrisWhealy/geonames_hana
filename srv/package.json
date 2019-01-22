@@ -1,0 +1,36 @@
+{
+  "name": "geonames-db-loader",
+  "description": "Geopolitical information from geonames.org",
+  "version": "1.0.0",
+  "dependencies": {
+    "@sap/cds": "3.x",
+    "unzip-stream": "0.3.0",
+    "hdb": "^0.16.0"
+  },
+  "author": {
+    "name": "Chris Whealy",
+    "email": "chris.whealy@sap.com"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "build": "cds build/all --project .. --clean",
+    "watch": "nodemon -w . -i node_modules/**,.git/** -e cds -x npm run build"
+  },
+  "cds": {
+    "requires": {
+      "db": {
+        "kind": "hana",
+        "model": "gen/csn.json",
+        "credentials": {
+          "hana": {
+            "name": "geonames-hdi"
+          }
+        }
+      }
+    }
+  },
+  "private": true,
+  "readmeFilename": "README.md",
+  "license": "MIT",
+  "repository": "github:i003638/cloud_cf_byol_weather_hana"
+}
