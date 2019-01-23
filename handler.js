@@ -6,27 +6,93 @@
  * =====================================================================================================================
  */
 
-const stream = require('stream')
-const fs     = require('fs')
+const fs        = require('fs')
+const unzip     = require('unzip-stream')
+const http      = require('http')
+const transform = require('./utils/transform')
 
 const txt_path = './db/src/txt/'
 
-class StreamHandler extends stream.Writable {
-  constructor(opts)  {
-    super(opts)
-  }
+// ---------------------------------------------------------------------------------------------------------------------
+// Read the CountryInfo.csv file and from it extract a list of all the 2-character ISO country codes
+// const countryList = fs.readFileSync(`${csv_path}CountryInfo.csv`, 'utf8')
+//                       .split(/\r\n|\r|\n/)
+//                       .map(line => line.slice(0, line.indexOf(",")))
+//                       .slice(1)
 
-  _write(chunk,encoding,cb) {
-    process.stdout.write('.')
-    cb()
-  }
-}
+var countryList = ["GB"]
 
-let fileStream = fs.createReadStream(`${txt_path}US.txt`)
-let fileHandler = new StreamHandler()
+// ---------------------------------------------------------------------------------------------------------------------
+// Read the etag file for the current country code, if it exists
+const readEtag = countryCode =>
+  (etagFile => fs.existsSync(etagFile) ? fs.readFileSync(etagFile).toString() : "")
+  (`${txt_path}${countryCode}.etag`)
 
-fileStream.pipe(fileHandler)
 
-fileStream.on('end',    () => console.log('Stream finished reading'))
-fileStream.on('finish', () => console.log('Stream finished writing'))
+// ---------------------------------------------------------------------------------------------------------------------
+// geonames.org *sometimes* lets you open 10 parallel sockets, but it could just hang up on you and then the whole
+// program crashes.  Even Node's default of 5 parallel sockets sometimes is too much...
+const svcAgent = http.Agent({
+  keepAlive  : true
+, maxSockets : 5
+})
 
+// Construct the HTTP options object for reading from geonames.org using the agent created above
+const buildHttpOptions = countryCode => ({
+    hostname: 'download.geonames.org'
+  , port: 80
+  , path: `/export/dump/${countryCode}.zip`
+  , method: 'GET'
+  , headers: {
+      'If-None-Match': readEtag(countryCode)
+    }
+  , agent : svcAgent
+})
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Download the ZIP file for a specific country
+var fetchCountryFile = countryCode =>
+  http.get(
+    buildHttpOptions(countryCode)
+  , response => {
+      console.log(`Fetching ${countryCode}.zip`)
+
+      // The HTTP request might fail...
+      try {
+        // Has the file changed since we last accessed it?
+        response.statusCode === 304
+        // Nope
+        ? console.log(`${countryCode}.zip unchanged`)
+        // Yup, so did the download succeed?
+        : response.statusCode === 200
+          // Yup, so unzip the HTTP response
+          ? response.pipe(unzip.Parse())
+              // When we encounter a file within the ZIP file
+              .on('entry'
+                , entry =>
+                    // Is this the country's text file?
+                    entry.path === `${countryCode}.txt`
+                    ? (countryFile => {
+                        // Yes, so pipe the stream to disk
+                        // When then the stream has finished, write the country's eTag value to a file
+                        entry
+                          .pipe(transform.geonamesTextFile)
+                          .pipe(fs.createWriteStream(`${countryFile}.csv`))
+                          .on('finish', () => fs.writeFileSync(`${countryFile}.etag`, response.headers.etag))
+                      })
+                      // Construct the pathname to this country's file without the extension!
+                      (`${txt_path}${countryCode}`)
+                    // These are not the droids we're looking for, so clean up the stream...
+                    : entry.autodrain()
+                  )
+          : console.error(`HTTP status code ${response.statusCode} received for country code ${countryCode}`)
+        }
+        catch(err) {
+          console.error(`HTTP error requesting ${countryCode}: ${err.toString()}`)
+        }
+      }
+  )
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Fetch all the country files and transform them into CSV files
+countryList.map(fetchCountryFile)

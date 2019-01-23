@@ -10,7 +10,7 @@
 const fs         = require('fs')
 const unzip      = require('unzip-stream')
 const http       = require('http')
-const txt_to_csv = require('../utils/txt_to_csv')
+const txt_to_csv = require('../utils/transform')
 
 const { Transform } = require('stream')
 
