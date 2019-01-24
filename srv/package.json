@@ -5,6 +5,7 @@
   "dependencies": {
     "@sap/cds": "3.x",
     "unzip-stream": "0.3.0",
+    "event-stream": "4.0.1",
     "hdb": "^0.16.0"
   },
   "author": {

@@ -9,7 +9,7 @@
 const fs        = require('fs')
 const unzip     = require('unzip-stream')
 const http      = require('http')
-const transform = require('../utils/transform')
+const transform = require('./utils/transform')
 
 const etags_path = '../db/src/etags/'
 const csv_path   = '../db/src/csv/'
@@ -21,7 +21,7 @@ const csv_path   = '../db/src/csv/'
 //                       .map(line => line.slice(0, line.indexOf(",")))
 //                       .slice(1)
 
-var countryList = ["GB"]
+var countryList = ["AD"]
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Read the etag file for the current country code, if it exists
@@ -67,21 +67,12 @@ var fetchCountryFile = countryCode =>
         // Yup, so did the download succeed?
         : response.statusCode === 200
           // Yup, so unzip the HTTP response
-          ? response.pipe(unzip.Parse())
-              // When we encounter a file within the ZIP file
+          ? response
+              .pipe(unzip.Parse())
+              // When we encounter a file within the unzipped stream, check if its a geonames text file
               .on('entry'
-                , entry =>
-                    // Is this the country's text file?
-                    entry.path === `${countryCode}.txt`
-                    // Yes, so pipe the stream through the text-to-CSV transformer, then write the CSV file
-                    ? entry
-                        .pipe(transform.geonamesTextFile)
-                        .pipe(fs.createWriteStream(`${csv_path}${countryCode}.csv`))
-                        // When then the stream has finished, write the country's eTag value to file
-                        .on('finish', () => fs.writeFileSync(`${etags_path}${countryCode}.etag`, response.headers.etag))
-                    // These are not the droids we're looking for, so clean up the stream...
-                    : entry.autodrain()
-                )
+                 , entry => transform.handleGeonamesFile(entry, countryCode, csv_path, etags_path, response.headers.etag)
+                 )
           : console.error(`HTTP status code ${response.statusCode} received for country code ${countryCode}`)
         }
         catch(err) {
