@@ -16,12 +16,10 @@ const csv_path   = '../db/src/csv/'
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Read the CountryInfo.csv file and from it extract a list of all the 2-character ISO country codes
-// const countryList = fs.readFileSync(`${csv_path}CountryInfo.csv`, 'utf8')
-//                       .split(/\r\n|\r|\n/)
-//                       .map(line => line.slice(0, line.indexOf(",")))
-//                       .slice(1)
-
-var countryList = ["AD"]
+const countryList = fs.readFileSync(`${csv_path}CountryInfo.csv`, 'utf8')
+                      .split(/\r\n|\r|\n/)
+                      .map(line => line.slice(0, line.indexOf(",")))
+                      .slice(1)
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Read the etag file for the current country code, if it exists
