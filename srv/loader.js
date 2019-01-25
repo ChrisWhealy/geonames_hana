@@ -11,12 +11,13 @@ const unzip     = require('unzip-stream')
 const http      = require('http')
 const transform = require('./utils/transform')
 
-const etags_path = '../db/src/etags/'
-const country_csv_path  = '../db/src/csv/countries/'
-const altnames_csv_path = '../db/src/csv/altnames/'
+const csv_path      = '../db/src/csv/'
+const geonames_path = '/export/dump/'
 
-// ---------------------------------------------------------------------------------------------------------------------
-// Read the CountryInfo.csv file and from it extract a list of all the 2-character ISO country codes
+/**
+ ***********************************************************************************************************************
+ * Read the CountryInfo.csv file and from it extract a list of all the 2-character ISO country codes
+ */
 const countryList = fs.readFileSync(`${csv_path}CountryInfo.csv`, 'utf8')
                       .split(/\r\n|\r|\n/)
                       .map(line => line.slice(0, line.indexOf(",")))
@@ -24,8 +25,10 @@ const countryList = fs.readFileSync(`${csv_path}CountryInfo.csv`, 'utf8')
 
 //var countryList = ["GB","AD","FR"]
 
-// ---------------------------------------------------------------------------------------------------------------------
-// Read the etag file for the current file, if it exists
+/**
+ ***********************************************************************************************************************
+ * Read the etag file for the current file, if it exists
+ */
 const readEtag =
   pathname =>
     countryCode =>
@@ -33,9 +36,11 @@ const readEtag =
       (`${pathname}${countryCode}.etag`)
 
 
-// ---------------------------------------------------------------------------------------------------------------------
-// Be careful, the connection to geonames.org becomes unreliable if you try to open too many parallel sockets
-// Even NodeJS's default of 5 sometimes causes a socket hang up error...
+/**
+ ***********************************************************************************************************************
+ * Be careful, the connection to geonames.org becomes unreliable if you try to open too many parallel sockets
+ * Even NodeJS's default of 5 sometimes causes a socket hang up error...
+ */
 const svcAgent = http.Agent({
   keepAlive  : true
 , maxSockets : 5
@@ -43,52 +48,65 @@ const svcAgent = http.Agent({
 
 // Construct the HTTP options object for reading from geonames.org using the agent created above
 const buildHttpOptions =
-  pathname => 
+  (targetPathname, geonamesPath) => 
     countryCode => ({
       hostname: 'download.geonames.org'
     , port: 80
-    , path: `/export/dump/${countryCode}.zip`
+    , path: `${geonamesPath}${countryCode}.zip`
     , method: 'GET'
     , headers: {
-        'If-None-Match': readEtag(pathname)(countryCode)
+        'If-None-Match': readEtag(targetPathname)(countryCode)
       }
     , agent : svcAgent
     })
 
-// ---------------------------------------------------------------------------------------------------------------------
-// Download the ZIP file for a specific country
-var fetchCountryFile = countryCode =>
-  http.get(
-    buildHttpOptions(country_csv_path)(countryCode)
-  , response => {
-      process.stdout.write(`Fetching ${countryCode}.zip... `)
+// Extract URL from request object
+const getUrl = request => `${request.agent.protocol}//${request._headers.host}${request._header.split(" ")[1]}`
 
-      // The HTTP request might fail...
-      try {
-        // Has the file changed since we last accessed it?
-        response.statusCode === 304
-        // Nope
-        ? console.log(`Skipping - unchanged since last access`)
-        // Yup, so did the download succeed?
-        : response.statusCode === 200
-          // Yup, so unzip the HTTP response stream
-          ? response
-              .pipe(
-                (_ => unzip.Parse())
-                (process.stdout.write("unzipping... "))
-              )
-              // When we encounter a file within the unzipped stream, check if its a geonames text file
-              .on('entry'
-                 , entry => transform.handleGeonamesFile(entry, countryCode, country_csv_path, response.headers.etag)
-                 )
-          : console.error(`HTTP status code ${response.statusCode} received for country code ${countryCode}`)
-        }
-        catch(err) {
-          console.error(`HTTP error requesting ${countryCode}: ${err.toString()}`)
-        }
-      }
-  )
+/**
+ ***********************************************************************************************************************
+ * Partial function to download a geonames ZIP file
+ */
+var fetchZipFile =
+  (targetPathname, geonamesPath, textStreamHandler) =>
+    countryCode =>
+      http.get(
+        buildHttpOptions(targetPathname, geonamesPath)(countryCode)
+      , response => {
+          process.stdout.write(`Fetching ${countryCode}.zip... `)
+  
+          // -----------------------------------------------------------------------------------------------------------
+          // The HTTP request might fail...
+          try {
+            // ---------------------------------------------------------------------------------------------------------
+            // Has the file changed since we last accessed it?
+            response.statusCode === 304
+            // Nope
+            ? console.log(`Skipping - unchanged since last access`)
+            // Yup, so did the download succeed?
+            : response.statusCode === 200
+              // -------------------------------------------------------------------------------------------------------
+              // Yup...
+              ? response
+                  // Unzip the HTTP response stream
+                  .pipe((_ => unzip.Parse())
+                        (process.stdout.write(`unzipping ${response.headers["content-length"]} bytes... `)))
+                  // Then, when we encounter a file within the unzipped stream...
+                  .on('entry', entry => textStreamHandler(entry, countryCode, targetPathname, response.headers.etag))
+              // -------------------------------------------------------------------------------------------------------
+              // Meh, some other HTTP status code was received
+              : console.error(`HTTP status code ${response.statusCode} received for request ${getUrl(response.req)}`)
+            }
+            // Boohoo! Its all gone horribly wrong...
+            catch(err) {
+              console.error(`HTTP error requesting ${getUrl(response.req)}: ${err.toString()}`)
+            }
+          }
+      )
 
-// ---------------------------------------------------------------------------------------------------------------------
-// Fetch all the country files and transform them into CSV files
-countryList.map(fetchCountryFile)
+/**
+ ***********************************************************************************************************************
+ * Fetch all the country and alternate names files
+ */
+countryList.map(fetchZipFile(`${csv_path}countries/`, geonames_path                    , transform.handleGeonamesFile))
+countryList.map(fetchZipFile(`${csv_path}altnames/` , `${geonames_path}alternatenames/`, transform.handleAlternateNamesFile))

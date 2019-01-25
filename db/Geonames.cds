@@ -85,9 +85,9 @@ entity AlternateNames {
                                                 @description: "E.G. 'Big Apple' for 'New York'";
       isHistoric        : Boolean default false @title: "Historical Name?"
                                                 @description: "E.G. 'Bombay' is the former name for 'Mumbai'";
-      inUsefrom         : Date                  @title: "In Use From"
+      inUsefrom         : String(20)            @title: "In Use From"
                                                 @description: "Date when historic name started being used";
-      inUseto           : Date                  @title: "In Use Until"
+      inUseto           : String(20)            @title: "In Use Until"
                                                 @description: "Date when historic name stopped being used";
 
       GeonameId         : Association to Geonames not null;
