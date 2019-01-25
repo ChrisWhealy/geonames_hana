@@ -40,9 +40,9 @@ const reduceColumns =
       isNullOrUndef(propList[idx]) ? acc : push(acc, el.indexOf(",") > -1 ? `"${el}"` : el)
 
 /***********************************************************************************************************************
- * Handle a file stream encountered within a ZIP file
+ * Handle a geonames text file stream encountered within a ZIP file
  */
-const handleGeonamesFile = (entry, countryCode, csv_path, etags_path, etag) =>
+const handleGeonamesFile = (entry, countryCode, csv_path, etag) =>
   // Is this the country's text file?
   entry.path === `${countryCode}.txt`
   // Yes...
@@ -62,7 +62,7 @@ const handleGeonamesFile = (entry, countryCode, csv_path, etags_path, etag) =>
       )
 
       // When then the stream finishes, write the country's eTag value to file
-      .on('finish', () => fs.writeFileSync(`${etags_path}${countryCode}.etag`, etag))
+      .on('finish', () => fs.writeFileSync(`${csv_path}${countryCode}.etag`, etag))
 
   // No, these are not the droids we're looking for, so clean up the stream...
   : entry.autodrain()

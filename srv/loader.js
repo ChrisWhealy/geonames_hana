@@ -12,7 +12,8 @@ const http      = require('http')
 const transform = require('./utils/transform')
 
 const etags_path = '../db/src/etags/'
-const csv_path   = '../db/src/csv/'
+const country_csv_path  = '../db/src/csv/countries/'
+const altnames_csv_path = '../db/src/csv/altnames/'
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Read the CountryInfo.csv file and from it extract a list of all the 2-character ISO country codes
@@ -24,10 +25,12 @@ const countryList = fs.readFileSync(`${csv_path}CountryInfo.csv`, 'utf8')
 //var countryList = ["GB","AD","FR"]
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Read the etag file for the current country code, if it exists
-const readEtag = countryCode =>
-  (etagFile => fs.existsSync(etagFile) ? fs.readFileSync(etagFile).toString() : "")
-  (`${etags_path}${countryCode}.etag`)
+// Read the etag file for the current file, if it exists
+const readEtag =
+  pathname =>
+    countryCode =>
+      (etagFile => fs.existsSync(etagFile) ? fs.readFileSync(etagFile).toString() : "")
+      (`${pathname}${countryCode}.etag`)
 
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -39,22 +42,24 @@ const svcAgent = http.Agent({
 })
 
 // Construct the HTTP options object for reading from geonames.org using the agent created above
-const buildHttpOptions = countryCode => ({
-    hostname: 'download.geonames.org'
-  , port: 80
-  , path: `/export/dump/${countryCode}.zip`
-  , method: 'GET'
-  , headers: {
-      'If-None-Match': readEtag(countryCode)
-    }
-  , agent : svcAgent
-})
+const buildHttpOptions =
+  pathname => 
+    countryCode => ({
+      hostname: 'download.geonames.org'
+    , port: 80
+    , path: `/export/dump/${countryCode}.zip`
+    , method: 'GET'
+    , headers: {
+        'If-None-Match': readEtag(pathname)(countryCode)
+      }
+    , agent : svcAgent
+    })
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Download the ZIP file for a specific country
 var fetchCountryFile = countryCode =>
   http.get(
-    buildHttpOptions(countryCode)
+    buildHttpOptions(country_csv_path)(countryCode)
   , response => {
       process.stdout.write(`Fetching ${countryCode}.zip... `)
 
@@ -74,7 +79,7 @@ var fetchCountryFile = countryCode =>
               )
               // When we encounter a file within the unzipped stream, check if its a geonames text file
               .on('entry'
-                 , entry => transform.handleGeonamesFile(entry, countryCode, csv_path, etags_path, response.headers.etag)
+                 , entry => transform.handleGeonamesFile(entry, countryCode, country_csv_path, response.headers.etag)
                  )
           : console.error(`HTTP status code ${response.statusCode} received for country code ${countryCode}`)
         }
