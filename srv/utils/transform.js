@@ -13,8 +13,10 @@ const fs = require('fs')
 const es = require('event-stream')
 
 /***********************************************************************************************************************
- * All the columns needed in the HANA table must be listed in order they appear in the tab-delimited text file
- * If a column in the text file is not needed in the HANA table, then that array entry must be set to 'undefined'
+ * A list of all column names found in a geonames country file. These names must match the names of the columns in the
+ * HANA DB table.
+ * 
+ * If a column in the text file is not needed in the database, then the column name must be set to undefined
  */
 var geonamesDbCols = [
   "GeonameId", "Name", undefined, undefined, "Latitude", "Longitude", "FeatureClass", "FeatureCode", "CountryCode"
@@ -29,11 +31,8 @@ const push = (arr, el) => (_ => arr)(arr.push(el))
 const isNullOrUndef = x => x === null || x === undefined
 
 /***********************************************************************************************************************
- * Partial function that can be used with Array.reduce on one line of a text file
- * The propList argument is property list array of all columns in the text file, where the unwanted columns are set to
- * undefined instead of the column name
- * 
- * If a particular column value contains a comma, then this value is delimited with double quotes
+ * Partial function that can be used with Array.reduce on one line of a text file to filter out unneeded columns
+ * If a particular column value contains a comma, then this value must be delimited with double quotes
  */
 const reduceColumns =
   propList =>
@@ -57,7 +56,10 @@ const handleGeonamesFile = (entry, countryCode, csv_path, etags_path, etag) =>
       )
 
       // Write the CSV lines to the country file
-      .pipe(fs.createWriteStream(`${csv_path}${countryCode}.csv`))
+      .pipe(
+        (_ => fs.createWriteStream(`${csv_path}${countryCode}.csv`))
+        (console.log(`writing ${countryCode}.csv`))
+      )
 
       // When then the stream finishes, write the country's eTag value to file
       .on('finish', () => fs.writeFileSync(`${etags_path}${countryCode}.etag`, etag))
