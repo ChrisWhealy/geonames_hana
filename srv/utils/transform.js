@@ -67,8 +67,8 @@ const handleTextFile =
            * into the stream when the pipe is first opened - and before any other data comes down the pipe.
            * 
            * This means that the inline function invoked above by es.map() will also be invoked to process this column
-           * header data.  Therefore, you have to take the somewhat redundant step of joining the column headers
-           * together using tabs, only so this inline function can split them up again...
+           * header data.  Therefore, the somewhat redundant step is needed of joining the column headers together using
+           * tabs, only so this inline function can split them up again...
            **/
           .pipe(
             (_ => fs.createWriteStream(`${csv_path}${countryCode}.csv`)
