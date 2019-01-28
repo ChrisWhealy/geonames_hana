@@ -1,0 +1,876 @@
+{
+  "definitions": {
+    "org.geonames.base.lang.LanguageCodes": {
+      "kind": "entity",
+      "elements": {
+        "ISO639_3": {
+          "key": true,
+          "indexNo": 1,
+          "type": "cds.String",
+          "@description": {
+            "=": "3-Character ISO 639-3 code"
+          },
+          "length": 3,
+          "@Common.Label": {
+            "=": "ISO 639-3 Language Code"
+          },
+          "@cds.persistence.name": "ISO639_3"
+        },
+        "ISO639_2": {
+          "indexNo": 2,
+          "type": "cds.String",
+          "@description": {
+            "=": "3-Character ISO 639-2 code"
+          },
+          "length": 12,
+          "@Common.Label": {
+            "=": "ISO 639-3 Language Code"
+          },
+          "@cds.persistence.name": "ISO639_2"
+        },
+        "ISO639_1": {
+          "indexNo": 3,
+          "type": "cds.String",
+          "@description": {
+            "=": "2-Character ISO 639-1 code"
+          },
+          "length": 2,
+          "@Common.Label": {
+            "=": "ISO 639-3 Language Code"
+          },
+          "@cds.persistence.name": "ISO639_1"
+        },
+        "LanguageName": {
+          "indexNo": 4,
+          "type": "cds.String",
+          "@description": {
+            "=": "Language name in English"
+          },
+          "length": 60,
+          "@Common.Label": {
+            "=": "Language Name"
+          },
+          "@cds.persistence.name": "LANGUAGENAME"
+        }
+      },
+      "@cds.persistence.name": "ORG_GEONAMES_BASE_LANG_LANGUAGECODES"
+    },
+    "org.geonames.base.time.Timezones": {
+      "kind": "entity",
+      "elements": {
+        "TimezoneName": {
+          "key": true,
+          "indexNo": 1,
+          "type": "cds.String",
+          "@description": {
+            "=": "IANA timezone name"
+          },
+          "length": 40,
+          "@Common.Label": {
+            "=": "Timezone Name"
+          },
+          "@cds.persistence.name": "TIMEZONENAME"
+        },
+        "GMTOffset": {
+          "indexNo": 2,
+          "type": "cds.Decimal",
+          "@description": {
+            "=": "Hours offset from GMT (On January 1st this year)"
+          },
+          "precision": 4,
+          "scale": 2,
+          "@Common.Label": {
+            "=": "GMT Offset"
+          },
+          "@cds.persistence.name": "GMTOFFSET"
+        },
+        "RawOffset": {
+          "indexNo": 3,
+          "type": "cds.Decimal",
+          "@description": {
+            "=": "Hours offset from GMT without accounting for daylight saving time"
+          },
+          "precision": 4,
+          "scale": 2,
+          "@Common.Label": {
+            "=": "Raw Offset"
+          },
+          "@cds.persistence.name": "RAWOFFSET"
+        },
+        "DSTOffset": {
+          "indexNo": 4,
+          "type": "cds.Decimal",
+          "@description": {
+            "=": "Hours offset from GMT accounting for daylight saving time (On July 1st this year)"
+          },
+          "precision": 4,
+          "scale": 2,
+          "@Common.Label": {
+            "=": "DST Offset"
+          },
+          "@cds.persistence.name": "DSTOFFSET"
+        },
+        "CountryCode": {
+          "indexNo": 5,
+          "type": "cds.Association",
+          "target": "org.geonames.base.geo.Countries",
+          "notNull": true,
+          "foreignKeys": {
+            "ISO2": {
+              "path": "ISO2",
+              "indexNo": 1,
+              "generatedFieldName": "CountryCode_ISO2",
+              "@cds.persistence.name": "ISO2"
+            }
+          },
+          "cardinality": {
+            "targetMin": 1
+          },
+          "@cds.persistence.name": "COUNTRYCODE"
+        },
+        "CountryCode_ISO2": {
+          "type": "cds.String",
+          "length": 2,
+          "notNull": true,
+          "@odata.foreignKey4": "CountryCode",
+          "@cds.persistence.name": "COUNTRYCODE_ISO2"
+        }
+      },
+      "@cds.persistence.name": "ORG_GEONAMES_BASE_TIME_TIMEZONES"
+    },
+    "org.geonames.base.geo.Continents": {
+      "kind": "entity",
+      "elements": {
+        "ContinentCode": {
+          "key": true,
+          "indexNo": 1,
+          "type": "cds.String",
+          "@description": {
+            "=": "Geoname specific, 2-character continent code"
+          },
+          "length": 2,
+          "@Common.Label": {
+            "=": "Continent Code"
+          },
+          "@cds.persistence.name": "CONTINENTCODE"
+        },
+        "ContinentName": {
+          "indexNo": 2,
+          "type": "cds.String",
+          "@description": {
+            "=": "Name of continent in English"
+          },
+          "length": 20,
+          "@Common.Label": {
+            "=": "Continent Name"
+          },
+          "@cds.persistence.name": "CONTINENTNAME"
+        }
+      },
+      "@cds.persistence.name": "ORG_GEONAMES_BASE_GEO_CONTINENTS"
+    },
+    "org.geonames.base.geo.Countries": {
+      "kind": "entity",
+      "elements": {
+        "ISO2": {
+          "key": true,
+          "indexNo": 1,
+          "type": "cds.String",
+          "@description": {
+            "=": "ISO 3166 2-character country code"
+          },
+          "length": 2,
+          "@Common.Label": {
+            "=": "2-Character Country Code"
+          },
+          "@cds.persistence.name": "ISO2"
+        },
+        "ISO3": {
+          "indexNo": 2,
+          "type": "cds.String",
+          "@description": {
+            "=": "ISO 3166 3-character country code"
+          },
+          "length": 3,
+          "@Common.Label": {
+            "=": "3-Character Country Code"
+          },
+          "@cds.persistence.name": "ISO3"
+        },
+        "ISONumeric": {
+          "indexNo": 3,
+          "type": "cds.String",
+          "@description": {
+            "=": "ISO 3166 numeric country code (Held as a string to preserve leading zeroes)"
+          },
+          "length": 3,
+          "@Common.Label": {
+            "=": "Numeric Country Code"
+          },
+          "@cds.persistence.name": "ISONUMERIC"
+        },
+        "FIPS": {
+          "indexNo": 4,
+          "type": "cds.String",
+          "@description": {
+            "=": "Federal Information Processing Standard country code (Not used outside the US)"
+          },
+          "length": 2,
+          "@Common.Label": {
+            "=": "FIPS Code"
+          },
+          "@cds.persistence.name": "FIPS"
+        },
+        "CountryName": {
+          "indexNo": 5,
+          "type": "cds.String",
+          "@description": {
+            "=": "Country name in English"
+          },
+          "length": 100,
+          "@Common.Label": {
+            "=": "Country Name"
+          },
+          "@cds.persistence.name": "COUNTRYNAME"
+        },
+        "Capital": {
+          "indexNo": 6,
+          "type": "cds.String",
+          "@description": {
+            "=": "Capital city name in English name"
+          },
+          "length": 40,
+          "@Common.Label": {
+            "=": "Capital"
+          },
+          "@cds.persistence.name": "CAPITAL"
+        },
+        "Area": {
+          "indexNo": 7,
+          "type": "cds.Decimal",
+          "@description": {
+            "=": "Territorial area in sq km"
+          },
+          "precision": 10,
+          "scale": 2,
+          "@Common.Label": {
+            "=": "Area"
+          },
+          "@cds.persistence.name": "AREA"
+        },
+        "Population": {
+          "indexNo": 8,
+          "type": "cds.Integer",
+          "@description": {
+            "=": "Population"
+          },
+          "@Common.Label": {
+            "=": "Population"
+          },
+          "@cds.persistence.name": "POPULATION"
+        },
+        "TLD": {
+          "indexNo": 9,
+          "type": "cds.String",
+          "@description": {
+            "=": "Top level domain name"
+          },
+          "length": 3,
+          "@Common.Label": {
+            "=": "TLD"
+          },
+          "@cds.persistence.name": "TLD"
+        },
+        "CurrencyCode": {
+          "indexNo": 10,
+          "type": "cds.String",
+          "@description": {
+            "=": "Currency code"
+          },
+          "length": 3,
+          "@Common.Label": {
+            "=": "Currency Code"
+          },
+          "@cds.persistence.name": "CURRENCYCODE"
+        },
+        "CurrencyName": {
+          "indexNo": 11,
+          "type": "cds.String",
+          "@description": {
+            "=": "Currency name"
+          },
+          "length": 20,
+          "@Common.Label": {
+            "=": "Currency Name"
+          },
+          "@cds.persistence.name": "CURRENCYNAME"
+        },
+        "DiallingCode": {
+          "indexNo": 12,
+          "type": "cds.String",
+          "@description": {
+            "=": "International dialling code"
+          },
+          "length": 20,
+          "@Common.Label": {
+            "=": "Dialling Code"
+          },
+          "@cds.persistence.name": "DIALLINGCODE"
+        },
+        "PostalCodeFormat": {
+          "indexNo": 13,
+          "type": "cds.String",
+          "@description": {
+            "=": "Pipe delimited list of valid postal code formats"
+          },
+          "length": 100,
+          "@Common.Label": {
+            "=": "Postal Code Formats"
+          },
+          "@cds.persistence.name": "POSTALCODEFORMAT"
+        },
+        "PostalCodeRegex": {
+          "indexNo": 14,
+          "type": "cds.String",
+          "@description": {
+            "=": "Regular expression for validating postal code"
+          },
+          "length": 200,
+          "@Common.Label": {
+            "=": "Postal Code Regex"
+          },
+          "@cds.persistence.name": "POSTALCODEREGEX"
+        },
+        "Languages": {
+          "indexNo": 15,
+          "type": "cds.String",
+          "@description": {
+            "=": "Comma delimited list of ISO language codes or locales spoken in this country"
+          },
+          "length": 120,
+          "@Common.Label": {
+            "=": "Langauges"
+          },
+          "@cds.persistence.name": "LANGUAGES"
+        },
+        "Neighbours": {
+          "indexNo": 16,
+          "type": "cds.String",
+          "@description": {
+            "=": "Comma delimited list of neighbouring countries by ISO 6133 country code"
+          },
+          "length": 80,
+          "@Common.Label": {
+            "=": "Neighbours"
+          },
+          "@cds.persistence.name": "NEIGHBOURS"
+        },
+        "Continent": {
+          "indexNo": 17,
+          "type": "cds.Association",
+          "target": "org.geonames.base.geo.Continents",
+          "notNull": true,
+          "foreignKeys": {
+            "ContinentCode": {
+              "path": "ContinentCode",
+              "indexNo": 1,
+              "generatedFieldName": "Continent_ContinentCode",
+              "@cds.persistence.name": "CONTINENTCODE"
+            }
+          },
+          "cardinality": {
+            "targetMin": 1
+          },
+          "@cds.persistence.name": "CONTINENT"
+        },
+        "Continent_ContinentCode": {
+          "type": "cds.String",
+          "length": 2,
+          "notNull": true,
+          "@odata.foreignKey4": "Continent",
+          "@cds.persistence.name": "CONTINENT_CONTINENTCODE"
+        }
+      },
+      "@cds.persistence.name": "ORG_GEONAMES_BASE_GEO_COUNTRIES"
+    },
+    "org.geonames.base.feature.Classes": {
+      "kind": "entity",
+      "elements": {
+        "FeatureClass": {
+          "key": true,
+          "indexNo": 1,
+          "type": "cds.String",
+          "@description": {
+            "=": "The class to which a geographical feature belongs"
+          },
+          "length": 1,
+          "@Common.Label": {
+            "=": "Feature Class"
+          },
+          "@cds.persistence.name": "FEATURECLASS"
+        },
+        "Description": {
+          "indexNo": 2,
+          "type": "cds.String",
+          "length": 100,
+          "@Common.Label": {
+            "=": "Description"
+          },
+          "@cds.persistence.name": "DESCRIPTION"
+        }
+      },
+      "@cds.persistence.name": "ORG_GEONAMES_BASE_FEATURE_CLASSES"
+    },
+    "org.geonames.base.feature.Codes": {
+      "kind": "entity",
+      "elements": {
+        "FeatureCode": {
+          "key": true,
+          "indexNo": 1,
+          "type": "cds.String",
+          "@description": {
+            "=": "The category to which a geographical feature belongs"
+          },
+          "length": 10,
+          "@Common.Label": {
+            "=": "Feature Code"
+          },
+          "@cds.persistence.name": "FEATURECODE"
+        },
+        "ShortDescription": {
+          "indexNo": 2,
+          "type": "cds.String",
+          "length": 100,
+          "@Common.Label": {
+            "=": "Short Description"
+          },
+          "@cds.persistence.name": "SHORTDESCRIPTION"
+        },
+        "LongDescription": {
+          "indexNo": 3,
+          "type": "cds.String",
+          "length": 1000,
+          "@Common.Label": {
+            "=": "Long Description"
+          },
+          "@cds.persistence.name": "LONGDESCRIPTION"
+        },
+        "FeatureClass": {
+          "indexNo": 4,
+          "type": "cds.Association",
+          "target": "org.geonames.base.feature.Classes",
+          "foreignKeys": {
+            "FeatureClass": {
+              "path": "FeatureClass",
+              "indexNo": 1,
+              "generatedFieldName": "FeatureClass_FeatureClass",
+              "@cds.persistence.name": "FEATURECLASS"
+            }
+          },
+          "@cds.persistence.name": "FEATURECLASS"
+        },
+        "FeatureClass_FeatureClass": {
+          "type": "cds.String",
+          "length": 1,
+          "@odata.foreignKey4": "FeatureClass",
+          "@cds.persistence.name": "FEATURECLASS_FEATURECLASS"
+        }
+      },
+      "@cds.persistence.name": "ORG_GEONAMES_BASE_FEATURE_CODES"
+    },
+    "org.geonames.Geonames": {
+      "kind": "entity",
+      "elements": {
+        "GeonameId": {
+          "key": true,
+          "indexNo": 1,
+          "type": "cds.Integer",
+          "@description": {
+            "=": "Unique geoname id"
+          },
+          "@Common.Label": {
+            "=": "Geoname Id"
+          },
+          "@cds.persistence.name": "GEONAMEID"
+        },
+        "Name": {
+          "indexNo": 2,
+          "type": "cds.String",
+          "@description": {
+            "=": "Name of geographical point (utf8)"
+          },
+          "length": 200,
+          "@Common.Label": {
+            "=": "Name"
+          },
+          "@cds.persistence.name": "NAME"
+        },
+        "Latitude": {
+          "indexNo": 3,
+          "type": "cds.Decimal",
+          "@description": {
+            "=": "Latitude in decimal degrees (wgs84)"
+          },
+          "precision": 12,
+          "scale": 9,
+          "@Common.Label": {
+            "=": "Latitude"
+          },
+          "@cds.persistence.name": "LATITUDE"
+        },
+        "Longitude": {
+          "indexNo": 4,
+          "type": "cds.Decimal",
+          "@description": {
+            "=": "Longitude in decimal degrees (wgs84)"
+          },
+          "precision": 12,
+          "scale": 9,
+          "@Common.Label": {
+            "=": "Longitude"
+          },
+          "@cds.persistence.name": "LONGITUDE"
+        },
+        "CountryCodesAlt": {
+          "indexNo": 5,
+          "type": "cds.String",
+          "@description": {
+            "=": "Comma seperated list of alternate, ISO-3166 2-character, country codes"
+          },
+          "length": 200,
+          "@Common.Label": {
+            "=": "Alt Country Codes"
+          },
+          "@cds.persistence.name": "COUNTRYCODESALT"
+        },
+        "Admin1": {
+          "indexNo": 6,
+          "type": "cds.String",
+          "@description": {
+            "=": "FIPS code (subject to change to ISO code)"
+          },
+          "length": 20,
+          "@Common.Label": {
+            "=": "Admin Level 1"
+          },
+          "@cds.persistence.name": "ADMIN1"
+        },
+        "Admin2": {
+          "indexNo": 7,
+          "type": "cds.String",
+          "@description": {
+            "=": "Code for the second administrative division"
+          },
+          "length": 80,
+          "@Common.Label": {
+            "=": "Admin Level 2"
+          },
+          "@cds.persistence.name": "ADMIN2"
+        },
+        "Admin3": {
+          "indexNo": 8,
+          "type": "cds.String",
+          "@description": {
+            "=": "Code for third level administrative division"
+          },
+          "length": 20,
+          "@Common.Label": {
+            "=": "Admin Level 3"
+          },
+          "@cds.persistence.name": "ADMIN3"
+        },
+        "Admin4": {
+          "indexNo": 9,
+          "type": "cds.String",
+          "@description": {
+            "=": "Code for fourth level administrative division"
+          },
+          "length": 20,
+          "@Common.Label": {
+            "=": "Admin Level 4"
+          },
+          "@cds.persistence.name": "ADMIN4"
+        },
+        "Population": {
+          "indexNo": 10,
+          "type": "cds.Integer",
+          "@description": {
+            "=": "Population"
+          },
+          "@Common.Label": {
+            "=": "Population"
+          },
+          "@cds.persistence.name": "POPULATION"
+        },
+        "Elevation": {
+          "indexNo": 11,
+          "type": "cds.Integer",
+          "@description": {
+            "=": "Elevation above sea level of this geographical point in meters"
+          },
+          "@Common.Label": {
+            "=": "Elevation"
+          },
+          "@cds.persistence.name": "ELEVATION"
+        },
+        "DEM": {
+          "indexNo": 12,
+          "type": "cds.Integer",
+          "@description": {
+            "=": "Digital elevation model. srtm3 or gtopo30"
+          },
+          "@Common.Label": {
+            "=": "DEM"
+          },
+          "@cds.persistence.name": "DEM"
+        },
+        "LastModified": {
+          "indexNo": 13,
+          "type": "cds.String",
+          "@description": {
+            "=": "Date country file was last modification in yyyy-MM-dd format"
+          },
+          "length": 10,
+          "@Common.Label": {
+            "=": "Last Modified"
+          },
+          "@cds.persistence.name": "LASTMODIFIED"
+        },
+        "FeatureClass": {
+          "indexNo": 14,
+          "type": "cds.Association",
+          "target": "org.geonames.base.feature.Classes",
+          "foreignKeys": {
+            "FeatureClass": {
+              "path": "FeatureClass",
+              "indexNo": 1,
+              "generatedFieldName": "FeatureClass_FeatureClass",
+              "@cds.persistence.name": "FEATURECLASS"
+            }
+          },
+          "@cds.persistence.name": "FEATURECLASS"
+        },
+        "FeatureCode": {
+          "indexNo": 15,
+          "type": "cds.Association",
+          "target": "org.geonames.base.feature.Codes",
+          "foreignKeys": {
+            "FeatureCode": {
+              "path": "FeatureCode",
+              "indexNo": 1,
+              "generatedFieldName": "FeatureCode_FeatureCode",
+              "@cds.persistence.name": "FEATURECODE"
+            }
+          },
+          "@cds.persistence.name": "FEATURECODE"
+        },
+        "Timezone": {
+          "indexNo": 16,
+          "type": "cds.Association",
+          "target": "org.geonames.base.time.Timezones",
+          "notNull": true,
+          "foreignKeys": {
+            "TimezoneName": {
+              "path": "TimezoneName",
+              "indexNo": 1,
+              "generatedFieldName": "Timezone_TimezoneName",
+              "@cds.persistence.name": "TIMEZONENAME"
+            }
+          },
+          "cardinality": {
+            "targetMin": 1
+          },
+          "@cds.persistence.name": "TIMEZONE"
+        },
+        "CountryCode": {
+          "indexNo": 17,
+          "type": "cds.Association",
+          "target": "org.geonames.base.geo.Countries",
+          "notNull": true,
+          "foreignKeys": {
+            "ISO2": {
+              "path": "ISO2",
+              "indexNo": 1,
+              "generatedFieldName": "CountryCode_ISO2",
+              "@cds.persistence.name": "ISO2"
+            }
+          },
+          "cardinality": {
+            "targetMin": 1
+          },
+          "@cds.persistence.name": "COUNTRYCODE"
+        },
+        "FeatureClass_FeatureClass": {
+          "type": "cds.String",
+          "length": 1,
+          "@odata.foreignKey4": "FeatureClass",
+          "@cds.persistence.name": "FEATURECLASS_FEATURECLASS"
+        },
+        "FeatureCode_FeatureCode": {
+          "type": "cds.String",
+          "length": 10,
+          "@odata.foreignKey4": "FeatureCode",
+          "@cds.persistence.name": "FEATURECODE_FEATURECODE"
+        },
+        "Timezone_TimezoneName": {
+          "type": "cds.String",
+          "length": 40,
+          "notNull": true,
+          "@odata.foreignKey4": "Timezone",
+          "@cds.persistence.name": "TIMEZONE_TIMEZONENAME"
+        },
+        "CountryCode_ISO2": {
+          "type": "cds.String",
+          "length": 2,
+          "notNull": true,
+          "@odata.foreignKey4": "CountryCode",
+          "@cds.persistence.name": "COUNTRYCODE_ISO2"
+        }
+      },
+      "@cds.persistence.name": "ORG_GEONAMES_GEONAMES"
+    },
+    "org.geonames.AlternateNames": {
+      "kind": "entity",
+      "elements": {
+        "AlternateNameId": {
+          "key": true,
+          "indexNo": 1,
+          "type": "cds.Integer",
+          "@description": {
+            "=": "Id of this alternate name"
+          },
+          "@Common.Label": {
+            "=": "Alternate Name Id"
+          },
+          "@cds.persistence.name": "ALTERNATENAMEID"
+        },
+        "ISOLanguage": {
+          "indexNo": 2,
+          "type": "cds.String",
+          "@description": {
+            "=": "Either an ISO language code or a type indicator"
+          },
+          "length": 7,
+          "@Common.Label": {
+            "=": "Type"
+          },
+          "@cds.persistence.name": "ISOLANGUAGE"
+        },
+        "AlternateName": {
+          "indexNo": 3,
+          "type": "cds.String",
+          "@description": {
+            "=": "Alternate name or name variant (utf8)"
+          },
+          "length": 400,
+          "@Common.Label": {
+            "=": "Alternate Name"
+          },
+          "@cds.persistence.name": "ALTERNATENAME"
+        },
+        "isPreferredName": {
+          "indexNo": 4,
+          "type": "cds.Boolean",
+          "default": false,
+          "@description": {
+            "=": "Is this an official/preferred name?"
+          },
+          "@Common.Label": {
+            "=": "Preferred Name?"
+          },
+          "@cds.persistence.name": "ISPREFERREDNAME"
+        },
+        "isShortName": {
+          "indexNo": 5,
+          "type": "cds.Boolean",
+          "default": false,
+          "@description": {
+            "=": "E.G. 'California' for 'State of California'"
+          },
+          "@Common.Label": {
+            "=": "Shortened Name?"
+          },
+          "@cds.persistence.name": "ISSHORTNAME"
+        },
+        "isColloquial": {
+          "indexNo": 6,
+          "type": "cds.Boolean",
+          "default": false,
+          "@description": {
+            "=": "E.G. 'Big Apple' for 'New York'"
+          },
+          "@Common.Label": {
+            "=": "Colloquial Name?"
+          },
+          "@cds.persistence.name": "ISCOLLOQUIAL"
+        },
+        "isHistoric": {
+          "indexNo": 7,
+          "type": "cds.Boolean",
+          "default": false,
+          "@description": {
+            "=": "E.G. 'Bombay' is the former name for 'Mumbai'"
+          },
+          "@Common.Label": {
+            "=": "Historical Name?"
+          },
+          "@cds.persistence.name": "ISHISTORIC"
+        },
+        "inUsefrom": {
+          "indexNo": 8,
+          "type": "cds.String",
+          "@description": {
+            "=": "Date when historic name started being used"
+          },
+          "length": 20,
+          "@Common.Label": {
+            "=": "In Use From"
+          },
+          "@cds.persistence.name": "INUSEFROM"
+        },
+        "inUseto": {
+          "indexNo": 9,
+          "type": "cds.String",
+          "@description": {
+            "=": "Date when historic name stopped being used"
+          },
+          "length": 20,
+          "@Common.Label": {
+            "=": "In Use Until"
+          },
+          "@cds.persistence.name": "INUSETO"
+        },
+        "GeonameId": {
+          "indexNo": 10,
+          "type": "cds.Association",
+          "target": "org.geonames.Geonames",
+          "notNull": true,
+          "foreignKeys": {
+            "GeonameId": {
+              "path": "GeonameId",
+              "indexNo": 1,
+              "generatedFieldName": "GeonameId_GeonameId",
+              "@cds.persistence.name": "GEONAMEID"
+            }
+          },
+          "cardinality": {
+            "targetMin": 1
+          },
+          "@cds.persistence.name": "GEONAMEID"
+        },
+        "GeonameId_GeonameId": {
+          "type": "cds.Integer",
+          "notNull": true,
+          "@odata.foreignKey4": "GeonameId",
+          "@cds.persistence.name": "GEONAMEID_GEONAMEID"
+        }
+      },
+      "@cds.persistence.name": "ORG_GEONAMES_ALTERNATENAMES"
+    }
+  },
+  "version": {
+    "creator": "CDS Compiler v1.1.3",
+    "csn": "0.1.0"
+  },
+  "@sql_mapping": "plain"
+}
