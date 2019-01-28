@@ -108,5 +108,12 @@ var fetchZipFile =
  ***********************************************************************************************************************
  * Fetch all the country and alternate names files
  */
-countryList.map(fetchZipFile(`${csv_path}countries/`, geonames_path                    , transform.handleGeonamesFile))
-countryList.map(fetchZipFile(`${csv_path}altnames/` , `${geonames_path}alternatenames/`, transform.handleAlternateNamesFile))
+
+var geonamesHandler = fetchZipFile(`${csv_path}countries/`, geonames_path, transform.handleGeonamesFile)
+var altNamesHandler = fetchZipFile(`${csv_path}altnames/` , `${geonames_path}alternatenames/`, transform.handleAlternateNamesFile)
+
+countryList.map(geonamesHandler)
+countryList.map(altNamesHandler)
+
+// Retrieve the special file holding alternate names that are not country specific
+altNamesHandler("no-country")
