@@ -9,9 +9,10 @@
 const fs        = require('fs')
 const unzip     = require('unzip-stream')
 const http      = require('http')
+const path      = require('path')
 const transform = require('./utils/transform')
 
-const csv_path      = '../db/src/csv/'
+const csv_path      = path.join(__dirname, '../db/src/csv/')
 const geonames_path = '/export/dump/'
 
 /**
@@ -73,7 +74,8 @@ var fetchZipFile =
       http.get(
         buildHttpOptions(targetPathname, geonamesPath)(countryCode)
       , response => {
-          process.stdout.write(`Fetching ${countryCode}.zip... `)
+          var sourceURL = getUrl(response.req)
+          process.stdout.write(`Fetching ${sourceURL}... `)
   
           // -----------------------------------------------------------------------------------------------------------
           // The HTTP request might fail...
@@ -95,11 +97,11 @@ var fetchZipFile =
                   .on('entry', entry => textStreamHandler(entry, countryCode, targetPathname, response.headers.etag))
               // -------------------------------------------------------------------------------------------------------
               // Meh, some other HTTP status code was received
-              : console.error(`HTTP status code ${response.statusCode} received for request ${getUrl(response.req)}`)
+              : console.error(`HTTP status code ${response.statusCode} received for request ${sourceURL}`)
             }
             // Boohoo! Its all gone horribly wrong...
             catch(err) {
-              console.error(`HTTP error requesting ${getUrl(response.req)}: ${err.toString()}`)
+              console.error(`HTTP error requesting ${sourceURL}: ${err.toString()}`)
             }
           }
       )
@@ -109,11 +111,14 @@ var fetchZipFile =
  * Fetch all the country and alternate names files
  */
 
+// Build file handlers
 var geonamesHandler = fetchZipFile(`${csv_path}countries/`, geonames_path, transform.handleGeonamesFile)
 var altNamesHandler = fetchZipFile(`${csv_path}altnames/` , `${geonames_path}alternatenames/`, transform.handleAlternateNamesFile)
 
+// Map file handlers across all required files
 countryList.map(geonamesHandler)
 countryList.map(altNamesHandler)
 
-// Retrieve the special file holding alternate names that are not country specific
+// Retrieve the special files holding geonames info and alternate names that are not country specific
+geonamesHandler("no-country")
 altNamesHandler("no-country")
