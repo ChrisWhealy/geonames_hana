@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * =====================================================================================================================
  * Stream handler for very large text and CSV files
@@ -108,12 +106,13 @@ var fetchZipFile =
 
 /**
  ***********************************************************************************************************************
- * Fetch all the country and alternate names files
+ * Public API
  */
 
-// Build file handlers
-var geonamesHandler = fetchZipFile(`${csv_path}countries/`, geonames_path, transform.handleGeonamesFile)
-var altNamesHandler = fetchZipFile(`${csv_path}altnames/` , `${geonames_path}alternatenames/`, transform.handleAlternateNamesFile)
+module.exports = {
+  geonamesHandler : fetchZipFile(`${csv_path}countries/`, geonames_path, transform.handleGeonamesFile)
+, altNamesHandler : fetchZipFile(`${csv_path}altnames/` , `${geonames_path}alternatenames/`, transform.handleAlternateNamesFile)}
+}
 
 // Map file handlers across all required files
 countryList.map(geonamesHandler)
