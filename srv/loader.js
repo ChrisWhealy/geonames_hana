@@ -10,17 +10,17 @@ const http      = require('http')
 const path      = require('path')
 const transform = require('./utils/transform')
 
-const csv_path      = path.join(__dirname, '../db/src/csv/')
+const csv_path      = path.join(__dirname,'../db/src/csv/')
 const geonames_path = '/export/dump/'
 
 /**
  ***********************************************************************************************************************
  * Read the CountryInfo.csv file and from it extract a list of all the 2-character ISO country codes
  */
-const countryList = fs.readFileSync(`${csv_path}CountryInfo.csv`, 'utf8')
-                      .split(/\r\n|\r|\n/)
-                      .map(line => line.slice(0, line.indexOf(",")))
-                      .slice(1)
+// const countryList = fs.readFileSync(`${csv_path}CountryInfo.csv`, 'utf8')
+//                       .split(/\r\n|\r|\n/)
+//                       .map(line => line.slice(0, line.indexOf(",")))
+//                       .slice(1)
 
 //var countryList = ["GB","AD","FR"]
 
@@ -111,13 +111,16 @@ var fetchZipFile =
 
 module.exports = {
   geonamesHandler : fetchZipFile(`${csv_path}countries/`, geonames_path, transform.handleGeonamesFile)
-, altNamesHandler : fetchZipFile(`${csv_path}altnames/` , `${geonames_path}alternatenames/`, transform.handleAlternateNamesFile)}
+, altNamesHandler : fetchZipFile(`${csv_path}altnames/` , `${geonames_path}alternatenames/`, transform.handleAlternateNamesFile)
 }
 
-// Map file handlers across all required files
-countryList.map(geonamesHandler)
-countryList.map(altNamesHandler)
+// var geonamesHandler = fetchZipFile(`${csv_path}countries/`, geonames_path, transform.handleGeonamesFile)
+// var altNamesHandler = fetchZipFile(`${csv_path}altnames/` , `${geonames_path}alternatenames/`, transform.handleAlternateNamesFile)
 
-// Retrieve the special files holding geonames info and alternate names that are not country specific
-geonamesHandler("no-country")
-altNamesHandler("no-country")
+// // Map file handlers across all required files
+// countryList.map(geonamesHandler)
+// countryList.map(altNamesHandler)
+
+// // Retrieve the special files holding geonames info and alternate names that are not country specific
+// geonamesHandler("no-country")
+// altNamesHandler("no-country")

@@ -1,10 +1,16 @@
 const config = {
   development : {
-    refresh_freq: "daily"
+    environment    : "development"
+  , refresh_freq   : "daily"
+  , copy_csv_files : true
+  , csv_files      : ["CountryInfo.csv"]
   }
 , production : {
-    refresh_freq: "daily"
+    environment    : "production"
+  , refresh_freq   : "daily"
+  , copy_csv_files : true
+  , csv_files      : ["CountryInfo.csv"]
   }
 }
 
-module.exports.config = config
+module.exports = config[process.env.NODE_ENV || 'development']

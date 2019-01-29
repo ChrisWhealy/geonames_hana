@@ -15,9 +15,6 @@
     "build": "cds build --clean",
     "watch": "nodemon -w . -i node_modules/**,.git/** -e cds -x npm run build"
   },
-  "bin": {
-    "reuseTableData": "db/reuseTableData.js"
-  },
   "cds": {
     "data": {
       "model": "db/"
