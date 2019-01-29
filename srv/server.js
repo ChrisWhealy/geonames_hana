@@ -47,18 +47,18 @@ server.listen(port, () => console.log(`Server running at https://${vcap_app.uris
  ***********************************************************************************************************************
  * Read the CountryInfo.csv file and from it extract a list of all the 2-character ISO country codes
  */
-const countryList = fs.readFileSync(`${csv_path}CountryInfo.csv`, 'utf8')
-                      .split(/\r\n|\r|\n/)
-                      .map(line => line.slice(0, line.indexOf(",")))
-                      .slice(1)
+// const countryList = fs.readFileSync(`${csv_path}CountryInfo.csv`, 'utf8')
+//                       .split(/\r\n|\r|\n/)
+//                       .map(line => line.slice(0, line.indexOf(",")))
+//                       .slice(1)
 
 // // Map file handlers across all required files
 // countryList.map(loader.geonamesHandler)
 // countryList.map(loader.altNamesHandler)
 
 // // Retrieve the special files holding geonames info and alternate names that are not country specific
-loader.geonamesHandler("no-country")
-loader.altNamesHandler("no-country")
+// loader.geonamesHandler("no-country")
+// loader.altNamesHandler("no-country")
 
 // var colNames = "GeonameId,Name,Latitude,Longitude,FeatureClass,FeatureCode,CountryCode,CountryCodesAlt,Admin1,Admin2,Admin3,Admin4,Population,Elevation,DEM,Timezone,LastModified"
 
@@ -66,13 +66,7 @@ loader.altNamesHandler("no-country")
 //   2986043,'Pic de Font Blanca',42.64991,1.53335,'T','PK','AD',null,'00',null,null,null,0,null,2860,'Europe/Andorra','2014-11-05'
 // ]
 
-//cds.connect()
+cds.connect()
 
-// var descriptions = cds.run(`select DESCRIPTION from ORG_GEONAMES_BASE_FEATURE_CLASSES`)
-// console.log(descriptions)
-
-// cds.run(
-//   `upsert ORG_GEONAMES_GEONAMES (${colNames}) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) with primary key`,
-//   tableRow
-// )
+loader.geonamesHandler("no-country")
 

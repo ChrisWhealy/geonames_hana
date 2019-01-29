@@ -3,7 +3,7 @@
   "description": "Geopolitical information from geonames.org",
   "version": "1.0.0",
   "dependencies": {
-    "@sap/cds": "2.x",
+    "@sap/cds": "3.x",
     "unzip-stream": "0.3.0"
   },
   "author": {
@@ -12,7 +12,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "build": "cds build --clean",
+    "build": "cds build/all --clean",
     "watch": "nodemon -w . -i node_modules/**,.git/** -e cds -x npm run build"
   },
   "cds": {
