@@ -1,6 +1,3 @@
-/*eslint comma-dangle: [2, "only-multiline"]*/
-'strict mode'
-
 /**
  * =====================================================================================================================
  * Geonames servers
@@ -11,6 +8,8 @@ const cds    = require('@sap/cds')
 const http   = require('http')
 const path   = require('path')
 const bfu    = require('basic-formatting-utils')
+
+bfu.set_depth_limit(4)
 
 const config = require('./config/config.js')
 const loader = require('./loader.js')
@@ -49,30 +48,39 @@ server.listen(port, () => console.log(`Server running at https://${vcap_app.uris
 // loader.geonamesHandler("no-country")
 // loader.altNamesHandler("no-country")
 
-// var colNames = "GeonameId,Name,Latitude,Longitude,FeatureClass,FeatureCode,CountryCode,CountryCodesAlt,Admin1,Admin2,Admin3,Admin4,Population,Elevation,DEM,Timezone,LastModified"
-
-// var tableRow = [
-//   2986043,'Pic de Font Blanca',42.64991,1.53335,'T','PK','AD',null,'00',null,null,null,0,null,2860,'Europe/Andorra','2014-11-05'
-// ]
-
 // Connect to HANA
-cds.connect()
+cds.connect({
+     "kind": "hana",
+     "model": "gen/csn.json",
+     "credentials": {
+       "hana": {
+         "name": "geonames-hdi"
+       }
+     }
+   })
    .then(() => {
       // Generate placeholder HTTP response
-      resp_html = 
-        bfu.as_html([],
-           bfu.as_body([]
-           , [ bfu.create_content(
-               [ {title: "cds",              value: cds}
-               , {title: "VCAP_SERVICES",    value: JSON.parse(process.env.VCAP_SERVICES)}
-               , {title: "VCAP_APPLICATION", value: vcap_app}
-               , {title: "NodeJS process",   value: process}
-               ])
-             ].join("")
-           )
-        )
+      return new Promise((resolve, reject) => {
+        resp_html = 
+          bfu.as_html([]
+          , bfu.as_body([]
+            , [ bfu.create_content(
+                [ {title: "cds",              value: cds}
+                , {title: "VCAP_SERVICES",    value: JSON.parse(process.env.VCAP_SERVICES)}
+                , {title: "VCAP_APPLICATION", value: vcap_app}
+                , {title: "NodeJS process",   value: process}
+                ])
+              ].join("")
+            )
+          )
+
+        resolve()
+      })
+   })
+   .then(() => {
+      console.log("Accessing GeoName files")
       loader.geonamesHandler("no-country")
-    })
+   })
 
 
 

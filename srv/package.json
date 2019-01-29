@@ -18,7 +18,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "build": "cds build/all --project .. --clean && node ./utils/copyCSVData.js",
+    "build": "cds build/all --project .. --clean",
     "watch": "nodemon -w . -i node_modules/**,.git/** -e cds -x npm run build"
   },
   "cds": {

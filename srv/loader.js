@@ -100,7 +100,7 @@ var fetchZipFile =
                          // Is this the country's text file?
                          entry.path === `${countryCode}.txt`
                          // Yup, so write its contents to HANA
-                         ? textStreamHandler(entry, countryCode, targetPathname, response.headers.etag)
+                         ? textStreamHandler(entry, countryCode, response.headers.etag)
                          // No, these are not the droids we're looking for...
                          : entry.autodrain()
                      )
@@ -127,14 +127,3 @@ module.exports = {
 //   geonamesHandler : fetchZipFile(`${csv_path}countries/`, geonames_path, transform_csv.handleGeonamesFile)
 // , altNamesHandler : fetchZipFile(`${csv_path}altnames/` , `${geonames_path}alternatenames/`, transform_csv.handleAlternateNamesFile)
 }
-
-// var geonamesHandler = fetchZipFile(`${csv_path}countries/`, geonames_path, transform.handleGeonamesFile)
-// var altNamesHandler = fetchZipFile(`${csv_path}altnames/` , `${geonames_path}alternatenames/`, transform.handleAlternateNamesFile)
-
-// // Map file handlers across all required files
-// countryList.map(geonamesHandler)
-// countryList.map(altNamesHandler)
-
-// // Retrieve the special files holding geonames info and alternate names that are not country specific
-// geonamesHandler("no-country")
-// altNamesHandler("no-country")

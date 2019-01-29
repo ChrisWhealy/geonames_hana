@@ -1,17 +1,13 @@
-#!/usr/bin/env node
-
 /**
  * =====================================================================================================================
- * @fileOverview stream_to_csv
- * 
- * Convert a read stream containing a tab delimited text file to a corresponding CSV file with optional mapping to omit
- * certain columns
+ * @fileOverview Transform a tab-delimietd text strean into batches of HANA UPSERT statements
  * =====================================================================================================================
  **/
 
-const fs = require('fs')
-const es = require('event-stream')
-const { Writable } = require('stream')
+const cds = require('@sap/cds')
+const es  = require('event-stream')
+
+const Upsert = require('./upsert.js')
 
 /***********************************************************************************************************************
  * A list of all column names found in a geonames country file. These names must match the names of the columns in the
@@ -29,44 +25,17 @@ var alternateNamesDbCols = [
 ]
 
 /***********************************************************************************************************************
- * Useful functions
- **/
-const push = (arr, el) => (_ => arr)(arr.push(el))
-
-const isNullOrUndef = x => x === null || x === undefined
-
-/***********************************************************************************************************************
- * Partial function that can be used with Array.reduce on one line of a text file to filter out unneeded columns
- * If a particular column value contains a comma, then this value must be delimited with double quotes
- */
-const reduceUsing =
-  propList =>
-    (acc, el, idx) =>
-      isNullOrUndef(propList[idx]) ? acc : push(acc, el.indexOf(",") > -1 ? `"${el}"` : el)
-
-
-/***********************************************************************************************************************
  * Handle a text file stream encountered within a ZIP file
  */
 const handleTextFile =
   propList =>
-    (entry, countryCode, csv_path, etag) => {
-      // Yes...
-      var colNames = propList.filter(entry => !isNullOrUndef(entry))
-      var outStream = new Writable({
-        objectMode: true,
-        write (valueArray, encoding, callback) {
-          cds.run(`upsert ${propList[0] === "GeonameId" ? "ORG_GEONAMES_GEONAMES" : ""} (${colNames.join(",")}) values (${colNames.map(() => "?").join(",")}) with primary key`, valueArray)
-             .then(() => callback())
-             .catch(console.error)
-        }
-      })
-      
-      // Split the stream into lines, then convert each line to CSV, then write the stream to HANA
-      entry
-        .pipe(es.split(/\r?\n/))
-        .pipe(es.map((line, cb) => cb(null, line.split(/\t/).reduce(reduceUsing(propList), []))))
-        .pipe(outStream)
+    (entry, countryCode, etag) => {
+      console.log(`Processing ${countryCode}.txt`)
+
+     // Pipe read into write to handle backpreasure
+     entry
+       .pipe(es.split())
+       .pipe(new Upsert({batchSize: 500, columns: propList}))
   }
 
 /**
@@ -80,28 +49,3 @@ module.exports = {
 }
 
 
-
-const bufferedOutStream = new Writable({
-  buffer: [],
-
-  write (chunk, encoding, callback) {
-    this.buffer.push(chunk)
-
-    // TODO: Check how to write once last chunk is done and buffer contains data
-    
-    if (this.buffer.length < 1000) {
-      callback()
-      return
-    }
-
-    cds.run('UPSERT ....', this.buffer.slice(0))
-      .then(() => {
-        this.buffer = []
-        callback()
-      })
-  } ,
-
-  end () {
-    
-  }
-})
