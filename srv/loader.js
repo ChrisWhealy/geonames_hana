@@ -8,9 +8,12 @@ const fs        = require('fs')
 const unzip     = require('unzip-stream')
 const http      = require('http')
 const path      = require('path')
-const transform = require('./utils/transform')
 
-const csv_path      = path.join(__dirname,'../db/src/csv/')
+const config         = require('./config/config.js')
+const transform_csv  = require('./utils/transform_csv.js')
+const transform_hana = require('./utils/transform_hana.js')
+
+const csv_path      = path.join(__dirname, config.csv_dest_path)
 const geonames_path = '/export/dump/'
 
 /**
@@ -92,7 +95,15 @@ var fetchZipFile =
                   .pipe((_ => unzip.Parse())
                         (process.stdout.write(`unzipping ${response.headers["content-length"]} bytes... `)))
                   // Then, when we encounter a file within the unzipped stream...
-                  .on('entry', entry => textStreamHandler(entry, countryCode, targetPathname, response.headers.etag))
+                  .on('entry'
+                     , entry =>
+                         // Is this the country's text file?
+                         entry.path === `${countryCode}.txt`
+                         // Yup, so write its contents to HANA
+                         ? textStreamHandler(entry, countryCode, targetPathname, response.headers.etag)
+                         // No, these are not the droids we're looking for...
+                         : entry.autodrain()
+                     )
               // -------------------------------------------------------------------------------------------------------
               // Meh, some other HTTP status code was received
               : console.error(`HTTP status code ${response.statusCode} received for request ${sourceURL}`)
@@ -110,8 +121,11 @@ var fetchZipFile =
  */
 
 module.exports = {
-  geonamesHandler : fetchZipFile(`${csv_path}countries/`, geonames_path, transform.handleGeonamesFile)
-, altNamesHandler : fetchZipFile(`${csv_path}altnames/` , `${geonames_path}alternatenames/`, transform.handleAlternateNamesFile)
+  geonamesHandler : fetchZipFile(`${csv_path}countries/`, geonames_path, transform_hana.handleGeonamesFile)
+, altNamesHandler : fetchZipFile(`${csv_path}altnames/` , `${geonames_path}alternatenames/`, transform_hana.handleAlternateNamesFile)
+
+//   geonamesHandler : fetchZipFile(`${csv_path}countries/`, geonames_path, transform_csv.handleGeonamesFile)
+// , altNamesHandler : fetchZipFile(`${csv_path}altnames/` , `${geonames_path}alternatenames/`, transform_csv.handleAlternateNamesFile)
 }
 
 // var geonamesHandler = fetchZipFile(`${csv_path}countries/`, geonames_path, transform.handleGeonamesFile)

@@ -51,38 +51,23 @@ const reduceUsing =
 const handleTextFile =
   propList =>
     (entry, countryCode, csv_path, etag) => {
-      // Is this the correct text file?
-      if (entry.path === `${countryCode}.txt`) {
-        var colNames = propList.filter(entry => !isNullOrUndef(entry))
-
-        var outStream = new Writable({
-          write (chunk, encoding, callback) {
-            cds.run(`upsert ${propList[0] === "GeonameId" ? "ORG_GEONAMES_GEONAMES" : ""} (${colNames.join(",")}) values (${colNames.map(() => "?").join(",")}) with primary key`, chunk)
-              .then(() => {
-                callback()
-              })
-              .catch(console.error)
-          }
-        })
-        
       // Yes...
-        entry
-          // Split the stream into lines
-          .pipe(es.split(/\r?\n/))
-    
-          // Convert each line to CSV (this includes the column header data)
-          .pipe(es.map((line, cb) => cb(null, line.split(/\t/).reduce(reduceUsing(propList), []))))
-            
-          /**
-           * Write the stream to HANA
-           **/
-          .pipe(outStream)
-      }
-      else {
-      // No, these are not the droids we're looking for, so clean up the stream...
-        entry.autodrain()
-      }
-    }
+      var colNames = propList.filter(entry => !isNullOrUndef(entry))
+      var outStream = new Writable({
+        objectMode: true,
+        write (valueArray, encoding, callback) {
+          cds.run(`upsert ${propList[0] === "GeonameId" ? "ORG_GEONAMES_GEONAMES" : ""} (${colNames.join(",")}) values (${colNames.map(() => "?").join(",")}) with primary key`, valueArray)
+             .then(() => callback())
+             .catch(console.error)
+        }
+      })
+      
+      // Split the stream into lines, then convert each line to CSV, then write the stream to HANA
+      entry
+        .pipe(es.split(/\r?\n/))
+        .pipe(es.map((line, cb) => cb(null, line.split(/\t/).reduce(reduceUsing(propList), []))))
+        .pipe(outStream)
+  }
 
 /**
  * =====================================================================================================================
@@ -96,7 +81,7 @@ module.exports = {
 
 
 
-const outStream = new Writable({
+const bufferedOutStream = new Writable({
   buffer: [],
 
   write (chunk, encoding, callback) {
