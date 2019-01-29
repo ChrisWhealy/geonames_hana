@@ -4,9 +4,7 @@
  * =====================================================================================================================
  **/
 
-const cds = require('@sap/cds')
-const es  = require('event-stream')
-
+const es     = require('event-stream')
 const Upsert = require('./upsert.js')
 
 /***********************************************************************************************************************
@@ -28,14 +26,14 @@ var alternateNamesDbCols = [
  * Handle a text file stream encountered within a ZIP file
  */
 const handleTextFile =
-  propList =>
+  (propList, tabName) =>
     (entry, countryCode, etag) => {
       console.log(`Processing ${countryCode}.txt`)
 
      // Pipe read into write to handle backpreasure
      entry
        .pipe(es.split())
-       .pipe(new Upsert({batchSize: 500, columns: propList}))
+       .pipe(new Upsert({batchSize: 500, columns: propList, tableName: tabName}))
   }
 
 /**
@@ -44,8 +42,6 @@ const handleTextFile =
  * =====================================================================================================================
  **/
 module.exports = {
-  handleGeonamesFile       : handleTextFile(geonamesDbCols)
-, handleAlternateNamesFile : handleTextFile(alternateNamesDbCols)
+  handleGeonamesFile       : handleTextFile(geonamesDbCols, "ORG_GEONAMES_GEONAMES")
+, handleAlternateNamesFile : handleTextFile(alternateNamesDbCols, "ORG_GEONAMES_ALTERNATENAMES")
 }
-
-

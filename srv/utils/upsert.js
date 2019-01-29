@@ -1,3 +1,9 @@
+/**
+ * =====================================================================================================================
+ * @fileOverview Generate the UPSERT statement needed for a batch of rows
+ * =====================================================================================================================
+ **/
+
 const { Writable } = require('stream')
 const cds = require('@sap/cds')
 
@@ -21,11 +27,12 @@ const reduceUsing =
  * Upsert stream handler
  */
 class Upsert extends Writable {
-  constructor({batchSize = 1000, columns = []}) {
+  constructor({batchSize = 1000, columns = [], tableName = ""}) {
     super()
 
     this._batchSize = batchSize
     this._columns   = columns
+    this._tabName   = tableName
     this._buffer    = []
 
     // dump to be used SQL to console
@@ -60,7 +67,7 @@ class Upsert extends Writable {
   }
 
   _upsert() {
-    return `UPSERT (${this._columnsList()}) VALUES (${this._placeholders()}) WITH PRIMARY KEY`
+    return `UPSERT ${this._tabName} (${this._columnsList()}) VALUES (${this._placeholders()}) WITH PRIMARY KEY`
   }
 
   _writeToDb() {
@@ -82,4 +89,7 @@ class Upsert extends Writable {
   }
 }
 
+/***********************************************************************************************************************
+ * Public API
+ */
 module.exports = Upsert
