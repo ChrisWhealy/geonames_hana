@@ -5,6 +5,7 @@
  */
 
 const cds    = require('@sap/cds')
+const xsenv  = require('@sap/xsenv')
 const http   = require('http')
 const path   = require('path')
 const bfu    = require('basic-formatting-utils')
@@ -33,33 +34,28 @@ server.listen(port, () => console.log(`Server running at https://${vcap_app.uris
 
 /**
  ***********************************************************************************************************************
- * Read the CountryInfo.csv file and from it extract a list of all the 2-character ISO country codes
+ * Read the CountryInfo table from it extract a list of all the 2-character ISO country codes
  */
-// const countryList = fs.readFileSync(`${csv_path}CountryInfo.csv`, 'utf8')
-//                       .split(/\r\n|\r|\n/)
-//                       .map(line => line.slice(0, line.indexOf(",")))
-//                       .slice(1)
 
-// // Map file handlers across all required files
-// countryList.map(loader.geonamesHandler)
-// countryList.map(loader.altNamesHandler)
+var GB = {"ISO2":"GB","ISO3":"GBR","ISONUMERIC":"826","FIPS":"UK","COUNTRYNAME":"United Kingdom","CAPITAL":"London","AREA":"244820.00","POPULATION":62348447,"TLD":".uk","CURRENCYCODE":"GBP","CURRENCYNAME":"Pound","DIALLINGCODE":"44","POSTALCODEFORMAT":"@# #@@|@## #@@|@@# #@@|@@## #@@|@#@ #@@|@@#@ #@@|GIR0AA","POSTALCODEREGEX":"^([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9]?[A-Za-z])))) [0-9][A-Za-z]{2})$","LANGUAGES":"en-GB,cy-GB,gd","NEIGHBOURS":"IE","CONTINENT_CONTINENTCODE":"EU","COUNTRYETAG":null,"ALTNAMESETAG":null}
+var FR = {"ISO2":"FR","ISO3":"FRA","ISONUMERIC":"250","FIPS":"FR","COUNTRYNAME":"France","CAPITAL":"Paris","AREA":"547030.00","POPULATION":64768389,"TLD":".fr","CURRENCYCODE":"EUR","CURRENCYNAME":"Euro","DIALLINGCODE":"33","POSTALCODEFORMAT":"#####","POSTALCODEREGEX":"^(\\d{5})$","LANGUAGES":"fr-FR,frp,br,co,ca,eu,oc","NEIGHBOURS":"CH,DE,BE,LU,IT,AD,MC,ES","CONTINENT_CONTINENTCODE":"EU","COUNTRYETAG":null,"ALTNAMESETAG":null}
 
-// // Retrieve the special files holding geonames info and alternate names that are not country specific
-// loader.geonamesHandler("no-country")
-// loader.altNamesHandler("no-country")
+var testCountryList = [GB, FR]
 
 // Connect to HANA
-cds.connect({
-     "kind": "hana",
-     "model": "gen/csn.json",
-     "credentials": {
-       "hana": {
-         "name": "geonames-hdi"
-       }
-     }
-   })
+var services = xsenv.getServices({"hana": { "tag": "hana"}})
+
+var connectionObj = {
+  "kind": "hana"
+, "model": "gen/csn.json"
+, "credentials": services.hana
+//, "credentials": {"hana": { "tag": "geonames-hdi"}}
+}
+
+// Connect to HANA
+cds.connect(connectionObj)
+   // Generate the placeholder HTTP server response
    .then(() => {
-      // Generate placeholder HTTP response
       return new Promise((resolve, reject) => {
         resp_html = 
           bfu.as_html([]
@@ -77,9 +73,20 @@ cds.connect({
         resolve()
       })
    })
+   // Fetch the list of countries along with the two eTags from the last time we fetched the country's ZIP file and the  
+   // country's alternate names ZIP file
    .then(() => {
+      console.log("Fetching list of countries")
+      return cds.run('SELECT * FROM ORG_GEONAMES_BASE_GEO_COUNTRIES').catch(console.error)
+   })
+   .then(countryList => {
       console.log("Accessing GeoName files")
-      loader.geonamesHandler("no-country")
+    //   console.log(`CountryList = ${JSON.stringify(countryList[75])}`)
+
+      testCountryList.map(el => {
+        loader.geonamesHandler(el)
+        loader.altNamesHandler(el)
+      })
    })
 
 

@@ -18,7 +18,7 @@ using org.geonames.base.feature as feature from './Features';
 // country, sort the entries for given country code by Admin4 within Admin3 within Admin 2 within Admin1
 // ---------------------------------------------------------------------------------------------------------------------
 entity Geonames {
-  key GeonameId         : Integer       @title: "Geoname Id"
+  key GeonameId         : Integer64     @title: "Geoname Id"
                                         @description: "Unique geoname id";
       Name              : String(200)   @title: "Name"
                                         @description: "Name of geographical point (utf8)";
@@ -36,7 +36,7 @@ entity Geonames {
                                         @description: "Code for third level administrative division";
       Admin4            : String(20)    @title: "Admin Level 4"
                                         @description: "Code for fourth level administrative division";
-      Population        : Integer       @title: "Population"
+      Population        : Integer64     @title: "Population"
                                         @description: "Population";
       Elevation         : Integer       @title: "Elevation"
                                         @description: "Elevation above sea level of this geographical point in meters";
@@ -71,7 +71,7 @@ entity Geonames {
 //
 // ---------------------------------------------------------------------------------------------------------------------
 entity AlternateNames {
-  key AlternateNameId   : Integer               @title: "Alternate Name Id"
+  key AlternateNameId   : Integer64             @title: "Alternate Name Id"
                                                 @description: "Id of this alternate name";
       ISOLanguage       : String(7)             @title: "Type"
                                                 @description: "Either an ISO language code or a type indicator";

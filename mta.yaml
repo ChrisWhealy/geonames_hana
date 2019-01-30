@@ -3,7 +3,7 @@ _schema-version: 2.0.0
 description: Holds geopolitical data retrieved from geonames.org
 version: 0.0.1
 modules:
-  - name: dbs-dev-hana-backend
+  - name: geonames-server
     type: hdb
     path: db
     parameters:
@@ -11,8 +11,6 @@ modules:
       disk-quota: 256M
     requires:
       - name: geonames-hdi
-        properties:
-          TARGET_CONTAINER: '{hdi-container-name}'
   - name: geonames-loader-srv
     type: nodejs
     path: srv
@@ -25,6 +23,5 @@ resources:
   - name: geonames-hdi
     properties:
       hdi-container-name: '${service-name}'
-      TARGET_CONTAINER: '{hdi-container-name}'
     type: com.sap.xs.hdi-container
 provider: SAP

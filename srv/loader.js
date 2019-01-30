@@ -15,28 +15,7 @@ const transform_hana = require('./utils/transform_hana.js')
 
 const csv_path      = path.join(__dirname, config.csv_dest_path)
 const geonames_path = '/export/dump/'
-
-/**
- ***********************************************************************************************************************
- * Read the CountryInfo.csv file and from it extract a list of all the 2-character ISO country codes
- */
-// const countryList = fs.readFileSync(`${csv_path}CountryInfo.csv`, 'utf8')
-//                       .split(/\r\n|\r|\n/)
-//                       .map(line => line.slice(0, line.indexOf(",")))
-//                       .slice(1)
-
-//var countryList = ["GB","AD","FR"]
-
-/**
- ***********************************************************************************************************************
- * Read the etag file for the current file, if it exists
- */
-const readEtag =
-  pathname =>
-    countryCode =>
-      (etagFile => fs.existsSync(etagFile) ? fs.readFileSync(etagFile).toString() : "")
-      (`${pathname}${countryCode}.etag`)
-
+const altnames_path = `${geonames_path}alternatenames/`
 
 /**
  ***********************************************************************************************************************
@@ -49,15 +28,15 @@ const svcAgent = http.Agent({
 })
 
 // Construct the HTTP options object for reading from geonames.org using the agent created above
+// Need to allow for the special country code XX which become "no-country"
 const buildHttpOptions =
-  (targetPathname, geonamesPath) => 
-    countryCode => ({
+  (countryObj, geonamesPath) => ({
       hostname: 'download.geonames.org'
     , port: 80
-    , path: `${geonamesPath}${countryCode}.zip`
+    , path: `${geonamesPath}${(countryObj.ISO2) === "XX" ? "no-country" : countryObj.ISO2}.zip`
     , method: 'GET'
     , headers: {
-        'If-None-Match': readEtag(targetPathname)(countryCode)
+        'If-None-Match': geonamesPath.indexOf("alternate") > -1 ? countryObj.ALTNAMESETAG : countryObj.COUNTRYETAG
       }
     , agent : svcAgent
     })
@@ -70,10 +49,10 @@ const getUrl = request => `${request.agent.protocol}//${request._headers.host}${
  * Partial function to download a geonames ZIP file
  */
 var fetchZipFile =
-  (targetPathname, geonamesPath, textStreamHandler) =>
-    countryCode =>
+  (geonamesPath, textStreamHandler) =>
+    countryObj =>
       http.get(
-        buildHttpOptions(targetPathname, geonamesPath)(countryCode)
+        buildHttpOptions(countryObj, geonamesPath)
       , response => {
           var sourceURL = getUrl(response.req)
           process.stdout.write(`Fetching ${sourceURL}... `)
@@ -98,9 +77,10 @@ var fetchZipFile =
                   .on('entry'
                      , entry =>
                          // Is this the country's text file?
-                         entry.path === `${countryCode}.txt`
-                         // Yup, so write its contents to HANA
-                         ? textStreamHandler(entry, countryCode, response.headers.etag)
+                         entry.path === `${countryObj.ISO2}.txt`
+                         // Yup, so write its contents to HANA.  The text stream handler needs to know whether this file
+                         // is a country ZIP file or an alternate names ZIP file and that file's eTag
+                         ? textStreamHandler(entry, countryObj, (geonamesPath.indexOf("alternate") > -1), response.headers.etag)
                          // No, these are not the droids we're looking for...
                          : entry.autodrain()
                      )
@@ -121,9 +101,6 @@ var fetchZipFile =
  */
 
 module.exports = {
-  geonamesHandler : fetchZipFile(`${csv_path}countries/`, geonames_path, transform_hana.handleGeonamesFile)
-, altNamesHandler : fetchZipFile(`${csv_path}altnames/` , `${geonames_path}alternatenames/`, transform_hana.handleAlternateNamesFile)
-
-//   geonamesHandler : fetchZipFile(`${csv_path}countries/`, geonames_path, transform_csv.handleGeonamesFile)
-// , altNamesHandler : fetchZipFile(`${csv_path}altnames/` , `${geonames_path}alternatenames/`, transform_csv.handleAlternateNamesFile)
+  geonamesHandler : fetchZipFile(geonames_path, transform_hana.handleGeonamesFile)
+, altNamesHandler : fetchZipFile(altnames_path, transform_hana.handleAlternateNamesFile)
 }

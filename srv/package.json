@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "dependencies": {
     "@sap/cds": "3.x",
+    "@sap/xsenv": "*",
     "unzip-stream": "0.3.0",
     "event-stream": "4.0.1",
     "basic-formatting-utils": "1.2.33",

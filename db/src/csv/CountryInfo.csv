@@ -1,4 +1,5 @@
 ISO2,ISO3,ISONumeric,FIPS,CountryName,Capital,Area,Population,Continent,TLD,CurrencyCode,CurrencyName,DiallingCode,PostalCodeFormat,PostalCodeRegex,Languages,Neighbours
+XX,XXX,999,,No Country,,0,0,EU,,,,,,,,
 AD,AND,20,AN,Andorra,Andorra la Vella,468,84000,EU,.ad,EUR,Euro,376,AD###,^(?:AD)*(\d{3})$,ca,"ES,FR"
 AE,ARE,784,AE,United Arab Emirates,Abu Dhabi,82880,4975593,AS,.ae,AED,Dirham,971,,,"ar-AE,fa,en,hi,ur","SA,OM"
 AF,AFG,4,AF,Afghanistan,Kabul,647500,29121286,AS,.af,AFN,Afghani,93,,,"fa-AF,ps,uz-AF,tk","TM,CN,IR,TJ,PK,UZ"

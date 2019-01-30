@@ -28,6 +28,9 @@ entity Continents {
 // omitted to avoid creating a circular dependency
 //
 // The field EquivalentFipsCode is also omitted
+//
+// A dumy country code "XX" has been created for geoname data that is not country specific.  In order to keep the foreign
+// key relationship of this table happy, this country has been arbitrarily assigned a continent code of "EU"
 // ---------------------------------------------------------------------------------------------------------------------
 entity Countries {
   key ISO2             : String(2)     @title: "2-Character Country Code"
@@ -62,7 +65,10 @@ entity Countries {
                                        @description: "Comma delimited list of ISO language codes or locales spoken in this country";
       Neighbours       : String(80)    @title: "Neighbours"
                                        @description: "Comma delimited list of neighbouring countries by ISO 6133 country code";
-
+      CountryETag      : String(26)    @title: "Country eTag"
+                                       @description: "eTag received from last access to this countrys ZIP file";
+      AltNamesETag     : String(26)    @title: "Alternate Name eTag"
+                                       @description: "eTag received from last access to this countrys alternate names ZIP file";
       Continent        : Association to Continents not null;
 }
 
