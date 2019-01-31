@@ -35,21 +35,20 @@ const genUpsertFrom =
  */
 class Upsert extends Writable {
   constructor({
-    batchSize = 1000
-  , columns = []
-  , tableName = ""
+    batchSize = 10000
+  , dbTableData = {tableName : "", colNames : []}
   , iso2 = ""}) {
     // Mandatory call to superclass constructor
     super()
 
+//    console.log(`new Upsert got ${JSON.stringify(dbTableData)}`)
+
     // Initialise instance variable
     this._batchSize    = batchSize
-    this._columns      = columns
-    this._tabName      = tableName
     this._buffer       = []
     this._iso2         = iso2
-    this._upsert       = genUpsertFrom(this._tabName, this._columns)
-    this._colReducer   = reduceUsing(this._columns)
+    this._upsert       = genUpsertFrom(dbTableData.tableName, dbTableData.colNames)
+    this._colReducer   = reduceUsing(dbTableData.colNames)
     this._rowCount     = 0
   }
 
@@ -98,10 +97,27 @@ class Upsert extends Writable {
 }
 
 /***********************************************************************************************************************
+ * Basic table metadata data object
+ */
+class TableMetadata {
+  constructor({tableName = "", colNames = []}) {
+    this.tableName = tableName
+    this.colNames  = colNames
+  }
+  
+  getTableName() { return this.tabName }
+  getColNames()  { return this.colNames }
+
+  setTableName(tab) { this.tabName = tab }
+  setColNames(cols) { this.ColNames = cols }
+}
+
+/***********************************************************************************************************************
  * Public API
  */
 module.exports = {
   Upsert          : Upsert
+, TableMetadata   : TableMetadata
 , genUpsertFrom   : genUpsertFrom
 }
 

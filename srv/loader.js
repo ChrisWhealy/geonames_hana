@@ -4,18 +4,17 @@
  * =====================================================================================================================
  */
 
-const fs        = require('fs')
-const unzip     = require('unzip-stream')
-const http      = require('http')
-const path      = require('path')
+const fs    = require('fs')
+const unzip = require('unzip-stream')
+const http  = require('http')
 
 const config         = require('./config/config.js')
-const transform_csv  = require('./utils/transform_csv.js')
 const transform_hana = require('./utils/transform_hana.js')
 
-const csv_path      = path.join(__dirname, config.csv_dest_path)
 const geonames_path = '/export/dump/'
 const altnames_path = `${geonames_path}alternatenames/`
+
+const mapCountryCode = iso2 => iso2 === 'XX' ? 'no-country' : iso2
 
 /**
  ***********************************************************************************************************************
@@ -28,18 +27,20 @@ const svcAgent = http.Agent({
 })
 
 // Construct the HTTP options object for reading from geonames.org using the agent created above
-// Need to allow for the special country code XX which become "no-country"
+// Need to allow for the special country code XX which becomes the filename "no-country"
+// Select the correct eTag value from the country object depending on whether this is a request for a country ZIP file
+// or alternate names ZIP file
 const buildHttpOptions =
-  (countryObj, geonamesPath) => ({
-      hostname: 'download.geonames.org'
-    , port: 80
-    , path: `${geonamesPath}${(countryObj.ISO2) === "XX" ? "no-country" : countryObj.ISO2}.zip`
-    , method: 'GET'
-    , headers: {
-        'If-None-Match': geonamesPath.indexOf("alternate") > -1 ? countryObj.ALTNAMESETAG : countryObj.COUNTRYETAG
-      }
-    , agent : svcAgent
-    })
+  (countryObj, geonamesPath, isAltName) => ({
+    hostname: 'download.geonames.org'
+  , port: 80
+  , path: `${geonamesPath}${mapCountryCode(countryObj.ISO2)}.zip`
+  , method: 'GET'
+  , headers: {
+      'If-None-Match': isAltName ? countryObj.ALTNAMESETAG : countryObj.COUNTRYETAG
+    }
+  , agent : svcAgent
+  })
 
 // Extract URL from request object
 const getUrl = request => `${request.agent.protocol}//${request._headers.host}${request._header.split(" ")[1]}`
@@ -50,50 +51,60 @@ const getUrl = request => `${request.agent.protocol}//${request._headers.host}${
  */
 var fetchZipFile =
   (geonamesPath, textStreamHandler) =>
-    countryObj =>
-      http.get(
-        buildHttpOptions(countryObj, geonamesPath)
-      , response => {
-          var sourceURL = getUrl(response.req)
-          process.stdout.write(`Fetching ${sourceURL}... `)
+    countryObj => {
+      // Are we fetching a country ZIP file or an alternat name ZIP file?
+      var isAlternateNameFile = geonamesPath.indexOf("alternate") > -1
+
+      return new Promise((resolve, reject) =>
+        http.get(
+          buildHttpOptions(countryObj, geonamesPath, isAlternateNameFile)
+        , response => {
+            var sourceURL = getUrl(response.req)
+            process.stdout.write(`Fetching ${sourceURL}... `)
+    
+            // -----------------------------------------------------------------------------------------------------------
+            // The HTTP request might fail...
+            try {
+              // ---------------------------------------------------------------------------------------------------------
+              // Has the file changed since we last accessed it?
+              response.statusCode === 304
+              // Nope
+              ? (_ => resolve())
+                (process.stdout.write(`Skipping ${geonamesPath}${countryObj.ISO2}.zip - unchanged since last access\n`))
+              // Yup, so did the download succeed?
+              : response.statusCode === 200
+                // -------------------------------------------------------------------------------------------------------
+                // Yup...
+                ? response
+                    // Unzip the HTTP response stream
+                    .pipe((_ => unzip.Parse())
+                          (process.stdout.write(`unzipping ${response.headers["content-length"]} bytes... `)))
+                    // Then, when we encounter a file within the unzipped stream...
+                    .on('entry'
+                       , entry =>
+                           // Is this the country's text file?
+                           entry.path === `${mapCountryCode(countryObj.ISO2)}.txt`
+                           // Yup, so write its contents to HANA
+                           ? textStreamHandler(entry, countryObj, isAlternateNameFile, response.headers.etag).then(() => resolve())
   
-          // -----------------------------------------------------------------------------------------------------------
-          // The HTTP request might fail...
-          try {
-            // ---------------------------------------------------------------------------------------------------------
-            // Has the file changed since we last accessed it?
-            response.statusCode === 304
-            // Nope
-            ? console.log(`Skipping - unchanged since last access`)
-            // Yup, so did the download succeed?
-            : response.statusCode === 200
-              // -------------------------------------------------------------------------------------------------------
-              // Yup...
-              ? response
-                  // Unzip the HTTP response stream
-                  .pipe((_ => unzip.Parse())
-                        (process.stdout.write(`unzipping ${response.headers["content-length"]} bytes... `)))
-                  // Then, when we encounter a file within the unzipped stream...
-                  .on('entry'
-                     , entry =>
-                         // Is this the country's text file?
-                         entry.path === `${countryObj.ISO2}.txt`
-                         // Yup, so write its contents to HANA.  The text stream handler needs to know whether this file
-                         // is a country ZIP file or an alternate names ZIP file and that file's eTag
-                         ? textStreamHandler(entry, countryObj, (geonamesPath.indexOf("alternate") > -1), response.headers.etag)
-                         // No, these are not the droids we're looking for...
-                         : entry.autodrain()
-                     )
-              // -------------------------------------------------------------------------------------------------------
-              // Meh, some other HTTP status code was received
-              : console.error(`HTTP status code ${response.statusCode} received for request ${sourceURL}`)
+                           // No, these are not the droids we're looking for..., so drain the stream and resolve the promise
+                           : (_ => resolve())
+                             (entry.autodrain())
+                       )
+                // -------------------------------------------------------------------------------------------------------
+                // Meh, some other HTTP status code was received
+                : (_ => resolve())
+                  (console.error(`HTTP status code ${response.statusCode} received for request ${sourceURL}`))
+              }
+              // Boohoo! Its all gone horribly wrong...
+              catch(err) {
+                console.error(`HTTP error requesting ${sourceURL}: ${err.toString()}`)
+                reject()
+              }
             }
-            // Boohoo! Its all gone horribly wrong...
-            catch(err) {
-              console.error(`HTTP error requesting ${sourceURL}: ${err.toString()}`)
-            }
-          }
+        )
       )
+    }
 
 /**
  ***********************************************************************************************************************

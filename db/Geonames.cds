@@ -69,6 +69,8 @@ entity Geonames {
 // * 'wkdt' for the WikiData id
 // * 'link' for the URL to a website (mostly Wikipedia)
 //
+// The inUseFrom and inUseTo field usually holds dates, but might also hold a URL pointing to a fuller explanation of the
+// circumstances behind the name change
 // ---------------------------------------------------------------------------------------------------------------------
 entity AlternateNames {
   key AlternateNameId   : Integer64             @title: "Alternate Name Id"
@@ -85,9 +87,9 @@ entity AlternateNames {
                                                 @description: "E.G. 'Big Apple' for 'New York'";
       isHistoric        : Boolean default false @title: "Historical Name?"
                                                 @description: "E.G. 'Bombay' is the former name for 'Mumbai'";
-      inUsefrom         : String(20)            @title: "In Use From"
+      inUsefrom         : String(200)            @title: "In Use From"
                                                 @description: "Date when historic name started being used";
-      inUseto           : String(20)            @title: "In Use Until"
+      inUseto           : String(200)           @title: "In Use Until"
                                                 @description: "Date when historic name stopped being used";
 
       GeonameId         : Association to Geonames not null;
