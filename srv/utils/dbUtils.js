@@ -25,7 +25,7 @@ const reduceUsing =
 
 const columnList      = cols => cols.filter(isNotNullOrUndef)
 const genColumnList   = cols => columnList(cols).join(',')
-const genPlaceHolders = cols => columnList(cols).map(e => '?').join(',')
+const genPlaceHolders = cols => columnList(cols).map(_ => '?').join(',')
 
 const genUpsertFrom =
   (tabName, cols) => `UPSERT ${tabName} (${genColumnList(cols)}) VALUES (${genPlaceHolders(cols)}) WITH PRIMARY KEY`
@@ -38,12 +38,9 @@ class Upsert extends Writable {
     batchSize = 10000
   , dbTableData = {tableName : "", colNames : []}
   , iso2 = ""}) {
-    // Mandatory call to superclass constructor
     super()
 
-//    console.log(`new Upsert got ${JSON.stringify(dbTableData)}`)
-
-    // Initialise instance variable
+    // Initialise instance variables
     this._batchSize    = batchSize
     this._buffer       = []
     this._iso2         = iso2
@@ -53,21 +50,16 @@ class Upsert extends Writable {
   }
 
  // Put each row to the buffer.  Then when the buffer is full, dump it to HANA
-  _write(chunk, encoding, cb) {
+  _write(chunk, _encoding, cb) {
     // Don't write empty chunks
     if (chunk.length > 0) {
       this._buffer.push(this._chunkToRowArray(chunk))
     }
 
-    // If the buffer is full then dump it to HANA
-    // Either way, invoke the callback function
-    if (this._buffer.length < this._batchSize) {
-      cb()
-    }
-    else {
-      this._writeBufferToDb()
-          .then(() => cb())
-    }
+    // If the buffer is full then dump it to HANA. Either way, invoke the callback function
+    this._buffer.length < this._batchSize
+    ? cb()
+    : this._writeBufferToDb().then(() => cb())
   }
 
  // The write stream delivers binary chunks
@@ -82,17 +74,13 @@ class Upsert extends Writable {
     return cds.run(this._upsert, this._buffer.splice(0)).catch(console.error)
   }
 
- // Finally, ensure that there's nothing left over in the buffer
+ // Finally, ensure there's nothing left over in the buffer
   _final(cb) {
     console.log(`Country code ${this._iso2}: ${this._rowCount + this._buffer.length} rows written`)
 
-    if (this._buffer.length > 0) {
-      this._writeBufferToDb()
-          .then(() => cb())
-    }
-    else {
-      cb()
-    }
+    this._buffer.length > 0
+    ? this._writeBufferToDb().then(() => cb())
+    : cb()
   }
 }
 
@@ -104,12 +92,6 @@ class TableMetadata {
     this.tableName = tableName
     this.colNames  = colNames
   }
-  
-  getTableName() { return this.tabName }
-  getColNames()  { return this.colNames }
-
-  setTableName(tab) { this.tabName = tab }
-  setColNames(cols) { this.ColNames = cols }
 }
 
 /***********************************************************************************************************************

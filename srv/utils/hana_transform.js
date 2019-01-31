@@ -3,15 +3,14 @@
  * @fileOverview Transform a tab-delimietd text strean into batches of HANA UPSERT statements
  * =====================================================================================================================
  **/
-
 const es      = require('event-stream')
 const dbUtils = require('./dbUtils.js')
 
 /***********************************************************************************************************************
- * Metadata objects for the tables being updated
+ * Metadata objects for the HANA tables being updated
  * The colNames property must conform to the following constraints:
- * 1) It must contain an entry for all columns in the corresponding text file
- * 2) Each entry must be either the HANA table column name, or null if that column is not to be imported into HANA
+ * 1) It must contain an entry for all columns in the text file arriving from geonames.org
+ * 2) Each entry must be either the HANA table column name, or null if that column does not need to be imported
  */
 const geoNames = new dbUtils.TableMetadata({
   tableName : "ORG_GEONAMES_GEONAMES"
@@ -28,24 +27,21 @@ const alternateNames = new dbUtils.TableMetadata({
 
 /***********************************************************************************************************************
  * Handle a text file stream encountered within a ZIP file
+ * When the read stream finishes, update the relavant eTag field in the country table
  */
 const handleTextFile =
   dbTableData =>
     (entry, countryObj, isAltNames, etag) =>
-       entry
-         .pipe(es.split())
-         .pipe(new dbUtils.Upsert({dbTableData: dbTableData, iso2: countryObj.ISO2}))
-         
-         // When the stream finishes, update the relavant eTag field in the country table
-         .on('finish', () => {
-            // Assign the current eTag to the correct object property
-            isAltNames ? countryObj.ALTNAMESETAG = etag : countryObj.COUNTRYETAG = etag
-            
-            // Update the CountryInfo Table with the new eTag value
-            return cds.run( dbUtils.genUpsertFrom( "ORG_GEONAMES_BASE_GEO_COUNTRIES", Object.keys(countryObj))
-                          , Object.values(countryObj))
-                      .catch(console.error)
-         })
+      entry
+        .pipe(es.split())
+        .pipe(new dbUtils.Upsert({dbTableData: dbTableData, iso2: countryObj.ISO2}))
+        .on('finish', () => {
+          isAltNames ? countryObj.ALTNAMESETAG = etag : countryObj.COUNTRYETAG = etag
+
+          return cds.run( dbUtils.genUpsertFrom( "ORG_GEONAMES_BASE_GEO_COUNTRIES", Object.keys(countryObj))
+                        , Object.values(countryObj))
+                    .catch(console.error)
+        })
 
 /**
  * =====================================================================================================================

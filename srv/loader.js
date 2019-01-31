@@ -4,15 +4,11 @@
  * =====================================================================================================================
  */
 
-const fs    = require('fs')
-const unzip = require('unzip-stream')
-const http  = require('http')
-
-const config         = require('./config/config.js')
-const transform_hana = require('./utils/transform_hana.js')
-
-const geonames_path = '/export/dump/'
-const altnames_path = `${geonames_path}alternatenames/`
+const unzip          = require('unzip-stream')
+const http           = require('http')
+const hana_transform = require('./utils/hana_transform.js')
+const geonames_path  = '/export/dump/'
+const altnames_path  = `${geonames_path}alternatenames/`
 
 const mapCountryCode = iso2 => iso2 === 'XX' ? 'no-country' : iso2
 
@@ -110,8 +106,7 @@ var fetchZipFile =
  ***********************************************************************************************************************
  * Public API
  */
-
 module.exports = {
-  geonamesHandler : fetchZipFile(geonames_path, transform_hana.handleGeonamesFile)
-, altNamesHandler : fetchZipFile(altnames_path, transform_hana.handleAlternateNamesFile)
+  geonamesHandler : fetchZipFile(geonames_path, hana_transform.handleGeonamesFile)
+, altNamesHandler : fetchZipFile(altnames_path, hana_transform.handleAlternateNamesFile)
 }
