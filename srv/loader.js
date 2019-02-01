@@ -81,7 +81,7 @@ var fetchZipFile =
                            // Is this the country's text file?
                            entry.path === `${mapCountryCode(countryObj.ISO2)}.txt`
                            // Yup, so write its contents to HANA
-                           ? textStreamHandler(entry, countryObj, isAlternateNameFile, response.headers.etag).then(() => resolve())
+                           ? textStreamHandler(entry, countryObj, isAlternateNameFile, response.headers.etag)
   
                            // No, these are not the droids we're looking for..., so drain the stream and resolve the promise
                            : (_ => resolve())
