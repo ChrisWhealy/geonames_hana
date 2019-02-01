@@ -1,3 +1,7 @@
+/*eslint semi: ["error", "never"], no-console:0, no-nested-ternary:0 */
+/*eslint no-unused-expressions: ["error", { "allowTernary": true }]*/
+/*eslint-env node, es6 */
+
 /**
  * =====================================================================================================================
  * @fileOverview Generate the UPSERT statement needed for a batch of rows
@@ -5,7 +9,7 @@
  **/
 
 const { Writable } = require('stream')
-const cds = require('@sap/cds')
+const cds          = require('@sap/cds')
 
 /***********************************************************************************************************************
  * Useful functions

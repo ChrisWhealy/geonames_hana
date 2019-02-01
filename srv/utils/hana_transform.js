@@ -1,9 +1,14 @@
+/*eslint semi: ["error", "never"], no-console:0, no-nested-ternary:0 */
+/*eslint no-unused-expressions: ["error", { "allowTernary": true }]*/
+/*eslint-env node, es6 */
+
 /**
  * =====================================================================================================================
  * @fileOverview Transform a tab-delimietd text strean into batches of HANA UPSERT statements
  * =====================================================================================================================
  **/
 const es      = require('event-stream')
+const cds     = require('@sap/cds')
 const dbUtils = require('./dbUtils.js')
 
 /***********************************************************************************************************************
