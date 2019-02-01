@@ -44,6 +44,10 @@ Clone this repository into Web IDE Full-Stack
 
     The expected initial load time for the entire database is about 15 minutes, after which these two tables will contain around 26 million rows between them
 
+***WARNING***  
+The `ORG_GEONAMES_BASE_GEO_COUNTRIES` table contains data not only for all 252 countries in the world, but also a special country with the country code `XX`.
+
+This is the country code for geopolitical information that does not belong to any particular country.  However, the geopolitical data falling into this category is downloaded from a GeoNames.org file called `no-country.zip` rather than the expected `XX.zip`.
 
 <!-- *********************************************************************** -->
 <a name="limitations"></a>
