@@ -17,20 +17,7 @@ const port      = process.env.PORT || 3000
 const startedAt = Date.now()
 const separator = "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *"
 
-var resp_html = "No value yet"
-
-bfu.set_depth_limit(4)
-
-// ---------------------------------------------------------------------------------------------------------------------
-// Create an HTTP server
-// ---------------------------------------------------------------------------------------------------------------------
-const server = http.createServer((req, res) => {
-  res.statusCode = 200
-  res.setHeader('Content-Type', 'text/html')
-  res.end(resp_html)
-})
-
-server.listen(port, () => console.log(`Server running at https://${vcap_app.uris[0]}:${port}/`))
+  bfu.set_depth_limit(4)
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Connect to HANA
@@ -43,28 +30,33 @@ var connectionObj = {
 
 cds.connect(connectionObj)
   // -------------------------------------------------------------------------------------------------------------------
-  // Generate the placeholder HTTP server response
-  .then(() => {
-    return new Promise((resolve, reject) => {
-      resp_html = 
-        bfu.as_html([]
-        , bfu.as_body([]
-          , [ bfu.create_content(
-              [ {title: "VCAP_SERVICES",    value: vcap_srv}
-              , {title: "VCAP_APPLICATION", value: vcap_app}
-              // , {title: "NodeJS process",   value: process}
-              ])
-            ].join("")
-          )
-        )
-
-      resolve()
-    })
-  })
-
+  // Start HTTP server
   // -------------------------------------------------------------------------------------------------------------------
-  // Fetch the list of countries
-  .then(() => cds.run('SELECT * FROM ORG_GEONAMES_BASE_GEO_COUNTRIES').catch(console.error))
+  .then(() => {
+    var index_html =
+      bfu.as_html([]
+      , bfu.as_body([]
+        , [ bfu.create_content(
+            [ {title: "VCAP_SERVICES",    value: vcap_srv}
+            , {title: "VCAP_APPLICATION", value: vcap_app}
+            , {title: "NodeJS process",   value: process}
+            ])
+          ].join("")
+        )
+      )
+
+    // Create an HTTP server and start it listening for incoming requests
+    var server = http.createServer((req, res) => {
+      res.statusCode = 200
+      res.setHeader('Content-Type', 'text/html')
+      res.end(index_html)
+    })
+    
+    server.listen(port, () => console.log(`Server running at https://${vcap_app.uris[0]}:${port}/`))
+
+    // Fetch the list of countries
+    return cds.run('SELECT * FROM ORG_GEONAMES_BASE_GEO_COUNTRIES').catch(console.error)
+  })
 
   // -------------------------------------------------------------------------------------------------------------------
   // For each country fetch its GeoName and Alternate Name ZIP files

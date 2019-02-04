@@ -15,7 +15,7 @@ modules:
     type: nodejs
     path: srv
     parameters:
-      memory: 512M
+      memory: 1024M
       disk-quota: 256M
     requires:
       - name: geonames-hdi

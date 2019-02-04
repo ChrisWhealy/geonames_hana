@@ -39,7 +39,7 @@ const genUpsertFrom =
  */
 class Upsert extends Writable {
   constructor({
-    batchSize = 10000
+    batchSize = 20000
   , dbTableData = {tableName : "", colNames : []}
   , iso2 = ""}) {
     super()

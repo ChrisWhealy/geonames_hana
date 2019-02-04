@@ -1,5 +1,5 @@
 {
-  "name": "geonames-to-hana",
+  "name": "geonames-server",
   "description": "Geopolitical information from geonames.org",
   "version": "1.0.0",
   "dependencies": {
@@ -23,5 +23,5 @@
   "private": true,
   "readmeFilename": "README.md",
   "license": "MIT",
-  "repository": "github:i003638/cloud_cf_byol_weather_hana"
+  "repository": "github:i003638/cloud_cf_geonames_hana"
 }
