@@ -11,10 +11,22 @@
 const unzip          = require('unzip-stream')
 const http           = require('http')
 const hana_transform = require('./utils/hana_transform.js')
+const config         = require('./config/config.js')
+
 const geonames_path  = '/export/dump/'
 const altnames_path  = `${geonames_path}alternatenames/`
 
 const mapCountryCode = iso2 => iso2 === 'XX' ? 'no-country' : iso2
+
+// Partial function that takes a refresh frequency (in minutes) and returns a function that checks for a given time in
+// the past, whether or not the refresh period has expired
+const refreshFrequency =
+  refresh_freq =>
+    timeInThePast =>
+      // If timeInThePast is falsey, then always assume the refresh period has expired
+      timeInThePast ? Date.parse(timeInThePast + refresh_freq * 60000) < Date.now() : true
+
+const refreshNeeded = refreshFrequency(config.refresh_freq)
 
 /**
  ***********************************************************************************************************************
@@ -52,58 +64,66 @@ const getUrl = request => `${request.agent.protocol}//${request._headers.host}${
 var fetchZipFile =
   (geonamesPath, textStreamHandler) =>
     countryObj => {
-      // Are we fetching a country ZIP file or an alternat name ZIP file?
+      // Are we fetching a country ZIP file or an alternate name ZIP file?
       var isAlternateNameFile = geonamesPath.indexOf("alternate") > -1
 
-      return new Promise((resolve, reject) =>
-        http.get(
-          buildHttpOptions(countryObj, geonamesPath, isAlternateNameFile)
-        , response => {
-            var sourceURL = getUrl(response.req)
-            process.stdout.write(`Fetching ${sourceURL}... `)
+      return new Promise((resolve, reject) => {
+        // Using the appropriate eTag time field, check whether or not a refresh is needed
+        if (refreshNeeded(isAlternateNameFile ? countryObj.ALTNAMESETAGTIME : countryObj.COUNTRYETAGTIME)) {
+          http.get(
+            buildHttpOptions(countryObj, geonamesPath, isAlternateNameFile)
+          , response => {
+              var sourceURL = getUrl(response.req)
+              process.stdout.write(`Fetching ${sourceURL}... `)
+      
+              // -----------------------------------------------------------------------------------------------------------
+              // The HTTP request might fail...
+              try {
+                // ---------------------------------------------------------------------------------------------------------
+                // Has the file changed since we last accessed it?
+                response.statusCode === 304
+                // Nope
+                ? (_ => resolve())
+                  (process.stdout.write(`Skipping ${geonamesPath}${countryObj.ISO2}.zip - unchanged since last access\n`))
+                // Yup, so did the download succeed?
+                : response.statusCode === 200
+                  // -------------------------------------------------------------------------------------------------------
+                  // Yup...
+                  ? response
+                      // Unzip the HTTP response stream
+                      .pipe((_ => unzip.Parse())
+                            (process.stdout.write(`unzipping ${response.headers["content-length"]} bytes... `)))
+                      // Then, when we encounter a file within the unzipped stream...
+                      .on('entry'
+                         , entry =>
+                             // Is this the country's text file?
+                             entry.path === `${mapCountryCode(countryObj.ISO2)}.txt`
+                             // Yup, so write its contents to HANA
+                             ? textStreamHandler(entry, countryObj, isAlternateNameFile, response.headers.etag)
     
-            // -----------------------------------------------------------------------------------------------------------
-            // The HTTP request might fail...
-            try {
-              // ---------------------------------------------------------------------------------------------------------
-              // Has the file changed since we last accessed it?
-              response.statusCode === 304
-              // Nope
-              ? (_ => resolve())
-                (process.stdout.write(`Skipping ${geonamesPath}${countryObj.ISO2}.zip - unchanged since last access\n`))
-              // Yup, so did the download succeed?
-              : response.statusCode === 200
-                // -------------------------------------------------------------------------------------------------------
-                // Yup...
-                ? response
-                    // Unzip the HTTP response stream
-                    .pipe((_ => unzip.Parse())
-                          (process.stdout.write(`unzipping ${response.headers["content-length"]} bytes... `)))
-                    // Then, when we encounter a file within the unzipped stream...
-                    .on('entry'
-                       , entry =>
-                           // Is this the country's text file?
-                           entry.path === `${mapCountryCode(countryObj.ISO2)}.txt`
-                           // Yup, so write its contents to HANA
-                           ? textStreamHandler(entry, countryObj, isAlternateNameFile, response.headers.etag)
-  
-                           // No, these are not the droids we're looking for..., so drain the stream and resolve the promise
-                           : (_ => resolve())
-                             (entry.autodrain())
-                       )
-                // -------------------------------------------------------------------------------------------------------
-                // Meh, some other HTTP status code was received
-                : (_ => resolve())
-                  (console.error(`HTTP status code ${response.statusCode} received for request ${sourceURL}`))
+                             // No, these are not the droids we're looking for..., so drain the stream and resolve the promise
+                             : (_ => resolve())
+                               (entry.autodrain())
+                         )
+                  // -------------------------------------------------------------------------------------------------------
+                  // Meh, some other HTTP status code was received
+                  : (_ => resolve())
+                    (console.error(`HTTP status code ${response.statusCode} received for request ${sourceURL}`))
+                }
+                // Boohoo! Its all gone horribly wrong...
+                catch(err) {
+                  console.error(`HTTP error requesting ${sourceURL}: ${err.toString()}`)
+                  reject()
+                }
               }
-              // Boohoo! Its all gone horribly wrong...
-              catch(err) {
-                console.error(`HTTP error requesting ${sourceURL}: ${err.toString()}`)
-                reject()
-              }
-            }
-        )
-      )
+          )
+        }
+        // Refresh of this file is not needed because we're still within the refresh period
+        else {
+          console.log(`Skipping download of ${countryObj.ISO2}.zip - refresh period has not yet elapsed`)
+          resolve()
+        }
+      })
     }
 
 /**

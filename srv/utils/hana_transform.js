@@ -41,7 +41,15 @@ const handleTextFile =
         .pipe(es.split())
         .pipe(new dbUtils.Upsert({dbTableData: dbTableData, iso2: countryObj.ISO2}))
         .on('finish', () => {
-          isAltNames ? countryObj.ALTNAMESETAG = etag : countryObj.COUNTRYETAG = etag
+          // Update the appropriate eTag value and time fields
+          if (isAltNames) {
+            countryObj.ALTNAMESETAG     = etag
+            countryObj.ALTNAMESETAGTIME = Date.now()
+          }
+          else {
+            countryObj.COUNTRYETAG     = etag
+            countryObj.COUNTRYETAGTIME = Date.now()
+          }
 
           return cds.run( dbUtils.genUpsertFrom( "ORG_GEONAMES_BASE_GEO_COUNTRIES", Object.keys(countryObj))
                         , Object.values(countryObj))

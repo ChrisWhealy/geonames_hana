@@ -66,9 +66,13 @@ entity Countries {
       Neighbours       : String(80)    @title: "Neighbours"
                                        @description: "Comma delimited list of neighbouring countries by ISO 6133 country code";
       CountryETag      : String(26)    @title: "Country eTag"
-                                       @description: "eTag received from last access to this countrys ZIP file";
+                                       @description: "eTag received during last access to this countrys ZIP file";
+      CountryETagTime  : Integer64     @title: "Last Accessed At"
+                                       @description: "The timestamp this country\'s ZIP file was last accessed";
       AltNamesETag     : String(26)    @title: "Alternate Name eTag"
-                                       @description: "eTag received from last access to this countrys alternate names ZIP file";
+                                       @description: "eTag received during last access to this country\'s alternate names ZIP file";
+      AltNamesETagTime : Integer64     @title: "Last Accessed At"
+                                       @description: "The timestamp this country\'s alternate names ZIP file was last accessed";
       Continent        : Association to Continents not null;
 }
 
