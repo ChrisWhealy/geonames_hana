@@ -24,7 +24,7 @@ const refreshFrequency =
   refresh_freq =>
     timeInThePast =>
       // If timeInThePast is falsey, then always assume the refresh period has expired
-      timeInThePast ? Date.parse(timeInThePast + refresh_freq * 60000) < Date.now() : true
+      timeInThePast ? Math.trunc((Date.now() - timeInThePast) / 60000) > refresh_freq : true
 
 const refreshNeeded = refreshFrequency(config.refresh_freq)
 
