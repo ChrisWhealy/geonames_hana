@@ -22,12 +22,12 @@ const separator       = "* * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 const countryTable = 'org.geonames.base.geo.Countries'
 
-  bfu.set_depth_limit(4)
+  bfu.set_depth_limit(5)
 
 // ---------------------------------------------------------------------------------------------------------------------
 // HTTP request error handler function
 // ---------------------------------------------------------------------------------------------------------------------
-const httpErrorHandler = err => console.error(error.stack)
+const httpErrorHandler = err => console.error(err.stack)
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Partial function that defines an HTTP request handler function with a default response
@@ -89,13 +89,13 @@ cds.connect(connectionObj)
         bfu.as_html([]
         , bfu.as_body([]
           , [ bfu.create_content(
-              [ {title: "cds",              value: cds}
-              , {title: "VCAP_SERVICES",    value: vcap_srv}
-              , {title: "VCAP_APPLICATION", value: vcap_app}
-              , {title: "NodeJS process",   value: process}
-              ])
-            //   [ {title: "CountryList", value: countryList}
+            //   [ {title: "cds",              value: cds}
+            //   , {title: "VCAP_SERVICES",    value: vcap_srv}
+            //   , {title: "VCAP_APPLICATION", value: vcap_app}
+            //   , {title: "NodeJS process",   value: process}
             //   ])
+              [ {title: "CountryList", value: countryList}
+              ])
             ].join("")
           )
         )
@@ -107,7 +107,7 @@ cds.connect(connectionObj)
       server.on('request', httpRequestHandler(defaultResponse))
   
       // Pass list of countries through to the next promise
-      return countryList
+      resolve(countryList)
     })
   })
 
