@@ -136,5 +136,14 @@ const config = {
   }
 }
 
-module.exports = config[process.env.NODE_ENV || 'development']
-//module.exports = config['development']
+// =====================================================================================================================
+// Public API
+// =====================================================================================================================
+
+// Sometimes its necessary to force it into development mode, even though you're running in an environment configured to
+// be production
+//module.exports = config[process.env.NODE_ENV || 'development']
+module.exports = config['development']
+
+
+
