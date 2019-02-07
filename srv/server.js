@@ -214,6 +214,7 @@ cds.connect(connectionObj)
       // Create an HTTP server
       const server = http.createServer()
       
+      // Define HTTP handler with default landing page
       server.on('request', httpRequestHandler(buildLandingPage(countryList.length)))
       server.listen(port, () => console.log(`Server running at https://${vcap_app.uris[0]}:${port}/`))
   

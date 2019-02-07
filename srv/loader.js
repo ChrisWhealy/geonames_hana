@@ -18,13 +18,16 @@ const altnames_path  = `${geonames_path}alternatenames/`
 
 const mapCountryCode = iso2 => iso2 === 'XX' ? 'no-country' : iso2
 
+// How many whole minutes have elapsed since some particular time in the past?
+const minutesBetweenNowAnd = then => Math.trunc((Date.now() - then) / 60000)
+
 // Partial function that takes a refresh frequency (in minutes) and returns a function that checks for a given time in
 // the past, whether or not the refresh period has expired
 const refreshFrequency =
   refresh_freq =>
     timeInThePast =>
       // If timeInThePast is falsey, then always assume the refresh period has expired
-      timeInThePast ? Math.trunc((Date.now() - timeInThePast) / 60000) > refresh_freq : true
+      timeInThePast ? minutesBetweenNowAnd(timeInThePast) > refresh_freq : true
 
 const refreshNeeded = refreshFrequency(config.refresh_freq)
 
@@ -65,11 +68,12 @@ var fetchZipFile =
   (geonamesPath, textStreamHandler) =>
     countryObj => {
       // Are we fetching a country ZIP file or an alternate name ZIP file?
-      var isAlternateNameFile = geonamesPath.indexOf("alternate") > -1
+      let isAlternateNameFile = geonamesPath.indexOf("alternate") > -1
+      let lastRefreshTime     = isAlternateNameFile ? countryObj.ALTNAMESETAGTIME : countryObj.COUNTRYETAGTIME
 
       return new Promise((resolve, reject) => {
         // Using the appropriate eTag time field, check whether or not a refresh is needed
-        if (refreshNeeded(isAlternateNameFile ? countryObj.ALTNAMESETAGTIME : countryObj.COUNTRYETAGTIME)) {
+        if (refreshNeeded(lastRefreshTime)) {
           http.get(
             buildHttpOptions(countryObj, geonamesPath, isAlternateNameFile)
           , response => {
@@ -120,7 +124,7 @@ var fetchZipFile =
         }
         // Refresh of this file is not needed because we're still within the refresh period
         else {
-          console.log(`Skipping download of ${countryObj.ISO2}.zip - refresh period has not yet elapsed`)
+          console.log(`Skipping download of ${countryObj.ISO2}.zip - refresh period elapses in ${config.refresh_freq - minutesBetweenNowAnd(lastRefreshTime)} minutes`)
           resolve()
         }
       })
