@@ -4,12 +4,12 @@
 
 /**
  * =====================================================================================================================
- * @fileOverview Transform a tab-delimietd text strean into batches of HANA UPSERT statements
+ * Transform a tab-delimited text strean into batches of HANA UPSERT statements
  * =====================================================================================================================
  **/
-const es      = require('event-stream')
-const cds     = require('@sap/cds')
-const dbUtils = require('./dbUtils.js')
+const es       = require('event-stream')
+const cds      = require('@sap/cds')
+const db_utils = require('./db_utils.js')
 
 /***********************************************************************************************************************
  * Metadata objects for the HANA tables being updated
@@ -17,14 +17,14 @@ const dbUtils = require('./dbUtils.js')
  * 1) It must contain an entry for all columns in the text file arriving from geonames.org
  * 2) Each entry must be either the HANA table column name, or null if that column does not need to be imported
  */
-const geoNames = new dbUtils.TableMetadata({
+const geoNames = new db_utils.TableMetadata({
   tableName : "ORG_GEONAMES_GEONAMES"
 , colNames : ["GeonameId", "Name", null, null, "Latitude", "Longitude", "FeatureClass_FeatureClass"
   , "FeatureCode_FeatureCode", "CountryCode_ISO2", "CountryCodesAlt", "Admin1", "Admin2", "Admin3", "Admin4"
   , "Population", "Elevation", "DEM", "Timezone_TimezoneName", "LastModified"]
 })
 
-const alternateNames = new dbUtils.TableMetadata({
+const alternateNames = new db_utils.TableMetadata({
   tableName : "ORG_GEONAMES_ALTERNATENAMES"
 , colNames : ["AlternateNameId", "GeonameId_GeonameId", "ISOLanguage", "AlternateName", "isPreferredName", "isShortName"
   , "isColloquial", "isHistoric", "inUseFrom", "inUseTo"]
@@ -39,7 +39,7 @@ const handleTextFile =
     (entry, countryObj, isAltNames, etag) =>
       entry
         .pipe(es.split())
-        .pipe(new dbUtils.Upsert({dbTableData: dbTableData, iso2: countryObj.ISO2}))
+        .pipe(new db_utils.Upsert({dbTableData: dbTableData, iso2: countryObj.ISO2}))
         .on('finish', () => {
           // Update the appropriate eTag value and time fields
           if (isAltNames) {
@@ -51,7 +51,7 @@ const handleTextFile =
             countryObj.COUNTRYETAGTIME = Date.now()
           }
 
-          return cds.run( dbUtils.genUpsertFrom( "ORG_GEONAMES_BASE_GEO_COUNTRIES", Object.keys(countryObj))
+          return cds.run( db_utils.genUpsertFrom( "ORG_GEONAMES_BASE_GEO_COUNTRIES", Object.keys(countryObj))
                         , Object.values(countryObj))
                     .catch(console.error)
         })

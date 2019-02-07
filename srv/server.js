@@ -14,105 +14,103 @@ const loader     = require('./loader.js')
 const config     = require('./config/config.js')
 const styleSheet = require('./utils/style_sheet.js')
 
-const { push } = require('./utils/functional_tools.js')
+const { cdsModelDefinitions
+      , cdsElObjToHtmlTable
+      } = require('./utils/html_utils.js')
 
-const vcap_app        = JSON.parse(process.env.VCAP_APPLICATION)
-const vcap_srv        = JSON.parse(process.env.VCAP_SERVICES)
-const port            = process.env.PORT || 3000
-const hanaCredentials = (vcap_srv['hana'] || vcap_srv['hanatrial'])[0].credentials
-const startedAt       = Date.now()
-const separator       = "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *"
-const countryTable    = 'org.geonames.base.geo.Countries'
+const vcap_app = JSON.parse(process.env.VCAP_APPLICATION)
+const vcap_srv = JSON.parse(process.env.VCAP_SERVICES)
+const port     = process.env.PORT || 3000
 
+const connectionObj = {
+  "kind": "hana"
+, "model": "gen/csn.json"
+, "credentials": (vcap_srv['hana'] || vcap_srv['hanatrial'])[0].credentials
+}
 
-// Return an HTML span element containing some text and a mouseover description
-const asSpanWithDesc = (txt, desc) => bfu.as_span([`title="${desc}"`], txt)
+const as_a      = bfu.as_html_el("a")
+const startedAt = Date.now()
+const separator = "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *"
 
-// Return an HTML td element containing a value from the HANA table
-const asTableData = tdValue => bfu.as_td(["class='bfu-td'"], tdValue)
+// Sort function based on 2-character ISO country code
+const sortByCountryCode = (el1, el2) => el1.ISO2 < el2.ISO2 ? -1 : el1.ISO2 > el2.ISO2 ? 1 : 0
 
-// Retrieve the elements of a given table from the CDS model
-// If the table name cannot be found, return an empty array
-const cdsModelDefinitions =
-  cdsObj =>
-    tabName =>
-      (tab => tab === undefined ? [] : tab.elements)
-      (cdsObj.model.definitions[tabName])
+var countryList  = []
+var urlWhiteList = []
 
-// Transform the element property objects into an array, then sort that array into column number order
-const sortModelElements =
-  elementObj =>
-    Object
-      .keys(elementObj)
-      .reduce((acc, element) => push(acc, elementObj[element]), [])
-      .sort((el1, el2) => el1.indexNo < el2.indexNo)
+var cdsModelDefs
 
-// Transform a CDS Model elements object into a row of HTML table header elemnts
-const tableHdrs =
-  cdsModelDef =>
-    (sortedEls =>
-      bfu.as_tr( []
-               , sortedEls
-                   .reduce((acc, el) =>
-                           // Ignore fields of type 'cds.Association'
-                           (el.type === 'cds.Association')
-                           ? acc
-                           : ((descr, label) =>
-                              // If the description is missing, the OData foreign key property instead
-                              descr === undefined
-                              ? push(acc, bfu.as_th( ["class='bfu-th'"], el['@odata.foreignKey4']))
-                              : push(acc, bfu.as_th( ["class='bfu-th'"], asSpanWithDesc(label['='], descr['='])))
-                             )
-                             // Create a column header from the description and label fields
-                             (el['@description'],el['@Common.Label'])
-                           , [])
-                   .join('')
-               )
-    )
-    // Sort the elements in the CDS model definition into column order
-    (sortModelElements(cdsModelDef))
-
-// Transform an array of objects read from a HANA table into the corresponding HTML table rows. The columns must be
-// ordered according to the indexNo property in the CDS Model elements object
-const tableBody =
-  (cdsModelDef, tableData) =>
-    (sortedEls =>
-      tableData
-        .map(rowData =>
-               bfu.as_tr( []
-                        , sortedEls
-                            .reduce((acc, el) =>
-                                      (el.type === 'cds.Association')
-                                      ? acc
-                                      : push(acc, asTableData(rowData[el['@cds.persistence.name']])), [])
-                            .join('')
-                        )
-            )
-        .join('')
-    )
-    // Sort the elements in the CDS model definition into column order
-    (sortModelElements(cdsModelDef))
-
-// Transform a CDS Model elements object into an HTML table
-const cdsElObjToHtmlTable =
-  (cdsElObj, tableData) => {
-    let hdrs = tableHdrs(cdsElObj)
-    let rows = tableBody(cdsElObj, tableData)
-
-    return bfu.as_table(["class='bfu-table'"], `${hdrs}${rows}`)
-  }
-
-
-// Look deeper into displayed objects
+// Display no more than 7 levels of nested objects
   bfu.set_depth_limit(7)
 
+// Read a generic DB table
+const readTable = tableName => query => cds.run(`${query} FROM ${tableName}`).catch(console.error)
+
 // ---------------------------------------------------------------------------------------------------------------------
-// HTTP request error handler function
+// HTTP request handlers
 // ---------------------------------------------------------------------------------------------------------------------
 const httpErrorHandler = err => console.error(err.stack)
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// Build the default landing page using the URLs and descriptions found in the config object
+const buildLandingPage = countryCount =>
+  bfu.as_html(
+    []
+  , bfu.as_body(
+      []
+    , [ bfu.as_h1([],`GeoNames Server (${process.env.NODE_ENV})`)
+      , bfu.as_p([], `Provides geopolitical data for ${countryCount} countries`)
+      , Object
+          .keys(config.tables)
+          .map(tabName => bfu.as_p([], as_a([`href="${config.tables[tabName].url}"`], config.tables[tabName].description)))
+          .join('')
+      ].join('')
+    )
+  )
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// Function to display the contents of a generic DB table
+const show_table =
+  (dbTabName, cdsTabName) =>
+    ((tableReader, cdsModelDef) =>
+      query =>
+        tableReader(query)
+          .then(tableContents => {
+            console.log(`"${query} FROM ${dbTabName}" returned ${tableContents.length} rows`)
+            // return new Promise((resolve, reject) =>
+            //   resolve(
+            return bfu.as_html(
+                  []
+                , [ bfu.as_style([], styleSheet)
+                  , bfu.as_body([], cdsElObjToHtmlTable(cdsModelDef, tableContents))
+                  ].join('')
+                )
+            //   )
+            //  )
+          })
+    )
+    (readTable(dbTabName), cdsModelDefs(cdsTabName))
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// Show contents of various server-side object.
+// This function is only used in a development environment
+const show_server_objects = () => {
+  return new Promise((resolve, reject) =>
+    resolve(bfu.as_html( []
+             , [ bfu.create_content(
+                 [ {title: "cds",              value: cds}
+                 , {title: "VCAP_SERVICES",    value: vcap_srv}
+                 , {title: "VCAP_APPLICATION", value: vcap_app}
+                 , {title: "NodeJS process",   value: process}
+                 ])
+               ].join("")
+           )
+    )
+  )
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
-// Partial function that defines an HTTP request handler function with a default response
+// Partial function that returns an HTTP request handler function with a default response
 // ---------------------------------------------------------------------------------------------------------------------
 const httpRequestHandler =
   defaultResponse =>
@@ -125,89 +123,95 @@ const httpRequestHandler =
       req.on('err', httpErrorHandler)
         .on('data', chunk => body.push(chunk))
         .on('end',  ()    => {
-          let responseBody
           body = Buffer.from(body).toString('utf8')
 
           console.log(`Received HTTP request with method ${method} and ${body.length === 0 ? 'no' : ''} body ${body}`)
 
-          // What is the request asking for?
-          switch(url) {
-            case '/api/v1':
-              responseBody = 'Nothing to see here, move along...'
-              break
+         // Assume that we can process this request just fine....
+         res.statusCode = 200
+         res.setHeader('Content-Type', 'text/html; charset=utf-8')
 
-            default:
-              responseBody = defaultResponse
+          // Is the requested URL one I respond to?
+          if (url === "/") {
+           res.end(defaultResponse)
           }
+          else {
+            var handler = Object
+              .values(urlWhiteList)
+              .reduce((acc, el) => el.url === url ? el.handler : acc, null)
 
-          res.statusCode = 200
-          res.setHeader('Content-Type', 'text/html')
-          res.end(responseBody)
+            if (handler === null) {
+              res.statusCode = 404
+              res.end("Nothing to see here.  Move along...")
+            }
+            else {
+              handler('SELECT TOP 1000 *').then(result => res.end(result))
+            }
+          }
         })
-
     }
 
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Connect to HANA
+// Connect to HANA.  This must be done first, otherwise the cds object is unusable
 // ---------------------------------------------------------------------------------------------------------------------
-var connectionObj = {
-  "kind": "hana"
-, "model": "gen/csn.json"
-, "credentials": hanaCredentials
-}
-
 cds.connect(connectionObj)
+
   // -------------------------------------------------------------------------------------------------------------------
-  // Read all the countries from the DB
+  // Now that the cds object has become usable, create various other functions and objects that rely upon it
   // -------------------------------------------------------------------------------------------------------------------
-  .then(() => cds.run('SELECT * FROM ORG_GEONAMES_BASE_GEO_COUNTRIES').catch(console.error))
+  .then(() => {
+    cdsModelDefs = cdsModelDefinitions(cds)
+
+    // Assign request handlr to each table named in the configuration object
+    Object
+      .keys(config.tables)
+      .map(tabName => {
+        // If we're running in development, then there will be an extra table name of 'debug'.
+        // This is not a real DB table; therefore, it has its own specific request handler
+        config.tables[tabName].handler = 
+          (tabName === 'debug')
+          ? show_server_objects
+          : show_table(config.tables[tabName].dbTableName, config.tables[tabName].cdsTableName)
+
+        // Now that we know which handler is associated with which table, build up the list of while-listed URLS and
+        // their handlers
+        urlWhiteList.push({
+          'url'     : config.tables[tabName].url
+        , 'handler' : config.tables[tabName].handler
+        })
+      })
+
+    return cds.run('SELECT * FROM ORG_GEONAMES_BASE_GEO_COUNTRIES').catch(console.error)
+  })
+
   // -------------------------------------------------------------------------------------------------------------------
-  // Start HTTP server
+  // Start the HTTP server
   // -------------------------------------------------------------------------------------------------------------------
-  .then(countryList => {
+  .then(listOfCountries => {
     return new Promise((resolve, reject) => {
-      let modelDefs        = cdsModelDefinitions(cds)
-      let geonamesElements = modelDefs(countryTable)
-
-      let countriesTable = cdsElObjToHtmlTable(geonamesElements, countryList)
-
-      let defaultResponse =
-        bfu.as_html([]
-        , [ bfu.as_style([], styleSheet)
-          , bfu.as_body([]
-            , countriesTable)
-        //   , [ bfu.create_content(
-        //       [ {title: "cds",              value: cds}
-        //       , {title: "VCAP_SERVICES",    value: vcap_srv}
-        //       , {title: "VCAP_APPLICATION", value: vcap_app}
-        //       , {title: "NodeJS process",   value: process}
-        //       ])
-        //     ].join("")
-          ]
-          .join('')
-        )
-  
+      countryList  = listOfCountries.sort(sortByCountryCode)
+      
       // Create an HTTP server
       const server = http.createServer()
       
+      server.on('request', httpRequestHandler(buildLandingPage(countryList.length)))
       server.listen(port, () => console.log(`Server running at https://${vcap_app.uris[0]}:${port}/`))
-      server.on('request', httpRequestHandler(defaultResponse))
   
-      // Pass list of countries through to the next promise
+      // Pass the list of countries through to the next promise
       resolve(countryList)
     })
   })
 
   // -------------------------------------------------------------------------------------------------------------------
   // For each country fetch its GeoName and Alternate Name ZIP files
-  .then(countryList => {
-    console.log(`Fetching GeoName and Alternate Name ZIP files for ${countryList.length} countries`)
+  .then(listOfCountries => {
+    console.log(`Fetching GeoName and Alternate Name ZIP files for ${listOfCountries.length} countries`)
     console.log(`Refresh period ${config.refresh_freq} minutes`)
 
     Promise
       .all(
-        countryList.map(
+        listOfCountries.map(
           el => loader.geonamesHandler(el).then((resolve, reject) => loader.altNamesHandler(el))
         )
       )

@@ -1,42 +1,42 @@
 ISO2,ISO3,ISONumeric,FIPS,CountryName,Capital,Area,Population,Continent,TLD,CurrencyCode,CurrencyName,DiallingCode,PostalCodeFormat,PostalCodeRegex,Languages,Neighbours
 XX,XXX,999,,No Country,,0,0,EU,,,,,,,,
-AD,AND,20,AN,Andorra,Andorra la Vella,468,84000,EU,.ad,EUR,Euro,376,AD###,^(?:AD)*(\d{3})$,ca,"ES,FR"
+AD,AND,020,AN,Andorra,Andorra la Vella,468,84000,EU,.ad,EUR,Euro,376,AD###,^(?:AD)*(\d{3})$,ca,"ES,FR"
 AE,ARE,784,AE,United Arab Emirates,Abu Dhabi,82880,4975593,AS,.ae,AED,Dirham,971,,,"ar-AE,fa,en,hi,ur","SA,OM"
-AF,AFG,4,AF,Afghanistan,Kabul,647500,29121286,AS,.af,AFN,Afghani,93,,,"fa-AF,ps,uz-AF,tk","TM,CN,IR,TJ,PK,UZ"
-AG,ATG,28,AC,Antigua and Barbuda,St. John's,443,86754,NA,.ag,XCD,Dollar,-267,,,en-AG,
+AF,AFG,004,AF,Afghanistan,Kabul,647500,29121286,AS,.af,AFN,Afghani,93,,,"fa-AF,ps,uz-AF,tk","TM,CN,IR,TJ,PK,UZ"
+AG,ATG,028,AC,Antigua and Barbuda,St. John's,443,86754,NA,.ag,XCD,Dollar,-267,,,en-AG,
 AI,AIA,660,AV,Anguilla,The Valley,102,13254,NA,.ai,XCD,Dollar,-263,,,en-AI,
-AL,ALB,8,AL,Albania,Tirana,28748,2986952,EU,.al,ALL,Lek,355,####,^(\d{4})$,"sq,el","MK,GR,ME,RS,XK"
-AM,ARM,51,AM,Armenia,Yerevan,29800,2968000,AS,.am,AMD,Dram,374,######,^(\d{6})$,hy,"GE,IR,AZ,TR"
-AO,AGO,24,AO,Angola,Luanda,1246700,13068161,AF,.ao,AOA,Kwanza,244,,,pt-AO,"CD,NA,ZM,CG"
-AQ,ATA,10,AY,Antarctica,,14000000,0,AN,.aq,,,,,,,
-AR,ARG,32,AR,Argentina,Buenos Aires,2766890,41343201,SA,.ar,ARS,Peso,54,@####@@@,"^[A-Z]?\d{4}[A-Z]{0,3}$","es-AR,en,it,de,fr,gn","CL,BO,UY,PY,BR"
-AS,ASM,16,AQ,American Samoa,Pago Pago,199,57881,OC,.as,USD,Dollar,-683,#####-####,96799,"en-AS,sm,to",
-AT,AUT,40,AU,Austria,Vienna,83858,8205000,EU,.at,EUR,Euro,43,####,^(\d{4})$,"de-AT,hr,hu,sl","CH,DE,HU,SK,CZ,IT,SI,LI"
-AU,AUS,36,AS,Australia,Canberra,7686850,21515754,OC,.au,AUD,Dollar,61,####,^(\d{4})$,en-AU,
+AL,ALB,008,AL,Albania,Tirana,28748,2986952,EU,.al,ALL,Lek,355,####,^(\d{4})$,"sq,el","MK,GR,ME,RS,XK"
+AM,ARM,051,AM,Armenia,Yerevan,29800,2968000,AS,.am,AMD,Dram,374,######,^(\d{6})$,hy,"GE,IR,AZ,TR"
+AO,AGO,024,AO,Angola,Luanda,1246700,13068161,AF,.ao,AOA,Kwanza,244,,,pt-AO,"CD,NA,ZM,CG"
+AQ,ATA,010,AY,Antarctica,,14000000,0,AN,.aq,,,,,,,
+AR,ARG,032,AR,Argentina,Buenos Aires,2766890,41343201,SA,.ar,ARS,Peso,54,@####@@@,"^[A-Z]?\d{4}[A-Z]{0,3}$","es-AR,en,it,de,fr,gn","CL,BO,UY,PY,BR"
+AS,ASM,016,AQ,American Samoa,Pago Pago,199,57881,OC,.as,USD,Dollar,-683,#####-####,96799,"en-AS,sm,to",
+AT,AUT,040,AU,Austria,Vienna,83858,8205000,EU,.at,EUR,Euro,43,####,^(\d{4})$,"de-AT,hr,hu,sl","CH,DE,HU,SK,CZ,IT,SI,LI"
+AU,AUS,036,AS,Australia,Canberra,7686850,21515754,OC,.au,AUD,Dollar,61,####,^(\d{4})$,en-AU,
 AW,ABW,533,AA,Aruba,Oranjestad,193,71566,NA,.aw,AWG,Guilder,297,,,"nl-AW,pap,es,en",
 AX,ALA,248,,Aland Islands,Mariehamn,1580,26711,EU,.ax,EUR,Euro,340,#####,^(?:FI)*(\d{5})$,sv-AX,
-AZ,AZE,31,AJ,Azerbaijan,Baku,86600,8303512,AS,.az,AZN,Manat,994,AZ ####,^(?:AZ)*(\d{4})$,"az,ru,hy","GE,IR,AM,TR,RU"
-BA,BIH,70,BK,Bosnia and Herzegovina,Sarajevo,51129,4590000,EU,.ba,BAM,Marka,387,#####,^(\d{5})$,"bs,hr-BA,sr-BA","HR,ME,RS"
-BB,BRB,52,BB,Barbados,Bridgetown,431,285653,NA,.bb,BBD,Dollar,-245,BB#####,^(?:BB)*(\d{5})$,en-BB,
-BD,BGD,50,BG,Bangladesh,Dhaka,144000,156118464,AS,.bd,BDT,Taka,880,####,^(\d{4})$,"bn-BD,en","MM,IN"
-BE,BEL,56,BE,Belgium,Brussels,30510,10403000,EU,.be,EUR,Euro,32,####,^(\d{4})$,"nl-BE,fr-BE,de-BE","DE,NL,LU,FR"
+AZ,AZE,031,AJ,Azerbaijan,Baku,86600,8303512,AS,.az,AZN,Manat,994,AZ ####,^(?:AZ)*(\d{4})$,"az,ru,hy","GE,IR,AM,TR,RU"
+BA,BIH,070,BK,Bosnia and Herzegovina,Sarajevo,51129,4590000,EU,.ba,BAM,Marka,387,#####,^(\d{5})$,"bs,hr-BA,sr-BA","HR,ME,RS"
+BB,BRB,052,BB,Barbados,Bridgetown,431,285653,NA,.bb,BBD,Dollar,-245,BB#####,^(?:BB)*(\d{5})$,en-BB,
+BD,BGD,050,BG,Bangladesh,Dhaka,144000,156118464,AS,.bd,BDT,Taka,880,####,^(\d{4})$,"bn-BD,en","MM,IN"
+BE,BEL,056,BE,Belgium,Brussels,30510,10403000,EU,.be,EUR,Euro,32,####,^(\d{4})$,"nl-BE,fr-BE,de-BE","DE,NL,LU,FR"
 BF,BFA,854,UV,Burkina Faso,Ouagadougou,274200,16241811,AF,.bf,XOF,Franc,226,,,"fr-BF,mos","NE,BJ,GH,CI,TG,ML"
 BG,BGR,100,BU,Bulgaria,Sofia,110910,7148785,EU,.bg,BGN,Lev,359,####,^(\d{4})$,"bg,tr-BG,rom","MK,GR,RO,TR,RS"
-BH,BHR,48,BA,Bahrain,Manama,665,738004,AS,.bh,BHD,Dinar,973,####|###,^(\d{3}\d?)$,"ar-BH,en,fa,ur",
+BH,BHR,048,BA,Bahrain,Manama,665,738004,AS,.bh,BHD,Dinar,973,####|###,^(\d{3}\d?)$,"ar-BH,en,fa,ur",
 BI,BDI,108,BY,Burundi,Bujumbura,27830,9863117,AF,.bi,BIF,Franc,257,,,"fr-BI,rn","TZ,CD,RW"
 BJ,BEN,204,BN,Benin,Porto-Novo,112620,9056010,AF,.bj,XOF,Franc,229,,,fr-BJ,"NE,TG,BF,NG"
 BL,BLM,652,TB,Saint Barthelemy,Gustavia,21,8450,NA,.gp,EUR,Euro,590,#####,^(\d{5})$,fr,
-BM,BMU,60,BD,Bermuda,Hamilton,53,65365,NA,.bm,BMD,Dollar,-440,@@ ##,^([A-Z]{2}\d{2})$,"en-BM,pt",
-BN,BRN,96,BX,Brunei,Bandar Seri Begawan,5770,395027,AS,.bn,BND,Dollar,673,@@####,^([A-Z]{2}\d{4})$,"ms-BN,en-BN",MY
-BO,BOL,68,BL,Bolivia,Sucre,1098580,9947418,SA,.bo,BOB,Boliviano,591,,,"es-BO,qu,ay","PE,CL,PY,BR,AR"
+BM,BMU,060,BD,Bermuda,Hamilton,53,65365,NA,.bm,BMD,Dollar,-440,@@ ##,^([A-Z]{2}\d{2})$,"en-BM,pt",
+BN,BRN,096,BX,Brunei,Bandar Seri Begawan,5770,395027,AS,.bn,BND,Dollar,673,@@####,^([A-Z]{2}\d{4})$,"ms-BN,en-BN",MY
+BO,BOL,068,BL,Bolivia,Sucre,1098580,9947418,SA,.bo,BOB,Boliviano,591,,,"es-BO,qu,ay","PE,CL,PY,BR,AR"
 BQ,BES,535,,"Bonaire, Saint Eustatius and Saba ",,328,18012,NA,.bq,USD,Dollar,599,,,"nl,pap,en",
-BR,BRA,76,BR,Brazil,Brasilia,8511965,201103330,SA,.br,BRL,Real,55,#####-###,^\d{5}-\d{3}$,"pt-BR,es,en,fr","SR,PE,BO,UY,GY,PY,GF,VE,CO,AR"
-BS,BHS,44,BF,Bahamas,Nassau,13940,301790,NA,.bs,BSD,Dollar,-241,,,en-BS,
-BT,BTN,64,BT,Bhutan,Thimphu,47000,699847,AS,.bt,BTN,Ngultrum,975,,,dz,"CN,IN"
-BV,BVT,74,BV,Bouvet Island,,49,0,AN,.bv,NOK,Krone,,,,,
-BW,BWA,72,BC,Botswana,Gaborone,600370,2029307,AF,.bw,BWP,Pula,267,,,"en-BW,tn-BW","ZW,ZA,NA"
+BR,BRA,076,BR,Brazil,Brasilia,8511965,201103330,SA,.br,BRL,Real,55,#####-###,^\d{5}-\d{3}$,"pt-BR,es,en,fr","SR,PE,BO,UY,GY,PY,GF,VE,CO,AR"
+BS,BHS,044,BF,Bahamas,Nassau,13940,301790,NA,.bs,BSD,Dollar,-241,,,en-BS,
+BT,BTN,064,BT,Bhutan,Thimphu,47000,699847,AS,.bt,BTN,Ngultrum,975,,,dz,"CN,IN"
+BV,BVT,074,BV,Bouvet Island,,49,0,AN,.bv,NOK,Krone,,,,,
+BW,BWA,072,BC,Botswana,Gaborone,600370,2029307,AF,.bw,BWP,Pula,267,,,"en-BW,tn-BW","ZW,ZA,NA"
 BY,BLR,112,BO,Belarus,Minsk,207600,9685000,EU,.by,BYN,Belarusian ruble,375,######,^(\d{6})$,"be,ru","PL,LT,UA,RU,LV"
-BZ,BLZ,84,BH,Belize,Belmopan,22966,314522,NA,.bz,BZD,Dollar,501,,,"en-BZ,es","GT,MX"
+BZ,BLZ,084,BH,Belize,Belmopan,22966,314522,NA,.bz,BZD,Dollar,501,,,"en-BZ,es","GT,MX"
 CA,CAN,124,CA,Canada,Ottawa,9984670,33679000,NA,.ca,CAD,Dollar,1,@#@ #@#,^([ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ]) ?(\d[ABCEGHJKLMNPRSTVWXYZ]\d)$ ,"en-CA,fr-CA,iu",US
 CC,CCK,166,CK,Cocos Islands,West Island,14,628,AS,.cc,AUD,Dollar,61,,,"ms-CC,en",
 CD,COD,180,CG,Democratic Republic of the Congo,Kinshasa,2345410,70916439,AF,.cd,CDF,Franc,243,,,"fr-CD,ln,ktu,kg,sw,lua","TZ,CF,SS,RW,ZM,BI,UG,CG,AO"
@@ -61,7 +61,7 @@ DJ,DJI,262,DJ,Djibouti,Djibouti,23000,740528,AF,.dj,DJF,Franc,253,,,"fr-DJ,ar,so
 DK,DNK,208,DA,Denmark,Copenhagen,43094,5484000,EU,.dk,DKK,Krone,45,####,^(\d{4})$,"da-DK,en,fo,de-DK",DE
 DM,DMA,212,DO,Dominica,Roseau,754,72813,NA,.dm,XCD,Dollar,-766,,,en-DM,
 DO,DOM,214,DR,Dominican Republic,Santo Domingo,48730,9823821,NA,.do,DOP,Peso,+1-809 and 1-829,#####,^(\d{5})$,es-DO,HT
-DZ,DZA,12,AG,Algeria,Algiers,2381740,34586184,AF,.dz,DZD,Dinar,213,#####,^(\d{5})$,ar-DZ,"NE,EH,LY,MR,TN,MA,ML"
+DZ,DZA,012,AG,Algeria,Algiers,2381740,34586184,AF,.dz,DZD,Dinar,213,#####,^(\d{5})$,ar-DZ,"NE,EH,LY,MR,TN,MA,ML"
 EC,ECU,218,EC,Ecuador,Quito,283560,14790608,SA,.ec,USD,Dollar,593,@####@,^([a-zA-Z]\d{4}[a-zA-Z])$,es-EC,"PE,CO"
 EE,EST,233,EN,Estonia,Tallinn,45226,1291170,EU,.ee,EUR,Euro,372,#####,^(\d{5})$,"et,ru","RU,LV"
 EG,EGY,818,EG,Egypt,Cairo,1001450,80471869,AF,.eg,EGP,Pound,20,#####,^(\d{5})$,"ar-EG,en,fr","LY,SD,IL,PS"
@@ -105,7 +105,7 @@ IE,IRL,372,EI,Ireland,Dublin,70280,4622917,EU,.ie,EUR,Euro,353,@@@ @@@@,^[A-Z]\d
 IL,ISR,376,IS,Israel,Jerusalem,20770,7353985,AS,.il,ILS,Shekel,972,#####,^(\d{5})$,"he,ar-IL,en-IL,","SY,JO,LB,EG,PS"
 IM,IMN,833,IM,Isle of Man,Douglas,572,75049,EU,.im,GBP,Pound,-1580,@# #@@|@## #@@|@@# #@@|@@## #@@|@#@ #@@|@@#@ #@@|GIR0AA,^((?:(?:[A-PR-UWYZ][A-HK-Y]\d[ABEHMNPRV-Y0-9]|[A-PR-UWYZ]\d[A-HJKPS-UW0-9])\s\d[ABD-HJLNP-UW-Z]{2})|GIR\s?0AA)$,"en,gv",
 IN,IND,356,IN,India,New Delhi,3287590,1173108018,AS,.in,INR,Rupee,91,######,^(\d{6})$,"en-IN,hi,bn,te,mr,ta,ur,gu,kn,ml,or,pa,as,bh,sat,ks,ne,sd,kok,doi,mni,sit,sa,fr,lus,inc","CN,NP,MM,BT,PK,BD"
-IO,IOT,86,IO,British Indian Ocean Territory,Diego Garcia,60,4000,AS,.io,USD,Dollar,246,,,en-IO,
+IO,IOT,086,IO,British Indian Ocean Territory,Diego Garcia,60,4000,AS,.io,USD,Dollar,246,,,en-IO,
 IQ,IRQ,368,IZ,Iraq,Baghdad,437072,29671605,AS,.iq,IQD,Dinar,964,#####,^(\d{5})$,"ar-IQ,ku,hy","SY,SA,IR,JO,TR,KW"
 IR,IRN,364,IR,Iran,Tehran,1648000,76923300,AS,.ir,IRR,Rial,98,##########,^(\d{10})$,"fa-IR,ku","TM,AF,IQ,AM,PK,AZ,TR"
 IS,ISL,352,IC,Iceland,Reykjavik,103000,308910,EU,.is,ISK,Krona,354,###,^(\d{3})$,"is,en,de,da,sv,no",
@@ -122,7 +122,7 @@ KM,COM,174,CN,Comoros,Moroni,2170,773407,AF,.km,KMF,Franc,269,,,"ar,fr-KM",
 KN,KNA,659,SC,Saint Kitts and Nevis,Basseterre,261,51134,NA,.kn,XCD,Dollar,-868,,,en-KN,
 KP,PRK,408,KN,North Korea,Pyongyang,120540,22912177,AS,.kp,KPW,Won,850,###-###,^(\d{6})$,ko-KP,"CN,KR,RU"
 KR,KOR,410,KS,South Korea,Seoul,98480,48422644,AS,.kr,KRW,Won,82,SEOUL ###-###,^(?:SEOUL)*(\d{6})$,"ko-KR,en",KP
-XK,XKX,0,KV,Kosovo,Pristina,10908,1800000,EU,,EUR,Euro,,,,"sq,sr","RS,AL,MK,ME"
+XK,XKX,000,KV,Kosovo,Pristina,10908,1800000,EU,,EUR,Euro,,,,"sq,sr","RS,AL,MK,ME"
 KW,KWT,414,KU,Kuwait,Kuwait City,17820,2789132,AS,.kw,KWD,Dinar,965,#####,^(\d{5})$,"ar-KW,en","SA,IQ"
 KY,CYM,136,CJ,Cayman Islands,George Town,262,44270,NA,.ky,KYD,Dollar,-344,,,en-KY,
 KZ,KAZ,398,KZ,Kazakhstan,Astana,2717300,15340000,AS,.kz,KZT,Tenge,7,######,^(\d{6})$,"kk,ru","TM,CN,KG,UZ,RU"
@@ -194,7 +194,7 @@ RS,SRB,688,RI,Serbia,Belgrade,88361,7344847,EU,.rs,RSD,Dinar,381,######,^(\d{6})
 RU,RUS,643,RS,Russia,Moscow,17100000,140702000,EU,.ru,RUB,Ruble,7,######,^(\d{6})$,"ru,tt,xal,cau,ady,kv,ce,tyv,cv,udm,tut,mns,bua,myv,mdf,chm,ba,inh,tut,kbd,krc,av,sah,nog","GE,CN,BY,UA,KZ,LV,PL,EE,LT,FI,MN,NO,AZ,KP"
 RW,RWA,646,RW,Rwanda,Kigali,26338,11055976,AF,.rw,RWF,Franc,250,,,"rw,en-RW,fr-RW,sw","TZ,CD,BI,UG"
 SA,SAU,682,SA,Saudi Arabia,Riyadh,1960582,25731776,AS,.sa,SAR,Rial,966,#####,^(\d{5})$,ar-SA,"QA,OM,IQ,YE,JO,AE,KW"
-SB,SLB,90,BP,Solomon Islands,Honiara,28450,559198,OC,.sb,SBD,Dollar,677,,,"en-SB,tpi",
+SB,SLB,090,BP,Solomon Islands,Honiara,28450,559198,OC,.sb,SBD,Dollar,677,,,"en-SB,tpi",
 SC,SYC,690,SE,Seychelles,Victoria,455,88340,AF,.sc,SCR,Rupee,248,,,"en-SC,fr-SC",
 SD,SDN,729,SU,Sudan,Khartoum,1861484,35000000,AF,.sd,SDG,Pound,249,#####,^(\d{5})$,"ar-SD,en,fia","SS,TD,EG,ET,ER,LY,CF"
 SS,SSD,728,OD,South Sudan,Juba,644329,8260490,AF,,SSP,Pound,211,,,en,"CD,CF,ET,KE,SD,UG"
@@ -239,7 +239,7 @@ UZ,UZB,860,UZ,Uzbekistan,Tashkent,447400,27865738,AS,.uz,UZS,Som,998,######,^(\d
 VA,VAT,336,VT,Vatican,Vatican City,0.44,921,EU,.va,EUR,Euro,379,#####,^(\d{5})$,"la,it,fr",IT
 VC,VCT,670,VC,Saint Vincent and the Grenadines,Kingstown,389,104217,NA,.vc,XCD,Dollar,-783,,,"en-VC,fr",
 VE,VEN,862,VE,Venezuela,Caracas,912050,27223228,SA,.ve,VES,Bolivar Soberano,58,####,^(\d{4})$,es-VE,"GY,BR,CO"
-VG,VGB,92,VI,British Virgin Islands,Road Town,153,21730,NA,.vg,USD,Dollar,-283,,,en-VG,
+VG,VGB,092,VI,British Virgin Islands,Road Town,153,21730,NA,.vg,USD,Dollar,-283,,,en-VG,
 VI,VIR,850,VQ,U.S. Virgin Islands,Charlotte Amalie,352,108708,NA,.vi,USD,Dollar,-339,#####-####,^008\d{2}(?:-\d{4})?$,en-VI,
 VN,VNM,704,VM,Vietnam,Hanoi,329560,89571130,AS,.vn,VND,Dong,84,######,^(\d{6})$,"vi,en,fr,zh,km","CN,LA,KH"
 VU,VUT,548,NH,Vanuatu,Port Vila,12200,221552,OC,.vu,VUV,Vatu,678,,,"bi,en-VU,fr-VU",

@@ -82,15 +82,15 @@ entity AlternateNames {
       isPreferredName   : Boolean default false @title: "Preferred Name?"
                                                 @description: "Is this an official/preferred name?";
       isShortName       : Boolean default false @title: "Shortened Name?"
-                                                @description: "E.G. 'California' for 'State of California'";
+                                                @description: "Is this a shortened name? E.G. shortening 'State of California' to 'California'";
       isColloquial      : Boolean default false @title: "Colloquial Name?"
-                                                @description: "E.G. 'Big Apple' for 'New York'";
+                                                @description: "Is this a colloquial or slang name? E.G. referring to 'New York' as 'The Big Apple'";
       isHistoric        : Boolean default false @title: "Historical Name?"
-                                                @description: "E.G. 'Bombay' is the former name for 'Mumbai'";
-      inUsefrom         : String(200)            @title: "In Use From"
-                                                @description: "Date when historic name started being used";
+                                                @description: "Is this a historical name? E.G. 'Bombay' is the former name for 'Mumbai'";
+      inUsefrom         : String(200)           @title: "In Use From"
+                                                @description: "Date when historic name started being used or a link to a webpage containing further details";
       inUseto           : String(200)           @title: "In Use Until"
-                                                @description: "Date when historic name stopped being used";
+                                                @description: "Date when historic name stopped being used or a link to a webpage containing further details";
 
       GeonameId         : Association to Geonames not null;
 }

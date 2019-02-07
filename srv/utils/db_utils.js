@@ -4,7 +4,7 @@
 
 /**
  * =====================================================================================================================
- * @fileOverview Generate the UPSERT statement needed for a batch of rows
+ * Generate various statements needed for accessing HANA
  * =====================================================================================================================
  **/
 
@@ -12,9 +12,7 @@ const { Writable } = require('stream')
 const cds          = require('@sap/cds')
 
 const {
-  push
-, isNullOrUndef
-, isNotNullOrUndef
+  isNotNullOrUndef
 , reduceUsing } = require('./functional_tools.js')
 
 const columnList      = cols => cols.filter(isNotNullOrUndef)
