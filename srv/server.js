@@ -28,7 +28,6 @@ const connectionObj = {
 , "credentials": (vcap_srv['hana'] || vcap_srv['hanatrial'])[0].credentials
 }
 
-const as_a      = bfu.as_html_el("a")
 const startedAt = Date.now()
 const separator = "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *"
 
@@ -49,7 +48,7 @@ const promiseToReadTable = tableName => query => cds.run(`${query} FROM ${tableN
 // Transform a table name from the config object into a paragraph containing a hypertext link
 const tabNameAsLink =
   tabName =>
-    bfu.as_p([], as_a([`href="${config.tables[tabName].url}"`], config.tables[tabName].description))
+    bfu.as_p([], bfu.as_a([`href="${config.tables[tabName].url}"`], config.tables[tabName].description))
 
 // ---------------------------------------------------------------------------------------------------------------------
 // HTTP request handlers
@@ -155,7 +154,7 @@ const httpRequestHandler =
             if (handler === null) {
               // Nope - these are not the droids we're looking for...
               res.statusCode = 404
-              res.end(as_a(['href=/'], 'These are not the droids we\'re looking for...'))
+              res.end(bfu.as_a(['href=/'], 'These are not the droids we&rsquo;re looking for...'))
             }
             else 
               // Deep joy! Invoke the handler for this URL
