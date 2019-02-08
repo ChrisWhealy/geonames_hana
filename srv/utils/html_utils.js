@@ -9,8 +9,19 @@
  */
 const bfu = require('basic-formatting-utils')
 
-const { push } = require('./functional_tools.js')
+const config     = require('../config/config.js')
+const styleSheet = require('./style_sheet.js')
+const { push }   = require('./functional_tools.js')
 
+const { promiseToReadTable } = require('./db_utils.js')
+
+
+// =====================================================================================================================
+// Transform a table or link name from the config object a hypertext link
+const genLink = section => bfu.as_a([`href="${section.url}"`], section.description)
+
+const tabNameAsLink  = tabName  => genLink(config.tables[tabName])
+const linkNameAsLink = linkName => genLink(config.links[linkName])
 
 // =====================================================================================================================
 // Return an HTML span element containing some text and a mouseover description
@@ -97,6 +108,71 @@ const cdsElObjToHtmlTable =
     , `${tableHdrs(cdsElObj)}${tableBody(cdsElObj, tableData)}`
     )
 
+// =====================================================================================================================
+// Partial function to display the contents of a generic DB table
+// This function always reads the DB via a promise and returns a synchronous result
+const showTable =
+  (dbTabName, cdsTableDef) =>
+    // Return a function that will read a given table using whatever query fragment is passed as its argument.
+    // Currently, there is no support for WHEN clauses
+    query =>
+      promiseToReadTable(dbTabName)(query)
+        .then(tableContents => {
+          console.log(`"${query} FROM ${dbTabName}" returned ${tableContents.length} rows`)
+          return bfu.as_html(
+                   []
+                 , [ bfu.as_style([], styleSheet)
+                   , bfu.as_body([], cdsElObjToHtmlTable(cdsTableDef, tableContents))
+                   ].join('')
+                 )
+        })
+
+// =====================================================================================================================
+// Build the default landing page using the URLs and descriptions found in the config object
+const buildLandingPage = countryCount =>
+  bfu.as_html(
+    []
+  , bfu.as_body(
+      []
+    , [ bfu.as_h1([],`GeoNames Server (${process.env.NODE_ENV})`)
+      , bfu.as_p([], `Provides geopolitical data for ${countryCount} countries`)
+
+      // Display each table name listed in the config object
+      , bfu.as_h2([], `Tables`)
+      , Object.keys(config.tables).map(tabName => bfu.as_p([], tabNameAsLink(tabName))).join('')
+
+      // Display each link name listed in the config object
+      , bfu.as_h2([], `Links`)
+      , Object.keys(config.links).map(linkName => bfu.as_p([], linkNameAsLink(linkName))).join('')
+      ].join('')
+    )
+  )
+
+// =====================================================================================================================
+// Return a handler that displays the contents of various server-side object.
+// This function should only be used when the evironment variable NODE_ENV is set to 'development'
+const showServerObjects =
+  objectList =>
+    () => {
+      return new Promise((resolve, reject) =>
+        resolve(bfu.as_html([], bfu.create_content(objectList)))
+      )}
+
+
+// =====================================================================================================================
+// Return a handler that generates the appropriate page for a given link.
+const showLink =
+  url =>
+    () => {
+      return new Promise((resolve, reject) => {
+        let response = bfu.as_html([], "Here's the page you're looking for")
+
+        resolve(response)
+      })
+    }
+
+
+
 /**
  * ---------------------------------------------------------------------------------------------------------------------
  *  Public API
@@ -105,6 +181,10 @@ const cdsElObjToHtmlTable =
 module.exports = {
   cdsElObjToHtmlTable : cdsElObjToHtmlTable
 , cdsModelDefinitions : cdsModelDefinitions
+, showTable           : showTable
+, showLink            : showLink
+, buildLandingPage    : buildLandingPage
+, showServerObjects   : showServerObjects
 }
 
 

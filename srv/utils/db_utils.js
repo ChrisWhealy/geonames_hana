@@ -19,6 +19,9 @@ const columnList      = cols => cols.filter(isNotNullOrUndef)
 const genColumnList   = cols => columnList(cols).join(',')
 const genPlaceHolders = cols => columnList(cols).map(_ => '?').join(',')
 
+// Read a generic DB table
+const promiseToReadTable = tableName => query => cds.run(`${query} FROM ${tableName}`).catch(console.error)
+
 const genUpsertFrom =
   (tabName, cols) => `UPSERT ${tabName} (${genColumnList(cols)}) VALUES (${genPlaceHolders(cols)}) WITH PRIMARY KEY`
 
@@ -90,9 +93,10 @@ class TableMetadata {
  * Public API
  */
 module.exports = {
-  Upsert          : Upsert
-, TableMetadata   : TableMetadata
-, genUpsertFrom   : genUpsertFrom
+  Upsert             : Upsert
+, TableMetadata      : TableMetadata
+, genUpsertFrom      : genUpsertFrom
+, promiseToReadTable : promiseToReadTable
 }
 
 
