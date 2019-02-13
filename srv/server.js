@@ -172,7 +172,8 @@ cds.connect(connectionObj)
       const server = http.createServer()
       
       // Define HTTP handler with default landing page
-      server.on('request', httpRequestHandler(buildLandingPage(countryList.length)))
+      // server.on('request', httpRequestHandler(buildLandingPage(countryList.length)))
+      server.on('request', fs.readFileSync('index.html'))
       server.listen(port, () => console.log(`Server running at https://${vcap_app.uris[0]}:${port}/`))
   
       // Pass the list of countries through to the next promise
