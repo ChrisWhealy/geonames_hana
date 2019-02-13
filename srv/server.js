@@ -16,6 +16,7 @@ const config     = require('./config/config.js')
 const { cdsModelDefinitions
       , showTable
       , showLink
+      , genLink
       , buildLandingPage
       , showServerObjects
       } = require('./utils/html_utils.js')
@@ -46,9 +47,9 @@ var serverSideObjectList = [
 , {title: "VCAP_APPLICATION", value: vcap_app}
 , {title: "NodeJS process",   value: process}
 ]
+
 // Display no more than 7 levels of nested objects
   bfu.set_depth_limit(7)
-
 
 // ---------------------------------------------------------------------------------------------------------------------
 // HTTP request handlers
@@ -84,21 +85,25 @@ const httpRequestHandler =
           }
           else {
             // Try to locate the handler for this URL
-            var handler = Object
+            let urlHandler = Object
               .values(urlWhiteList)
-              .reduce((acc, el) => el.url === url ? el.handler : acc, null)
+              .reduce((acc, el) => el.url === url ? el : acc, null)
 
-            // Could the handler be found?
-            if (handler === null) {
+            // Do we have a handler for this URL?
+            if (urlHandler.handler === null) {
               // Nope - these are not the droids we're looking for...
               res.statusCode = 404
-              res.end(bfu.as_a(['href=/'], 'These are not the droids we&rsquo;re looking for...'))
+              res.end(genLink('href=/', 'These are not the droids we&rsquo;re looking for...'))
             }
-            else 
-              // Deep joy! Invoke the handler for this URL
-              handler('SELECT TOP 1000 *')
-                .then(result => res.end(result))
-            
+            else
+              // Yup, so invoke the request handler
+              // If the handler is of type 'table', then pass it the generic SQL query fragment
+              // Otherwise, its a link handler, so pass it the name of the URL being invoked
+              urlHandler.handler(
+                  (urlHandler.type === 'table')
+                  ? 'SELECT TOP 1000 *'
+                  : urlHandler.url
+              ).then(result => res.end(result))
           }
         })
     }
@@ -127,6 +132,7 @@ cds.connect(connectionObj)
         urlWhiteList.push({
           'url'     : config.tables[tabName].url
         , 'handler' : config.tables[tabName].handler
+        , 'type'    : 'table'
         })
       })
 
@@ -148,6 +154,7 @@ cds.connect(connectionObj)
         urlWhiteList.push({
           'url'     : config.links[linkName].url
         , 'handler' : config.links[linkName].handler
+        , 'type'    : 'link'
         })
       })
 
@@ -187,7 +194,7 @@ cds.connect(connectionObj)
       )
       .then(() => {
          console.log(separator)
-         console.log(`Finished: Runtime ${new Date(Date.now() - startedAt).toTimeString().slice(0,8)}`)
+         console.log(`Finished table refresh in ${new Date(Date.now() - startedAt).toTimeString().slice(0,8)} hh:mm:ss`)
          console.log(separator)
       })
   })

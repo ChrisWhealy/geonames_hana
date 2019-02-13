@@ -17,11 +17,13 @@ const { promiseToReadTable } = require('./db_utils.js')
 
 
 // =====================================================================================================================
-// Transform a table or link name from the config object a hypertext link
-const genLink = section => bfu.as_a([`href="${section.url}"`], section.description)
+// Transform a table or link name from the config object into a hypertext link
+const genLink = (url, text) => bfu.as_a([`href="${url}"`], text)
 
-const tabNameAsLink  = tabName  => genLink(config.tables[tabName])
-const linkNameAsLink = linkName => genLink(config.links[linkName])
+const genLinkFromConfigSection = section => genLink(section.url, section.description)
+
+const tabNameAsLink  = tabName  => genLinkFromConfigSection(config.tables[tabName])
+const linkNameAsLink = linkName => genLinkFromConfigSection(config.links[linkName])
 
 // =====================================================================================================================
 // Return an HTML span element containing some text and a mouseover description
@@ -158,6 +160,18 @@ const showServerObjects =
         resolve(bfu.as_html([], bfu.create_content(objectList)))
       )}
 
+// =====================================================================================================================
+// Generate the administration screen
+const genAdminScreen = () => {
+  let refreshButton = bfu.as_button([], 'Refresh')
+
+  return bfu.as_html(
+    []
+  , [ bfu.as_style([], styleSheet)
+    , refreshButton
+    ].join('')
+  )
+}
 
 // =====================================================================================================================
 // Return a handler that generates the appropriate page for a given link.
@@ -165,7 +179,17 @@ const showLink =
   url =>
     () => {
       return new Promise((resolve, reject) => {
-        let response = bfu.as_html([], "Here's the page you're looking for")
+        let response = ''
+
+        switch (url) {
+          case '/admin':
+            response = genAdminScreen()
+
+            break
+
+          default:
+            response = bfu.as_html([], `Here's the page for ${url}` )
+        }
 
         resolve(response)
       })
@@ -183,6 +207,7 @@ module.exports = {
 , cdsModelDefinitions : cdsModelDefinitions
 , showTable           : showTable
 , showLink            : showLink
+, genLink             : genLink
 , buildLandingPage    : buildLandingPage
 , showServerObjects   : showServerObjects
 }
