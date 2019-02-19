@@ -2,6 +2,26 @@
 /*eslint no-unused-expressions: ["error", { "allowTernary": true }]*/
 /*eslint-env node, es6 */
 
+/**
+ * =====================================================================================================================
+ * Partial function to merge the properties of an incoming object into a base object
+ * If the incoming object contains a property that is already present in the base object, then the base object's
+ * property value is simply overwritten
+ * =====================================================================================================================
+ */
+const mergeProperties =
+  baseObj =>
+    incomingObj =>
+      Object.keys(incomingObj).reduce(
+        (acc, prop) => (_ => acc)(acc[prop] = incomingObj[prop])
+      , baseObj
+      )
+
+/**
+ * =====================================================================================================================
+ * Standard table definitions, used in both development and production modes
+ * =====================================================================================================================
+ */
 const standard_tables = {
   'geonames'       : { cdsTableName : 'org.geonames.Geonames'
                      , dbTableName  : 'ORG_GEONAMES_GEONAMES'
@@ -55,12 +75,76 @@ const standard_tables = {
 
 /**
  * =====================================================================================================================
+ * API whitelist
+ * 
+ * The parameters named as mandatory and optional perform two roles:
+ *   1) We can validate whether or not the mandatory query string parameters have been supplied
+ *   2) The query string parameter name can be substituted for required table column name in the SQL statement
+ * 
+ * =====================================================================================================================
+ */
+const simpleEquality   = '='
+const numericOperators = ['=','>','<','>=','<=','EQ','GT','LT','GTE','LTE']
+
+const api_v1 = {
+  'geonames' : {
+    dbTableName  : 'ORG_GEONAMES_GEONAMES'
+  , url          : '/api/v1/query'
+  , handler      : null
+  , rowLimit     : 1000
+  , parameters   : {
+      mandatory : {
+        featureClass : {
+          colName   :'FEATURECLASS_FEATURECLASS'
+        , operators : simpleEquality
+        }
+      , featureCode  : {
+          colName   : 'FEATURECODE_FEATURECODE'
+        , operators : simpleEquality
+        }
+      }
+    , optional : {
+        countryCode : {
+          colName   : 'COUNTRYCODE_ISO2'
+        , operators : simpleEquality
+        }
+      , population  : {
+          colName   : 'POPULATION'
+        , operators : numericOperators
+        }
+      }
+    }
+  }
+}
+
+/**
+ * =====================================================================================================================
+ * Development and Production link whitelist
+ * =====================================================================================================================
+ */
+const dev_links = {
+  'debug' : { url         : '/debug'
+            , description : 'Show server-side object contents'
+            , handler     : null
+            }
+}
+
+const prod_links = {
+  'admin' : { url         : '/admin'
+            , description : 'Server admin'
+            , handler     : null
+            }
+}
+
+var mergeIntoProdLinks = mergeProperties(prod_links)
+
+/**
+ * =====================================================================================================================
  * Runtime parameters that could change between development and production
  * 
  * refresh_freq : The time interval (in minutes) that must elapse before refreshing the database from Geonames.org
  * =====================================================================================================================
  */
-
 const config = {
   // ===================================================================================================================
   // Configuration settings applicable for a development environment
@@ -69,16 +153,8 @@ const config = {
     environment  : "development"
   , refresh_freq : 1440
   , tables       : standard_tables
-  , links : {
-      'debug' : { url         : '/debug'
-                , description : 'Show server-side object contents'
-                , handler     : null
-                }
-    , 'admin' : { url         : '/admin'
-                , description : 'Server admin'
-                , handler     : null
-                }
-    }
+  , links        : mergeIntoProdLinks(dev_links)
+  , api          : api_v1
   }
 
   // ===================================================================================================================
@@ -88,12 +164,8 @@ const config = {
     environment  : "production"
   , refresh_freq : 1440
   , tables       : standard_tables
-  , links : {
-      'admin' : { url          : '/admin'
-                , description  : 'Server admin'
-                , handler      : null
-                }
-    }
+  , links        : prod_links
+  , api          : api_v1
   }
 }
 

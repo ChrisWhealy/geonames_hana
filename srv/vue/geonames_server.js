@@ -10,24 +10,24 @@ Vue.component('geonames-server', {
   }
 , template : `
   <div class="admin-screen">
-    <h1>{{ product }}</h1>
+    <h1>{{ title }}</h1>
 
     <ul>
       <span class="tabs" 
         :class="{ activeTab: selectedTab === index }"
-        v-for="(tab, index) in tabs"
-          @click="selectedTab = index"
-          :key="index">
+        @click="selectedTab = index"
+        v-for="(tab, index) in adminScreenTabs"
+        :key="index">
         {{ tab }}
       </span>
     </ul>
 
     <div v-show="selectedTab === 0">
-      <p>Tab 0 selected</p>
+      <ui5-button type="Emphasized">Tab {{ selectedTab }}</ui5-button>
     </div>
 
     <div v-show="selectedTab === 1">
-      <p>Tab 1 selected</p>
+      <ui5-button type="Positive">Tab {{ selectedTab }}</ui5-button>
     </div>
   </div>
 `

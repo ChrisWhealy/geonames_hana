@@ -3,11 +3,14 @@
   "description": "Geopolitical information from geonames.org",
   "version": "1.0.0",
   "dependencies": {
-    "@sap/cds": "3.x",
-    "unzip-stream": "0.3.0",
-    "event-stream": "4.0.1",
-    "basic-formatting-utils": "1.2.43",
-    "hdb": "^0.16.0"
+    "vue": "^2.5.21"
+  , "@sap/cds": "3.x"
+  , "@ui5/webcomponents": "*"
+  , "unzip-stream": "0.3.0"
+  , "event-stream": "4.0.1"
+  , "basic-formatting-utils": "^1.2.44"
+  , "hdb": "^0.16.0"
+  , "mime-types": "^2.1.21"
   },
   "engines": {
     "node": ">=8.0.0"

@@ -14,6 +14,9 @@ const unshift = (arr, el) => (_ => arr)(arr.unshift(el))
 const isNullOrUndef    = x => x === null || x === undefined
 const isNotNullOrUndef = x => !isNullOrUndef(x)
 
+// Add or overwrite property 'p' in 'obj' with value 'v'
+const updateObj = (obj, p, v) => (_ => obj)(obj[p] = v)
+
 /***********************************************************************************************************************
  * Partial function that can be used with Array.reduce on one line of a text file to filter out unneeded columns
  * If a particular column value contains a comma, then this value must be delimited with double quotes
@@ -27,6 +30,8 @@ const reduceUsing =
 module.exports = {
   push    : push
 , unshift : unshift
+
+, updateObj : updateObj
 
 , isNullOrUndef    : isNullOrUndef
 , isNotNullOrUndef : isNotNullOrUndef

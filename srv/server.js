@@ -7,11 +7,18 @@
  * Geonames server
  * =====================================================================================================================
  */
-const cds        = require('@sap/cds')
-const http       = require('http')
-const bfu        = require('basic-formatting-utils')
-const loader     = require('./loader.js')
-const config     = require('./config/config.js')
+const cds    = require('@sap/cds')
+const http   = require('http')
+const fs     = require('fs')
+const mime   = require('mime-types')
+const bfu    = require('basic-formatting-utils')
+
+const loader   = require('./loader.js')
+const config   = require('./config/config.js')
+
+const { push
+      , updateObj
+      } = require('./utils/functional_tools.js')
 
 const { cdsModelDefinitions
       , showTable
@@ -52,9 +59,92 @@ var serverSideObjectList = [
   bfu.set_depth_limit(7)
 
 // ---------------------------------------------------------------------------------------------------------------------
+// Get query string parameters from incoming request object
+// Just for a giggle, I wrote this function such that it only ever uses single expressions; hence no internal variables
+// are declared.  Instead, anonymous inner functions are used and any needed internal variables become function
+// parameters whose values are bound when the function is called
+// ---------------------------------------------------------------------------------------------------------------------
+const qsParams =
+  url =>
+    (qs =>
+      qs.length > 1
+      ? qs[1]
+          .split('&')
+          .reduce((acc, item) =>
+            (eqIdx =>
+              eqIdx === -1
+              ? updateObj(acc, item, '')
+              : updateObj(acc, item.substr(0, eqIdx), item.substr(eqIdx+1))
+            )
+            (item.indexOf('='))
+          , {})
+      : {})
+    (url.split('?'))
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Partial function to check that a query string contains at least the required mandatory parameters
+// Returns a function that can be used by Array.reduce()
+// ---------------------------------------------------------------------------------------------------------------------
+const qsParamCheck =
+  qs =>
+    (acc, requiredEl) =>
+      qs[requiredEl]
+      ? updateObj(acc, 'ok', true && acc.ok)
+      : (_ => updateObj(acc, 'ok', false))
+        (acc.missing.push(requiredEl))
+
+const qsCheckForMandatoryParms =
+  (paramObj, url) =>
+    Object
+      .keys(paramObj)
+      .reduce(qsParamCheck(qsParams(url)), {ok: true, missing : []})
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Fetch the mandatory and optional parameters from the query string
+// Return the DB table columns names that correspond to the query string parameter names
+// ---------------------------------------------------------------------------------------------------------------------
+const fetchParamsFromQsIntoObj =
+  (paramObj, qs, targetObj) =>
+    Object.keys(paramObj).reduce(
+      (acc, el) => qs[el] ? updateObj(acc, paramObj[el].colName, qs[el]) : acc
+    , targetObj
+    )
+
+const genSqlSelect =
+  (req, apiConfig) => {
+    let qs = qsParams(req.url)
+
+    let params = fetchParamsFromQsIntoObj(apiConfig.parameters.mandatory, qs, {})
+        params = fetchParamsFromQsIntoObj(apiConfig.parameters.optional,  qs, params)
+
+    let whereClause = Object
+          .keys(params)
+          .reduce((acc,el) => push(acc, `"${el}"='${params[el]}'`), [])
+          .join(' AND ')
+
+    let sql = `SELECT TOP ${apiConfig.rowLimit} * FROM ${apiConfig.dbTableName} WHERE ${whereClause};`
+
+    return sql
+  }
+
+// ---------------------------------------------------------------------------------------------------------------------
 // HTTP request handlers
 // ---------------------------------------------------------------------------------------------------------------------
-const httpErrorHandler = err => console.error(err.stack)
+const httpErrorHandler = err => console.error(`An HTTP Error occurred\n${err.stack}`)
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Generate an API request handler
+// ---------------------------------------------------------------------------------------------------------------------
+const genApiHandler =
+  apiConfig =>
+    req => {
+      let sql = genSqlSelect(req, apiConfig)
+      
+      console.log(`Executing SQL statement ${sql}`)
+
+      return cds.run(sql).catch(console.error)
+    }
+
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Partial function that returns an HTTP request handler function with a default response
@@ -74,36 +164,75 @@ const httpRequestHandler =
 
           console.log(`Received HTTP request with method ${method} and ${body.length === 0 ? 'no' : ''} body ${body}`)
 
-         // Assume that we will be able to process this request just fine...
-         res.statusCode = 200
-         res.setHeader('Content-Type', 'text/html; charset=utf-8')
+          // Assume that we will be able to process this request just fine...
+          res.statusCode = 200
+          res.setHeader('Content-Type', 'text/html; charset=utf-8')
 
+          // -----------------------------------------------------------------------------------------------------------
           // Do I recognise the request URL?
           if (url === "/") {
             // Yup, its the landing page
             res.end(defaultResponse)
           }
+          // -----------------------------------------------------------------------------------------------------------
           else {
             // Try to locate the handler for this URL
             let urlHandler = Object
               .values(urlWhiteList)
-              .reduce((acc, el) => el.url === url ? el : acc, null)
+              .reduce((acc, el) => url.startsWith(el.url) ? el : acc, null)
 
+            // ---------------------------------------------------------------------------------------------------------
             // Do we have a handler for this URL?
-            if (urlHandler.handler === null) {
-              // Nope - these are not the droids we're looking for...
-              res.statusCode = 404
-              res.end(genLink('href=/', 'These are not the droids we&rsquo;re looking for...'))
+            if (urlHandler) {
+              if (urlHandler.handler === null) {
+                // Nope - these are not the droids we're looking for...
+                res.statusCode = 404
+                res.end(genLink('href=/', 'These are not the droids we&rsquo;re looking for...'))
+              }
+              // -------------------------------------------------------------------------------------------------------
+              else {
+                // -----------------------------------------------------------------------------------------------------
+                // API handler
+                if (urlHandler.type === 'api') {
+                  // Yup, then check the request URL contains at least the mandatory parameters
+                  let parameterState = qsCheckForMandatoryParms(urlHandler.parameters.mandatory, url)
+
+                  if (parameterState.ok) {
+                    res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                    urlHandler.handler(req).then(result => res.end(JSON.stringify(result)))
+                  }
+                  else {
+                    res.statusCode = 400
+                    res.end(bfu.as_h2([],`The following mandatory parameters are missing from the request: ${parameterState.missing.join(', ')}`))
+                  }
+                }
+                // -----------------------------------------------------------------------------------------------------
+                // Table handler
+                else if (urlHandler.type === 'table') {
+                  urlHandler.handler('SELECT TOP 1000 *').then(result => res.end(result))
+                }
+                // -----------------------------------------------------------------------------------------------------
+                // Link handler
+                else if (urlHandler.type === 'link') {
+                  urlHandler.handler().then(result => res.end(result))
+                }
+              }
             }
-            else
-              // Yup, so invoke the request handler
-              // If the handler is of type 'table', then pass it the generic SQL query fragment
-              // Otherwise, its a link handler, so pass it the name of the URL being invoked
-              urlHandler.handler(
-                  (urlHandler.type === 'table')
-                  ? 'SELECT TOP 1000 *'
-                  : urlHandler.url
-              ).then(result => res.end(result))
+            // ---------------------------------------------------------------------------------------------------------
+            // Nope, so this could be simply a file request originating from index.html
+            else {
+              let fName = __dirname + url
+
+              if (fs.existsSync(fName)) {
+                res.setHeader('Content-Type', mime.lookup(fName))
+                res.end(fs.readFileSync(fName).toString('utf8'))
+              }
+              else {
+                console.log(`Can't find file ${fName}`)
+                res.statusCode = 404
+                res.end("")
+              }
+            }
           }
         })
     }
@@ -119,7 +248,7 @@ cds.connect(connectionObj)
   // -------------------------------------------------------------------------------------------------------------------
   .then(() => {
     // -----------------------------------------------------------------------------------------------------------------
-    // Assign the correct request handler to each table named in the 'tables' section of the configuration object
+    // Assign table request handler
     Object
       .keys(config.tables)
       .map(tabName => {
@@ -127,8 +256,7 @@ cds.connect(connectionObj)
         config.tables[tabName].handler = 
           showTable(config.tables[tabName].dbTableName, cdsModelDefinitions(cds)(config.tables[tabName].cdsTableName))
 
-        // Now that we know which handler is associated with which table, build up the list of while-listed URLS and
-        // their handlers
+        // Add the table handler to the while-listed URLS
         urlWhiteList.push({
           'url'     : config.tables[tabName].url
         , 'handler' : config.tables[tabName].handler
@@ -137,24 +265,39 @@ cds.connect(connectionObj)
       })
 
     // -----------------------------------------------------------------------------------------------------------------
-    // Assign the correct request handler to each URL named in the 'links' section of the configuration object
+    // Assign URL request handlers
     Object
       .keys(config.links)
       .map(linkName => {
         config.links[linkName].handler = 
-          // If we're running in development, then there will be an extra table name of 'debug'.
+          // If we're running in development, then there will be an link name of 'debug'.
           // This is not a real DB table; therefore, it has its own specific request handler
           (linkName === 'debug')
           ? showServerObjects(serverSideObjectList)
           // Generate the handler for this link
           : showLink(config.links[linkName].url)
 
-        // Now that we know which handler is associated with which table, build up the list of while-listed URLS and
-        // their handlers
+        // Add the link handler to the while-listed URLS
         urlWhiteList.push({
           'url'     : config.links[linkName].url
         , 'handler' : config.links[linkName].handler
         , 'type'    : 'link'
+        })
+      })
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // Assign API request handlers
+    Object
+      .keys(config.api)
+      .map(apiName => {
+        config.api[apiName].handler = genApiHandler(config.api[apiName])
+
+        // Add the API handler to the while-listed URLS
+        urlWhiteList.push({
+          'url'        : config.api[apiName].url
+        , 'handler'    : config.api[apiName].handler
+        , 'parameters' : config.api[apiName].parameters
+        , 'type'       : 'api'
         })
       })
 
@@ -172,8 +315,8 @@ cds.connect(connectionObj)
       const server = http.createServer()
       
       // Define HTTP handler with default landing page
-      // server.on('request', httpRequestHandler(buildLandingPage(countryList.length)))
-      server.on('request', fs.readFileSync('index.html'))
+      server.on('request', httpRequestHandler(buildLandingPage(countryList.length)))
+      //server.on('request', httpRequestHandler(fs.readFileSync(__dirname + '/index.html').toString('utf8')))
       server.listen(port, () => console.log(`Server running at https://${vcap_app.uris[0]}:${port}/`))
   
       // Pass the list of countries through to the next promise
