@@ -83,35 +83,26 @@ const standard_tables = {
  * 
  * =====================================================================================================================
  */
+const like             = 'LIKE'
 const simpleEquality   = '='
 const numericOperators = ['=','>','<','>=','<=','EQ','GT','LT','GTE','LTE']
 
 const api_v1 = {
   'geonames' : {
-    dbTableName  : 'ORG_GEONAMES_GEONAMES'
-  , url          : '/api/v1/query'
-  , handler      : null
-  , rowLimit     : 1000
-  , parameters   : {
+    dbTableName : 'ORG_GEONAMES_GEONAMES'
+  , keyField    : 'GEONAMEID'
+  , url         : '/api/v1/geonames'
+  , handler     : null
+  , rowLimit    : 1000
+  , parameters  : {
       mandatory : {
-        featureClass : {
-          colName   :'FEATURECLASS_FEATURECLASS'
-        , operators : simpleEquality
-        }
-      , featureCode  : {
-          colName   : 'FEATURECODE_FEATURECODE'
-        , operators : simpleEquality
-        }
+        name : { operators : like, colName : 'NAME' }
       }
     , optional : {
-        countryCode : {
-          colName   : 'COUNTRYCODE_ISO2'
-        , operators : simpleEquality
-        }
-      , population  : {
-          colName   : 'POPULATION'
-        , operators : numericOperators
-        }
+        featureClass : { operators : simpleEquality,   colName : 'FEATURECLASS_FEATURECLASS' }
+      , featureCode  : { operators : simpleEquality,   colName : 'FEATURECODE_FEATURECODE' }
+      , countryCode  : { operators : simpleEquality,   colName : 'COUNTRYCODE_ISO2' }
+      , population   : { operators : numericOperators, colName : 'POPULATION'}
       }
     }
   }

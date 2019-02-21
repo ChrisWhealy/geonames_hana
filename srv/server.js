@@ -64,22 +64,15 @@ var serverSideObjectList = [
 // are declared.  Instead, anonymous inner functions are used and any needed internal variables become function
 // parameters whose values are bound when the function is called
 // ---------------------------------------------------------------------------------------------------------------------
-const qsParams =
-  url =>
-    (qs =>
-      qs.length > 1
-      ? qs[1]
-          .split('&')
-          .reduce((acc, item) =>
-            (eqIdx =>
-              eqIdx === -1
-              ? updateObj(acc, item, '')
-              : updateObj(acc, item.substr(0, eqIdx), item.substr(eqIdx+1))
-            )
-            (item.indexOf('='))
-          , {})
-      : {})
-    (url.split('?'))
+const fetchQsParams =
+  qs =>
+    qs.split('&').reduce((acc, item) =>
+        (eqIdx =>
+          eqIdx === -1
+          ? updateObj(acc, item, '')
+          : updateObj(acc, item.substr(0, eqIdx), item.substr(eqIdx+1))
+        )
+        (item.indexOf('=')), {})
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Partial function to check that a query string contains at least the required mandatory parameters
@@ -93,33 +86,52 @@ const qsParamCheck =
       : (_ => updateObj(acc, 'ok', false))
         (acc.missing.push(requiredEl))
 
-const qsCheckForMandatoryParms =
-  (paramObj, url) =>
-    Object
-      .keys(paramObj)
-      .reduce(qsParamCheck(qsParams(url)), {ok: true, missing : []})
+// ---------------------------------------------------------------------------------------------------------------------
+// Extract all the keys and query string parameters from the URL
+// No attempt is made here to validate these values
+// ---------------------------------------------------------------------------------------------------------------------
+const parseUrl =
+  (requestUrl, templateUrl) =>
+    (urlParts => ({
+        keys    : urlParts[0].replace(templateUrl,'').split('/').filter(el => el.length > 0)
+      , qs      : fetchQsParams(urlParts[urlParts.length - 1])
+      })
+    )
+    // Split the URL at the '?', if there is one
+    (requestUrl.split('?'))
+
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Fetch the mandatory and optional parameters from the query string
-// Return the DB table columns names that correspond to the query string parameter names
+// Minimum check that the query string contains at least the mandatory parameters
 // ---------------------------------------------------------------------------------------------------------------------
-const fetchParamsFromQsIntoObj =
+const validateQs =
+  (qsParameters, parsedUrl) =>
+    Object
+      .keys(qsParameters.mandatory)
+      .reduce((acc,el) => parsedUrl.qs[el] ? acc : push(acc, el), [])
+
+// ---------------------------------------------------------------------------------------------------------------------
+// For a given paramater object, return the DB table column names and operators values that correspond to the query
+// string parameter names
+// ---------------------------------------------------------------------------------------------------------------------
+const qsNameToDbProperties =
   (paramObj, qs, targetObj) =>
     Object.keys(paramObj).reduce(
-      (acc, el) => qs[el] ? updateObj(acc, paramObj[el].colName, qs[el]) : acc
+      (acc, el) => qs[el] ? updateObj(acc, el, paramObj[el]) : acc
     , targetObj
     )
 
 const genSqlSelect =
-  (req, apiConfig) => {
-    let qs = qsParams(req.url)
+  (parsedUrl, apiConfig) => {
+    // Transform the query string parameter names into the corresponding table column names
+    let dbProps = qsNameToDbProperties(apiConfig.parameters.mandatory, parsedUrl.qs, {})
+        dbProps = qsNameToDbProperties(apiConfig.parameters.optional,  parsedUrl.qs, dbProps)
 
-    let params = fetchParamsFromQsIntoObj(apiConfig.parameters.mandatory, qs, {})
-        params = fetchParamsFromQsIntoObj(apiConfig.parameters.optional,  qs, params)
+    console.log(`dbProps = ${JSON.stringify(dbProps)}`)
 
     let whereClause = Object
-          .keys(params)
-          .reduce((acc,el) => push(acc, `"${el}"='${params[el]}'`), [])
+          .keys(dbProps)
+          .reduce((acc,el) => push(acc, `"${dbProps[el].colName}" ${dbProps[el].operators} '${parsedUrl.qs[el]}'`), [])
           .join(' AND ')
 
     let sql = `SELECT TOP ${apiConfig.rowLimit} * FROM ${apiConfig.dbTableName} WHERE ${whereClause};`
@@ -133,12 +145,31 @@ const genSqlSelect =
 const httpErrorHandler = err => console.error(`An HTTP Error occurred\n${err.stack}`)
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Generate an API request handler
+// Generate an API request handler for a given API config object
 // ---------------------------------------------------------------------------------------------------------------------
 const genApiHandler =
   apiConfig =>
-    req => {
-      let sql = genSqlSelect(req, apiConfig)
+    (req, parsedUrl) => {
+      // By the time we get to here, the parsedUrl object will contain at least the mandatory query string parameters.
+      // Now remove any other parameters that are not found in the optional parameters list.  This is because we have no
+      // means of translating an arbitrary query string parameter name to the corresponding table column name
+      parsedUrl.qs = Object
+        .keys(parsedUrl.qs)
+        .reduce((acc, el) =>
+            // If the parameter in the query string is listed as either an optional or mandatory parameter, then add it
+            // to the accumulator, else skip it
+            apiConfig.parameters.optional[el] || apiConfig.parameters.mandatory[el]
+            ? updateObj(acc, el, parsedUrl.qs[el])
+            : acc
+          , {})
+
+      // Are there any keys in the URL?
+      let sql = (parsedUrl.keys.length > 0)
+        // Yup, so this is a direct READ request which takes priority over a generic QUERY request
+        ? `SELECT * FROM ${apiConfig.dbTableName} WHERE "${apiConfig.keyField}"='${parsedUrl.keys[0]}';`
+        // Nope, so this is a generic QUERY request.  By now, the parsedURL object will contain at least the mandatory
+        // parameters and zero or more of the optional parameters.  No other parameters will be present in this object
+        : genSqlSelect(parsedUrl, apiConfig)
       
       console.log(`Executing SQL statement ${sql}`)
 
@@ -152,17 +183,16 @@ const genApiHandler =
 const httpRequestHandler =
   defaultResponse =>
     (req, res) => {
-      const { method, url } = req
       let body = []
 
-      console.log(`Server received request for URL ${url}`)
+      console.log(`Server received request for URL ${req.url}`)
 
       req.on('err', httpErrorHandler)
         .on('data', chunk => body.push(chunk))
         .on('end',  ()    => {
           body = Buffer.from(body).toString('utf8')
 
-          console.log(`Received HTTP request with method ${method} and ${body.length === 0 ? 'no' : ''} body ${body}`)
+          console.log(`Received HTTP request with method ${req.method} and ${body.length === 0 ? 'no' : ''} body ${body}`)
 
           // Assume that we will be able to process this request just fine...
           res.statusCode = 200
@@ -170,7 +200,7 @@ const httpRequestHandler =
 
           // -----------------------------------------------------------------------------------------------------------
           // Do I recognise the request URL?
-          if (url === "/") {
+          if (req.url === "/") {
             // Yup, its the landing page
             res.end(defaultResponse)
           }
@@ -179,7 +209,7 @@ const httpRequestHandler =
             // Try to locate the handler for this URL
             let urlHandler = Object
               .values(urlWhiteList)
-              .reduce((acc, el) => url.startsWith(el.url) ? el : acc, null)
+              .reduce((acc, whiteList) => req.url.startsWith(whiteList.url) ? whiteList : acc, null)
 
             // ---------------------------------------------------------------------------------------------------------
             // Do we have a handler for this URL?
@@ -194,16 +224,39 @@ const httpRequestHandler =
                 // -----------------------------------------------------------------------------------------------------
                 // API handler
                 if (urlHandler.type === 'api') {
-                  // Yup, then check the request URL contains at least the mandatory parameters
-                  let parameterState = qsCheckForMandatoryParms(urlHandler.parameters.mandatory, url)
+                  // Yup, then parse the request URL
+                  let parsedUrl      = parseUrl(req.url, urlHandler.url)
+                  let missingQsParms = validateQs(urlHandler.parameters, parsedUrl)
+                  
+                  console.log(`parsedUrl = ${JSON.stringify(parsedUrl)}`)
 
-                  if (parameterState.ok) {
-                    res.setHeader('Content-Type', 'application/json; charset=utf-8')
-                    urlHandler.handler(req).then(result => res.end(JSON.stringify(result)))
+                  // Look for reasons to reject this request
+                  // Is keys array empty?
+                  if (parsedUrl.keys.length === 0) { 
+                    // Yup, so check if the query string is also empty?
+                    if (Object.keys(parsedUrl.qs).length === 0) {
+                      // Yup, so this is a bad request
+                      res.statusCode = 400
+                      res.end(bfu.as_h2([],`Unable to process request ${req.url}<br>Please specify either a key or a query string`))
+                    }
+                    // So there must be at least one item in the query string
+                    // Are any of the mandatory query string parameters missing?
+                    else if (missingQsParms.length > 0) {
+                      // Yup, so this is also a bad request
+                      res.statusCode = 400
+                      res.end(bfu.as_h2([],`The following mandatory parameters are missing from the request: ${missingQsParms.join(', ')}`))
+                    }
+                    else {
+                      // Nope, so this is a valid QUERY request
+                      res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                      urlHandler.handler(req, parsedUrl).then(result => res.end(JSON.stringify(result)))
+                    }
                   }
                   else {
-                    res.statusCode = 400
-                    res.end(bfu.as_h2([],`The following mandatory parameters are missing from the request: ${parameterState.missing.join(', ')}`))
+                    // Nope, so treat this as a direct READ request, in which case, the query string parameters will be
+                    // ignored
+                    res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                    urlHandler.handler(req, parsedUrl).then(result => res.end(JSON.stringify(result)))
                   }
                 }
                 // -----------------------------------------------------------------------------------------------------
@@ -221,7 +274,7 @@ const httpRequestHandler =
             // ---------------------------------------------------------------------------------------------------------
             // Nope, so this could be simply a file request originating from index.html
             else {
-              let fName = __dirname + url
+              let fName = `${__dirname}${req.url}`
 
               if (fs.existsSync(fName)) {
                 res.setHeader('Content-Type', mime.lookup(fName))
