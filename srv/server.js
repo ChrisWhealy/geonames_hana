@@ -232,17 +232,29 @@ const genApiHandler =
       return cds.run(sql).catch(console.error)
     }
 
+const assignRequestHandler =
+  url =>
+    config.urls[url].handler =
+      // API handler
+      config.urls[url].type === 'api'
+        ? genApiHandler(config.urls[url])
+        // Link handler
+        : config.urls[url].type === 'link'
+          ? showLink(url, serverSideObjectList)
+          : null
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Generate a generic request handler function
-const genRequestHandler = url =>
-  config.urls[url].handler =
-    // API handler
-    config.urls[url].type === 'api'
-      ? genApiHandler(config.urls[url])
-      // Link handler
-      : config.urls[url].type === 'link'
-        ? showLink(url, serverSideObjectList)
-        : null
+const genRequestHandler = () => {
+  return new Promise(
+    (resolve, reject) => {
+      Object
+        .keys(config.urls)
+        .map(assignRequestHandler)
+      
+      resolve()
+    }
+  )}
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Partial function that returns an HTTP request handler function with a built-in default response
@@ -350,21 +362,9 @@ const httpRequestHandler =
 cds.connect(connectionObj)
 
   // -------------------------------------------------------------------------------------------------------------------
-  // Create and assign the request handlers
+  // Create and assign the request handlers, then fetch the list of countries
   // -------------------------------------------------------------------------------------------------------------------
-  .then(() => {
-    return new Promise((resolve, reject) => {
-      Object
-        .keys(config.urls)
-        .map(genRequestHandler)
-  
-      resolve()
-    })
-  })
-
-  // -------------------------------------------------------------------------------------------------------------------
-  // Fetch the list of countries
-  // -------------------------------------------------------------------------------------------------------------------
+  .then(() => genRequestHandler())
   .then(() => cds.run('SELECT * FROM ORG_GEONAMES_BASE_GEO_COUNTRIES').catch(console.error))
 
   // -------------------------------------------------------------------------------------------------------------------
