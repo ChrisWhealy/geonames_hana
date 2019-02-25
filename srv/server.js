@@ -212,9 +212,8 @@ const genSqlSelect =
 // ---------------------------------------------------------------------------------------------------------------------
 const httpErrorHandler = err => console.error(`An HTTP Error occurred\n${err.stack}`)
 
-// ---------------------------------------------------------------------------------------------------------------------
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Generate an API request handler for a given API config object
-// ---------------------------------------------------------------------------------------------------------------------
 const genApiHandler =
   apiConfig =>
     validatedUrl => {
@@ -233,6 +232,17 @@ const genApiHandler =
       return cds.run(sql).catch(console.error)
     }
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// Generate a generic request handler function
+const genRequestHandler = url =>
+  config.urls[url].handler =
+    // API handler
+    config.urls[url].type === 'api'
+      ? genApiHandler(config.urls[url])
+      // Link handler
+      : config.urls[url].type === 'link'
+        ? showLink(url, serverSideObjectList)
+        : null
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Partial function that returns an HTTP request handler function with a built-in default response
@@ -340,7 +350,20 @@ const httpRequestHandler =
 cds.connect(connectionObj)
 
   // -------------------------------------------------------------------------------------------------------------------
-  // Now that the cds object has become usable, obtain the list of countries
+  // Create and assign the request handlers
+  // -------------------------------------------------------------------------------------------------------------------
+  .then(() => {
+    return new Promise((resolve, reject) => {
+      Object
+        .keys(config.urls)
+        .map(genRequestHandler)
+  
+      resolve()
+    })
+  })
+
+  // -------------------------------------------------------------------------------------------------------------------
+  // Fetch the list of countries
   // -------------------------------------------------------------------------------------------------------------------
   .then(() => cds.run('SELECT * FROM ORG_GEONAMES_BASE_GEO_COUNTRIES').catch(console.error))
 
@@ -349,26 +372,11 @@ cds.connect(connectionObj)
   // -------------------------------------------------------------------------------------------------------------------
   .then(listOfCountries => {
     return new Promise((resolve, reject) => {
-      // ---------------------------------------------------------------------------------------------------------------
-      // Assign URL request handlers
-      Object
-        .keys(config.urls)
-        .map(url =>
-          config.urls[url].handler =
-            // API handler
-            config.urls[url].type === 'api'
-              ? genApiHandler(config.urls[url])
-              // Link handler
-              : config.urls[url].type === 'link'
-                ? showLink(url, serverSideObjectList)
-                : null)
-  
-      // Sort the country list
-      let countryList = listOfCountries.sort(sortByCountryCode)
-      
       // Create an HTTP server
       const server = http.createServer()
 
+      // Sort the country list
+      let countryList = listOfCountries.sort(sortByCountryCode)
       // ---------------------------------------------------------------------------------------------------------------
       // Define HTTP handler with default landing page
       server.on('request', httpRequestHandler(buildLandingPage(countryList.length)))
@@ -397,5 +405,6 @@ cds.connect(connectionObj)
          console.log(`Finished table refresh in ${new Date(Date.now() - startedAt).toTimeString().slice(0,8)} hh:mm:ss`)
          console.log(separator)
       })
+      .catch(console.error)
   })
 
