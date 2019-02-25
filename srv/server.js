@@ -18,24 +18,21 @@ const config   = require('./config/config.js')
 
 const { push
       , updateObj
+      , isString
       } = require('./utils/functional_tools.js')
 
-const { cdsModelDefinitions
-      , showTable
-      , showLink
-      , genLink
+const { showLink
       , buildLandingPage
-      , showServerObjects
       } = require('./utils/html_utils.js')
 
-const vcap_app = JSON.parse(process.env.VCAP_APPLICATION)
-const vcap_srv = JSON.parse(process.env.VCAP_SERVICES)
-const port     = process.env.PORT || 3000
+const vcapApp = JSON.parse(process.env.VCAP_APPLICATION)
+const vcapSrv = JSON.parse(process.env.VCAP_SERVICES)
+const port    = process.env.PORT || 3000
 
 const connectionObj = {
   "kind": "hana"
 , "model": "gen/csn.json"
-, "credentials": (vcap_srv['hana'] || vcap_srv['hanatrial'])[0].credentials
+, "credentials": (vcapSrv['hana'] || vcapSrv['hanatrial'])[0].credentials
 }
 
 const startedAt = Date.now()
@@ -44,19 +41,29 @@ const separator = "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *"
 // Sort function based on 2-character ISO country code
 const sortByCountryCode = (el1, el2) => el1.ISO2 < el2.ISO2 ? -1 : el1.ISO2 > el2.ISO2 ? 1 : 0
 
-var countryList  = []
-var urlWhiteList = []
-
 // List of server-side objects displayed on the debug screen
 var serverSideObjectList = [
   {title: "cds",              value: cds}
-, {title: "VCAP_SERVICES",    value: vcap_srv}
-, {title: "VCAP_APPLICATION", value: vcap_app}
+, {title: "VCAP_SERVICES",    value: vcapSrv}
+, {title: "VCAP_APPLICATION", value: vcapApp}
 , {title: "NodeJS process",   value: process}
 ]
 
 // Display no more than 7 levels of nested objects
   bfu.set_depth_limit(7)
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Parse a query string value
+// No attempt here is made to validate the query string parameter value
+// ---------------------------------------------------------------------------------------------------------------------
+const parseQsValue =
+  qsVal =>
+    ((openIdx, closeIdx) =>
+       // Minimal check to ensure that both open & close parenthesis characters are present
+       (openIdx !== -1 && closeIdx !== -1)
+       ? qsVal.substring(openIdx + 1, closeIdx).split(',')
+       : qsVal)
+    (qsVal.indexOf('('), qsVal.indexOf(')'))
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Get query string parameters from incoming request object
@@ -70,45 +77,25 @@ const fetchQsParams =
         (eqIdx =>
           eqIdx === -1
           ? updateObj(acc, item, '')
-          : updateObj(acc, item.substr(0, eqIdx), item.substr(eqIdx+1))
+          : updateObj(acc, item.substr(0, eqIdx), parseQsValue(item.substr(eqIdx+1)))
         )
         (item.indexOf('=')), {})
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Partial function to check that a query string contains at least the required mandatory parameters
-// Returns a function that can be used by Array.reduce()
+// Subdivide the URL into zero or more keys and zero or more query string parameters
 // ---------------------------------------------------------------------------------------------------------------------
-const qsParamCheck =
-  qs =>
-    (acc, requiredEl) =>
-      qs[requiredEl]
-      ? updateObj(acc, 'ok', true && acc.ok)
-      : (_ => updateObj(acc, 'ok', false))
-        (acc.missing.push(requiredEl))
-
-// ---------------------------------------------------------------------------------------------------------------------
-// Extract all the keys and query string parameters from the URL
-// No attempt is made here to validate these values
-// ---------------------------------------------------------------------------------------------------------------------
-const parseUrl =
+const subdivideUrl =
   (requestUrl, templateUrl) =>
     (urlParts => ({
         keys    : urlParts[0].replace(templateUrl,'').split('/').filter(el => el.length > 0)
-      , qs      : fetchQsParams(urlParts[urlParts.length - 1])
+      , qs      : (urlParts.length === 2)
+                  ? fetchQsParams(urlParts[urlParts.length - 1])
+                  : {}
       })
     )
-    // Split the URL at the '?', if there is one
+    // Split the URL at the '?', if there is one.
+    // This will always result in an array containing at least one element
     (requestUrl.split('?'))
-
-
-// ---------------------------------------------------------------------------------------------------------------------
-// Minimum check that the query string contains at least the mandatory parameters
-// ---------------------------------------------------------------------------------------------------------------------
-const validateQs =
-  (qsParameters, parsedUrl) =>
-    Object
-      .keys(qsParameters.mandatory)
-      .reduce((acc,el) => parsedUrl.qs[el] ? acc : push(acc, el), [])
 
 // ---------------------------------------------------------------------------------------------------------------------
 // For a given paramater object, return the DB table column names and operators values that correspond to the query
@@ -121,23 +108,104 @@ const qsNameToDbProperties =
     , targetObj
     )
 
-const genSqlSelect =
-  (parsedUrl, apiConfig) => {
-    // Transform the query string parameter names into the corresponding table column names
-    let dbProps = qsNameToDbProperties(apiConfig.parameters.mandatory, parsedUrl.qs, {})
-        dbProps = qsNameToDbProperties(apiConfig.parameters.optional,  parsedUrl.qs, dbProps)
 
-    console.log(`dbProps = ${JSON.stringify(dbProps)}`)
+// ---------------------------------------------------------------------------------------------------------------------
+// Validate the subdivided URL
+// This function gives back everything needed either to process the request or reject it with an appropriate reason
+// ---------------------------------------------------------------------------------------------------------------------
+const validateUrl =
+  (apiConfig, subdividedUrl) => {
+    // Transform the mandatory query string parameter names into the corresponding table column names
+    let dbProps = qsNameToDbProperties(apiConfig.parameters.mandatory, subdividedUrl.qs, {})
 
-    let whereClause = Object
-          .keys(dbProps)
-          .reduce((acc,el) => push(acc, `"${dbProps[el].colName}" ${dbProps[el].operators} '${parsedUrl.qs[el]}'`), [])
-          .join(' AND ')
+    return {
+      // Are any mandatory query string parameters missing?
+      missing : Object
+                  .keys(apiConfig.parameters.mandatory)
+                  .reduce((acc, paramName) => subdividedUrl.qs[paramName] ? acc : push(acc, paramName), [])
 
-    let sql = `SELECT TOP ${apiConfig.rowLimit} * FROM ${apiConfig.dbTableName} WHERE ${whereClause};`
+    // Transform the optional query string parameter names into the corresponding table column names
+    , dbProps : qsNameToDbProperties(apiConfig.parameters.optional, subdividedUrl.qs, dbProps)
 
-    return sql
+      // Pass the raw URL keys and query string back directly
+    , keys    : subdividedUrl.keys
+    , qs      : subdividedUrl.qs
+    }
   }
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Generate the operator and value parts of the SQL statement
+// ---------------------------------------------------------------------------------------------------------------------
+const genOpValue =
+  (operators, qsVal) => {
+    let retVal = 'NULL'
+
+    console.log(`genOpValue(): operators = [${operators}], qsVal = ${qsVal}`)
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Is the 'operators' value a string?
+    if (isString(operators)) {
+      // Yup, is the query strring parameter value also a string
+      if (isString(qsVal)) {
+        // Yup, so return the simple case value
+        retVal = `${operators} '${qsVal}'`
+      }
+      else {
+        // Nope, so the query string value must be an array containing firstly the operator and secondly the value
+        // This is a somewhat redunadant case since only the 'operators' value is just a string.  Nonetheless, the 
+        // first element of query string value array must equal this one permitted operator value
+        if (operators === qsVal[0]) {
+          retVal = `${qsVal[0]} '${qsVal[1]}'`
+        }
+        else {
+          console.log(`Error: malformed query string value ${qsVal}`)
+        }
+      }
+    }
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    else {
+      // Nope, so the 'operators' value is a Map
+      if (isString(qsVal)) {
+        // If a Map of operators is permitted, but the query string value is just a string, then assume the operator
+        // must be '='
+        retVal = `= '${qsVal}'`
+      }
+      else {
+        // The query string value is an array and the operators value is a Map, so check that the operator listed in the
+        // query string is a permitted operator listed in the 'operators' array
+        if (operators.has(qsVal[0])) {
+          retVal = `${operators.get(qsVal[0])} '${qsVal[1]}'`
+        }
+        else {
+          console.log(`Error: Operator ${qsVal[0]} not permitted. Valid operators are '${operators}'`)
+        }
+      }
+    }
+    
+    return retVal
+  }
+// ---------------------------------------------------------------------------------------------------------------------
+// Generate generic query SQL statement
+// ---------------------------------------------------------------------------------------------------------------------
+const genSqlWhereClause =
+  (validatedUrl, apiConfig) =>
+    Object
+      .keys(validatedUrl.dbProps)
+      .reduce((acc,el) => {
+          let thisProp = validatedUrl.dbProps[el]
+          return push(acc, `"${thisProp.colName}" ${genOpValue(thisProp.operators, validatedUrl.qs[el])}`)
+        }, [])
+      .join(' AND ')
+
+const genSqlSelect =
+  (validatedUrl, apiConfig) =>
+    (selectPart =>
+      Object.keys(validatedUrl.qs).length === 0
+      // Then just return the number of rows defined in the generic row limit
+      ? `${selectPart};`
+      // Else, add a WHERE clause
+      : `${selectPart} WHERE "${genSqlWhereClause(validatedUrl, apiConfig)}';`)
+    (`SELECT TOP ${apiConfig.rowLimit} * FROM ${apiConfig.dbTableName}`)
 
 // ---------------------------------------------------------------------------------------------------------------------
 // HTTP request handlers
@@ -149,27 +217,16 @@ const httpErrorHandler = err => console.error(`An HTTP Error occurred\n${err.sta
 // ---------------------------------------------------------------------------------------------------------------------
 const genApiHandler =
   apiConfig =>
-    (req, parsedUrl) => {
-      // By the time we get to here, the parsedUrl object will contain at least the mandatory query string parameters.
-      // Now remove any other parameters that are not found in the optional parameters list.  This is because we have no
-      // means of translating an arbitrary query string parameter name to the corresponding table column name
-      parsedUrl.qs = Object
-        .keys(parsedUrl.qs)
-        .reduce((acc, el) =>
-            // If the parameter in the query string is listed as either an optional or mandatory parameter, then add it
-            // to the accumulator, else skip it
-            apiConfig.parameters.optional[el] || apiConfig.parameters.mandatory[el]
-            ? updateObj(acc, el, parsedUrl.qs[el])
-            : acc
-          , {})
-
+    validatedUrl => {
       // Are there any keys in the URL?
-      let sql = (parsedUrl.keys.length > 0)
+      let sql = (validatedUrl.keys.length > 0)
         // Yup, so this is a direct READ request which takes priority over a generic QUERY request
-        ? `SELECT * FROM ${apiConfig.dbTableName} WHERE "${apiConfig.keyField}"='${parsedUrl.keys[0]}';`
-        // Nope, so this is a generic QUERY request.  By now, the parsedURL object will contain at least the mandatory
+        // Does this request have no keys and no query string?
+        ? `SELECT TOP ${config.genericRowLimit} * FROM ${apiConfig.dbTableName} WHERE "${apiConfig.keyField}"='${validatedUrl.keys[0]}';`
+
+        // Nope, so this is a generic QUERY request.  By now, the validatedUrl object will contain at least the mandatory
         // parameters and zero or more of the optional parameters.  No other parameters will be present in this object
-        : genSqlSelect(parsedUrl, apiConfig)
+        : genSqlSelect(validatedUrl, apiConfig)
       
       console.log(`Executing SQL statement ${sql}`)
 
@@ -178,21 +235,19 @@ const genApiHandler =
 
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Partial function that returns an HTTP request handler function with a default response
+// Partial function that returns an HTTP request handler function with a built-in default response
 // ---------------------------------------------------------------------------------------------------------------------
 const httpRequestHandler =
   defaultResponse =>
     (req, res) => {
       let body = []
-
-      console.log(`Server received request for URL ${req.url}`)
+//      console.log(`Server received request for URL ${req.url}`)
 
       req.on('err', httpErrorHandler)
         .on('data', chunk => body.push(chunk))
         .on('end',  ()    => {
           body = Buffer.from(body).toString('utf8')
-
-          console.log(`Received HTTP request with method ${req.method} and ${body.length === 0 ? 'no' : ''} body ${body}`)
+//          console.log(`Received HTTP request with method ${req.method} and ${body.length === 0 ? 'no' : ''} body ${body}`)
 
           // Assume that we will be able to process this request just fine...
           res.statusCode = 200
@@ -207,84 +262,72 @@ const httpRequestHandler =
           // -----------------------------------------------------------------------------------------------------------
           else {
             // Try to locate the handler for this URL
-            let urlHandler = Object
-              .values(urlWhiteList)
-              .reduce((acc, whiteList) => req.url.startsWith(whiteList.url) ? whiteList : acc, null)
+            let recognisedUrl = Object
+              .keys(config.urls)
+              .reduce((acc, knownUrl) => req.url.startsWith(knownUrl) ? config.urls[knownUrl] : acc, null)
+//            console.log(`recognisedUrl = ${JSON.stringify(recognisedUrl)}`)
 
             // ---------------------------------------------------------------------------------------------------------
-            // Do we have a handler for this URL?
-            if (urlHandler) {
-              if (urlHandler.handler === null) {
-                // Nope - these are not the droids we're looking for...
-                res.statusCode = 404
-                res.end(genLink('href=/', 'These are not the droids we&rsquo;re looking for...'))
-              }
-              // -------------------------------------------------------------------------------------------------------
-              else {
-                // -----------------------------------------------------------------------------------------------------
-                // API handler
-                if (urlHandler.type === 'api') {
-                  // Yup, then parse the request URL
-                  let parsedUrl      = parseUrl(req.url, urlHandler.url)
-                  let missingQsParms = validateQs(urlHandler.parameters, parsedUrl)
-                  
-                  console.log(`parsedUrl = ${JSON.stringify(parsedUrl)}`)
+            // Is this URL one we specifically recognise?
+            if (recognisedUrl) {
+              switch (recognisedUrl.type) {
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                case 'link':
+                  recognisedUrl.handler().then(result => res.end(result))
+                  break
+
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                case 'api':
+                  // Yup, then subdivide the request URL
+                  let validatedUrl  = validateUrl(recognisedUrl, subdivideUrl(req.url, recognisedUrl.url))
+//                  console.log(`validatedUrl = ${JSON.stringify(validatedUrl)}`)
 
                   // Look for reasons to reject this request
                   // Is keys array empty?
-                  if (parsedUrl.keys.length === 0) { 
-                    // Yup, so check if the query string is also empty?
-                    if (Object.keys(parsedUrl.qs).length === 0) {
-                      // Yup, so this is a bad request
-                      res.statusCode = 400
-                      res.end(bfu.as_h2([],`Unable to process request ${req.url}<br>Please specify either a key or a query string`))
-                    }
-                    // So there must be at least one item in the query string
-                    // Are any of the mandatory query string parameters missing?
-                    else if (missingQsParms.length > 0) {
-                      // Yup, so this is also a bad request
-                      res.statusCode = 400
-                      res.end(bfu.as_h2([],`The following mandatory parameters are missing from the request: ${missingQsParms.join(', ')}`))
+                  if (validatedUrl.keys.length === 0) { 
+                    // Yup, so for this to be a valid QUERY, the query string must either be empty, or missing none of
+                    // its mandatory parameters
+                    if (Object.keys(validatedUrl.qs).length === 0 ||
+                        validatedUrl.missing.length         === 0) {
+                      // This is a valid QUERY request
+                      res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                      recognisedUrl.handler(validatedUrl).then(result => res.end(JSON.stringify(result)))
                     }
                     else {
-                      // Nope, so this is a valid QUERY request
-                      res.setHeader('Content-Type', 'application/json; charset=utf-8')
-                      urlHandler.handler(req, parsedUrl).then(result => res.end(JSON.stringify(result)))
+                      // Oops, this is a bad request because one or more mandatory query string parameters are missing
+                      res.statusCode = 400
+                      res.end(bfu.as_h2([],`The following mandatory parameters are missing from the request: ${validatedUrl.missing.join(', ')}`))
                     }
                   }
                   else {
                     // Nope, so treat this as a direct READ request, in which case, the query string parameters will be
                     // ignored
                     res.setHeader('Content-Type', 'application/json; charset=utf-8')
-                    urlHandler.handler(req, parsedUrl).then(result => res.end(JSON.stringify(result)))
+                    recognisedUrl.handler(validatedUrl).then(result => res.end(JSON.stringify(result)))
                   }
-                }
-                // -----------------------------------------------------------------------------------------------------
-                // Table handler
-                else if (urlHandler.type === 'table') {
-                  urlHandler.handler('SELECT TOP 1000 *').then(result => res.end(result))
-                }
-                // -----------------------------------------------------------------------------------------------------
-                // Link handler
-                else if (urlHandler.type === 'link') {
-                  urlHandler.handler().then(result => res.end(result))
-                }
+
+                  break
+
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                default:
               }
             }
             // ---------------------------------------------------------------------------------------------------------
             // Nope, so this could be simply a file request originating from index.html
             else {
-              let fName = `${__dirname}${req.url}`
+              let fName    = `${__dirname}${req.url}`
+              let response = ''
 
               if (fs.existsSync(fName)) {
                 res.setHeader('Content-Type', mime.lookup(fName))
-                res.end(fs.readFileSync(fName).toString('utf8'))
+                response = fs.readFileSync(fName).toString('utf8')
               }
               else {
                 console.log(`Can't find file ${fName}`)
                 res.statusCode = 404
-                res.end("")
               }
+              
+              res.end(response)
             }
           }
         })
@@ -297,82 +340,42 @@ const httpRequestHandler =
 cds.connect(connectionObj)
 
   // -------------------------------------------------------------------------------------------------------------------
-  // Now that the cds object has become usable, create various other functions and objects that rely upon it
+  // Now that the cds object has become usable, obtain the list of countries
   // -------------------------------------------------------------------------------------------------------------------
-  .then(() => {
-    // -----------------------------------------------------------------------------------------------------------------
-    // Assign table request handler
-    Object
-      .keys(config.tables)
-      .map(tabName => {
-        // Generate the handler for displaying a table
-        config.tables[tabName].handler = 
-          showTable(config.tables[tabName].dbTableName, cdsModelDefinitions(cds)(config.tables[tabName].cdsTableName))
-
-        // Add the table handler to the while-listed URLS
-        urlWhiteList.push({
-          'url'     : config.tables[tabName].url
-        , 'handler' : config.tables[tabName].handler
-        , 'type'    : 'table'
-        })
-      })
-
-    // -----------------------------------------------------------------------------------------------------------------
-    // Assign URL request handlers
-    Object
-      .keys(config.links)
-      .map(linkName => {
-        config.links[linkName].handler = 
-          // If we're running in development, then there will be an link name of 'debug'.
-          // This is not a real DB table; therefore, it has its own specific request handler
-          (linkName === 'debug')
-          ? showServerObjects(serverSideObjectList)
-          // Generate the handler for this link
-          : showLink(config.links[linkName].url)
-
-        // Add the link handler to the while-listed URLS
-        urlWhiteList.push({
-          'url'     : config.links[linkName].url
-        , 'handler' : config.links[linkName].handler
-        , 'type'    : 'link'
-        })
-      })
-
-    // -----------------------------------------------------------------------------------------------------------------
-    // Assign API request handlers
-    Object
-      .keys(config.api)
-      .map(apiName => {
-        config.api[apiName].handler = genApiHandler(config.api[apiName])
-
-        // Add the API handler to the while-listed URLS
-        urlWhiteList.push({
-          'url'        : config.api[apiName].url
-        , 'handler'    : config.api[apiName].handler
-        , 'parameters' : config.api[apiName].parameters
-        , 'type'       : 'api'
-        })
-      })
-
-    return cds.run('SELECT * FROM ORG_GEONAMES_BASE_GEO_COUNTRIES').catch(console.error)
-  })
+  .then(() => cds.run('SELECT * FROM ORG_GEONAMES_BASE_GEO_COUNTRIES').catch(console.error))
 
   // -------------------------------------------------------------------------------------------------------------------
   // Start the HTTP server
   // -------------------------------------------------------------------------------------------------------------------
   .then(listOfCountries => {
     return new Promise((resolve, reject) => {
-      countryList  = listOfCountries.sort(sortByCountryCode)
+      // ---------------------------------------------------------------------------------------------------------------
+      // Assign URL request handlers
+      Object
+        .keys(config.urls)
+        .map(url =>
+          config.urls[url].handler =
+            // API handler
+            config.urls[url].type === 'api'
+              ? genApiHandler(config.urls[url])
+              // Link handler
+              : config.urls[url].type === 'link'
+                ? showLink(url, serverSideObjectList)
+                : null)
+  
+      // Sort the country list
+      let countryList = listOfCountries.sort(sortByCountryCode)
       
       // Create an HTTP server
       const server = http.createServer()
-      
+
+      // ---------------------------------------------------------------------------------------------------------------
       // Define HTTP handler with default landing page
       server.on('request', httpRequestHandler(buildLandingPage(countryList.length)))
       //server.on('request', httpRequestHandler(fs.readFileSync(__dirname + '/index.html').toString('utf8')))
-      server.listen(port, () => console.log(`Server running at https://${vcap_app.uris[0]}:${port}/`))
+      server.listen(port, () => console.log(`Server running at https://${vcapApp.uris[0]}:${port}/`))
   
-      // Pass the list of countries through to the next promise
+      // Pass the sorted list of countries through to the next promise
       resolve(countryList)
     })
   })

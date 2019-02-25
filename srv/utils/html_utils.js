@@ -20,10 +20,7 @@ const { promiseToReadTable } = require('./db_utils.js')
 // Transform a table or link name from the config object into a hypertext link
 const genLink = (url, text) => bfu.as_a([`href="${url}"`], text)
 
-const genLinkFromConfigSection = section => genLink(section.url, section.description)
-
-const tabNameAsLink  = tabName  => genLinkFromConfigSection(config.tables[tabName])
-const linkNameAsLink = linkName => genLinkFromConfigSection(config.links[linkName])
+const urlAsLink = linkName => genLink(config.urls[linkName].url, config.urls[linkName].description)
 
 // =====================================================================================================================
 // Return an HTML span element containing some text and a mouseover description
@@ -139,26 +136,26 @@ const buildLandingPage = countryCount =>
     , [ bfu.as_h1([],`GeoNames Server (${process.env.NODE_ENV})`)
       , bfu.as_p([], `Provides geopolitical data for ${countryCount} countries`)
 
-      // Display each table name listed in the config object
-      , bfu.as_h2([], `Tables`)
-      , Object.keys(config.tables).map(tabName => bfu.as_p([], tabNameAsLink(tabName))).join('')
+      // Display a link to the API for each table name listed in the config object
+      , bfu.as_h2([], 'Tables')
+      , Object.keys(config.urls).map(apiName => bfu.as_p([], urlAsLink(apiName))).join('')
 
-      // Display each link name listed in the config object
-      , bfu.as_h2([], `Links`)
-      , Object.keys(config.links).map(linkName => bfu.as_p([], linkNameAsLink(linkName))).join('')
+      // Display each URL of type 'link' listed in the config object
+      , bfu.as_h2([], 'Links')
+      , Object
+          .keys(config.urls)
+          .reduce((acc, url) => (config.urls[url].type === 'link') ? push(acc, url) : acc, [])
+          .map(linkName => bfu.as_p([], urlAsLink(linkName)))
+          .join('')
       ].join('')
     )
   )
 
 // =====================================================================================================================
-// Return a handler that displays the contents of various server-side object.
+// Display the contents of various server-side object.
 // This function should only be used when the evironment variable NODE_ENV is set to 'development'
 const showServerObjects =
-  objectList =>
-    () => {
-      return new Promise((resolve, reject) =>
-        resolve(bfu.as_html([], bfu.create_content(objectList)))
-      )}
+  objectList => bfu.as_html([], bfu.create_content(objectList))
 
 // =====================================================================================================================
 // Generate the administration screen
@@ -176,7 +173,7 @@ const genAdminScreen = () => {
 // =====================================================================================================================
 // Return a handler that generates the appropriate page for a given link.
 const showLink =
-  url =>
+  (url, serverSideObjectList) =>
     () => {
       return new Promise((resolve, reject) => {
         let response = ''
@@ -184,7 +181,10 @@ const showLink =
         switch (url) {
           case '/admin':
             response = genAdminScreen()
+            break
 
+          case '/debug':
+            response = showServerObjects(serverSideObjectList)
             break
 
           default:
@@ -209,7 +209,6 @@ module.exports = {
 , showLink            : showLink
 , genLink             : genLink
 , buildLandingPage    : buildLandingPage
-, showServerObjects   : showServerObjects
 }
 
 

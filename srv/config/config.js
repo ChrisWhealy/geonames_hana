@@ -2,6 +2,15 @@
 /*eslint no-unused-expressions: ["error", { "allowTernary": true }]*/
 /*eslint-env node, es6 */
 
+const { updateObj } = require('../utils/functional_tools.js')
+
+
+// Return no more than this number of rows
+const rowLimit = 1000
+
+// DB refresh period in minutes
+const refreshFrequency = 1440
+
 /**
  * =====================================================================================================================
  * Partial function to merge the properties of an incoming object into a base object
@@ -19,90 +28,176 @@ const mergeProperties =
 
 /**
  * =====================================================================================================================
- * Standard table definitions, used in both development and production modes
+ * Map the operators accepted in the URL query string to the corresponding operators required by SQL
  * =====================================================================================================================
  */
-const standard_tables = {
-  'geonames'       : { cdsTableName : 'org.geonames.Geonames'
-                     , dbTableName  : 'ORG_GEONAMES_GEONAMES'
-                     , url          : '/show_geonames'
-                     , description  : 'Show Geonames table'
-                     , handler      : null
-                     }
-, 'alternateNames' : { cdsTableName : 'org.geonames.AlternateNames'
-                     , dbTableName  : 'ORG_GEONAMES_ALTERNATENAMES'
-                     , url          : '/show_alternatenames'
-                     , description  : 'Show AlternateNames table'
-                     , handler      : null
-                     }
-, 'countries'      : { cdsTableName : 'org.geonames.base.geo.Countries'
-                     , dbTableName : 'ORG_GEONAMES_BASE_GEO_COUNTRIES'
-                     , url          : '/show_countries'
-                     , description  : 'Show Countries table'
-                     , handler      : null
-                     }
-, 'continents'     : { cdsTableName : 'org.geonames.base.geo.Continents'
-                     , dbTableName  : 'ORG_GEONAMES_BASE_GEO_CONTINENTS'
-                     , url          : '/show_continents'
-                     , description  : 'Show Continents table'
-                     , handler      : null
-                     }
-, 'featureClasses' : { cdsTableName : 'org.geonames.base.feature.Classes'
-                     , dbTableName  : 'ORG_GEONAMES_BASE_FEATURE_CLASSES'
-                     , url          : '/show_featureclasses'
-                     , description  : 'Show FeatureClasses table'
-                     , handler      : null
-                     }
-, 'featureCodes'   : { cdsTableName : 'org.geonames.base.feature.Codes'
-                     , dbTableName  : 'ORG_GEONAMES_BASE_FEATURE_CODES'
-                     , url          : '/show_featurecodes'
-                     , description  : 'Show FeatureCodes table'
-                     , handler      : null
-                     }
-, 'languages'      : { cdsTableName : 'org.geonames.base.lang.LanguageCodes'
-                     , dbTableName  : 'ORG_GEONAMES_BASE_LANG_LANGUAGECODES'
-                     , url          : '/show_languagecodes'
-                     , description  : 'Show LanguageCodes table'
-                     , handler      : null
-                     }
-, 'timezones'      : { cdsTableName : 'org.geonames.base.time.Timezones'
-                     , dbTableName  : 'ORG_GEONAMES_BASE_TIME_TIMEZONES'
-                     , url          : '/show_timezones'
-                     , description  : 'Show Timezones table'
-                     , handler      : null
-                     }
-}
+const like           = 'LIKE'
+const simpleEquality = '='
+
+const numericOperatorsMap = new Map()
+
+  numericOperatorsMap.set ('=',   '=')
+  numericOperatorsMap.set ('>',   '>')
+  numericOperatorsMap.set ('<',   '<')
+  numericOperatorsMap.set ('>=',  '>=')
+  numericOperatorsMap.set ('<=',  '<=')
+  numericOperatorsMap.set ('EQ',  '=')
+  numericOperatorsMap.set ('GT',  '>')
+  numericOperatorsMap.set ('LT',  '<')
+  numericOperatorsMap.set ('GTE', '>=')
+  numericOperatorsMap.set ('LTE', '<=')
+
 
 /**
  * =====================================================================================================================
- * API whitelist
- * 
- * The parameters named as mandatory and optional perform two roles:
- *   1) We can validate whether or not the mandatory query string parameters have been supplied
- *   2) The query string parameter name can be substituted for required table column name in the SQL statement
- * 
+ * Define the API structure
  * =====================================================================================================================
  */
-const like             = 'LIKE'
-const simpleEquality   = '='
-const numericOperators = ['=','>','<','>=','<=','EQ','GT','LT','GTE','LTE']
-
 const api_v1 = {
-  'geonames' : {
-    dbTableName : 'ORG_GEONAMES_GEONAMES'
-  , keyField    : 'GEONAMEID'
-  , url         : '/api/v1/geonames'
-  , handler     : null
-  , rowLimit    : 1000
-  , parameters  : {
+  // ===================================================================================================================
+  '/api/v1/geonames' : {
+    dbTableName  : 'ORG_GEONAMES_GEONAMES'
+  , cdsTableName : 'org.geonames.Geonames'
+  , keyField     : 'GEONAMEID'
+  , url          : '/api/v1/geonames'
+  , type         : 'api'
+  , description  : 'Geonames'
+  , handler      : null
+  , rowLimit     : rowLimit
+  , parameters   : {
       mandatory : {
         name : { operators : like, colName : 'NAME' }
       }
     , optional : {
-        featureClass : { operators : simpleEquality,   colName : 'FEATURECLASS_FEATURECLASS' }
-      , featureCode  : { operators : simpleEquality,   colName : 'FEATURECODE_FEATURECODE' }
-      , countryCode  : { operators : simpleEquality,   colName : 'COUNTRYCODE_ISO2' }
-      , population   : { operators : numericOperators, colName : 'POPULATION'}
+        featureClass : { operators : simpleEquality,      colName : 'FEATURECLASS_FEATURECLASS' }
+      , featureCode  : { operators : simpleEquality,      colName : 'FEATURECODE_FEATURECODE' }
+      , countryCode  : { operators : simpleEquality,      colName : 'COUNTRYCODE_ISO2' }
+      , population   : { operators : numericOperatorsMap, colName : 'POPULATION'}
+      }
+    }
+  }
+
+  // ===================================================================================================================
+, '/api/v1/alternate-names' : {
+    dbTableName  : 'ORG_GEONAMES_ALTERNATENAMES'
+  , cdsTableName : 'org.geonames.AlternateNames'
+  , keyField     : 'ALTERNATENAMEID'
+  , url          : '/api/v1/alternate-names'
+  , type         : 'api'
+  , description  : 'Alternate Names'
+  , handler      : null
+  , rowLimit     : rowLimit
+  , parameters   : {
+      mandatory : {
+        name     : { operators : like,           colName : 'ALTERNATENAME' }
+      , language : { operators : simpleEquality, colName : 'ISO_LANGUAGE' }
+      }
+    , optional : {
+        isPreferred  : { operators : simpleEquality, colName : 'ISPREFERREDNAME' }
+      , isShort      : { operators : simpleEquality, colName : 'ISSHORTNAME' }
+      , isColloquial : { operators : simpleEquality, colName : 'ISCOLLOQUIAL' }
+      , isHistoric   : { operators : simpleEquality, colName : 'ISHISTORIC' }
+      }
+    }
+  }
+
+  // ===================================================================================================================
+, '/api/v1/countries' : {
+    dbTableName  : 'ORG_GEONAMES_BASE_GEO_COUNTRIES'
+  , cdsTableName : 'org.geonames.base.geo.Countries'
+  , keyField     : 'ISO2'
+  , url          : '/api/v1/countries'
+  , type         : 'api'
+  , description  : 'Countries'
+  , handler      : null
+  , rowLimit     : rowLimit
+  , parameters   : {
+      mandatory : {}
+    , optional : {}
+    }
+  }
+
+  // ===================================================================================================================
+, '/api/v1/continents' : {
+    dbTableName  : 'ORG_GEONAMES_BASE_GEO_CONTINENTS'
+  , cdsTableName : 'org.geonames.base.geo.Continents'
+  , keyField     : 'CONTINENTCODE'
+  , url          : '/api/v1/continents'
+  , type         : 'api'
+  , description  : 'Continents'
+  , handler      : null
+  , rowLimit     : rowLimit
+  , parameters   : {
+      mandatory : {}
+    , optional : {}
+    }
+  }
+
+  // ===================================================================================================================
+, '/api/v1/feature-classes' : {
+    dbTableName  : 'ORG_GEONAMES_BASE_FEATURE_CLASSES'
+  , cdsTableName : 'org.geonames.base.feature.Classes'
+  , keyField     : 'FEATURECLASS'
+  , url          : '/api/v1/feature-classes'
+  , type         : 'api'
+  , description  : 'Feature Classes'
+  , handler      : null
+  , rowLimit     : rowLimit
+  , parameters   : {
+      mandatory : {}
+    , optional : {}
+    }
+  }
+
+  // ===================================================================================================================
+, '/api/v1/feature-codes' : {
+    dbTableName  : 'ORG_GEONAMES_BASE_FEATURE_CODES'
+  , cdsTableName : 'org.geonames.base.feature.Codes'
+  , keyField     : 'FEATURECODE'
+  , url          : '/api/v1/feature-codes'
+  , type         : 'api'
+  , description  : 'Feature Codes'
+  , handler      : null
+  , rowLimit     : rowLimit
+  , parameters   : {
+      mandatory : {}
+    , optional : {}
+    }
+  }
+
+  // ===================================================================================================================
+, '/api/v1/languages' : {
+    dbTableName  : 'ORG_GEONAMES_BASE_LANG_LANGUAGECODES'
+  , cdsTableName : 'org.geonames.base.lang.LanguageCodes'
+  , keyField     : 'ISO639_3'
+  , url          : '/api/v1/languages'
+  , type         : 'api'
+  , description  : 'Languages'
+  , handler      : null
+  , rowLimit     : rowLimit
+  , parameters   : {
+      mandatory : {}
+    , optional : {}
+    }
+  }
+
+  // ===================================================================================================================
+, '/api/v1/timezones' : {
+    dbTableName  : 'ORG_GEONAMES_BASE_TIME_TIMEZONES'
+  , cdsTableName : 'org.geonames.base.time.Timezones'
+  , keyField     : 'TIMEZONENAME'
+  , url          : '/api/v1/timezones'
+  , type         : 'api'
+  , description  : 'Timezones'
+  , handler      : null
+  , rowLimit     : rowLimit
+  , parameters   : {
+      mandatory : {}
+    , optional : {
+        gmtOffset   : { operators : numericOperatorsMap, colName : 'GMTOFFSET' }
+      , rawOffset   : { operators : numericOperatorsMap, colName : 'RAWOFFSET' }
+      , dstOffset   : { operators : numericOperatorsMap, colName : 'DSTOFFSET' }
+      , countryCode : { operators : simpleEquality,      colName : 'COUNTRYCODE' }
       }
     }
   }
@@ -110,24 +205,44 @@ const api_v1 = {
 
 /**
  * =====================================================================================================================
- * Development and Production link whitelist
+ * In Development and Production, the server will respond to the following URLs
  * =====================================================================================================================
  */
 const dev_links = {
-  'debug' : { url         : '/debug'
-            , description : 'Show server-side object contents'
-            , handler     : null
-            }
+  '/debug' : {
+    url         : '/debug'
+  , type        : 'link'
+  , description : 'Show server-side object contents'
+  , handler     : null
+  }
 }
 
 const prod_links = {
-  'admin' : { url         : '/admin'
-            , description : 'Server admin'
-            , handler     : null
-            }
+  '/admin' : {
+    url         : '/admin'
+  , type        : 'link'
+  , description : 'Server admin'
+  , handler     : null
+  }
 }
 
-var mergeIntoProdLinks = mergeProperties(prod_links)
+// =====================================================================================================================
+// Add a link into the prod_links object for each table listed in the API object
+// =====================================================================================================================
+//   Object
+//     .keys(api_v1)
+//     .reduce((acc, api) =>
+//       updateObj(acc, api, {
+//         url         : api_v1[api].url
+//       , type        : 'link'
+//       , description : api_v1[api].description
+//       , handler     : null
+//       })
+//     , prod_links)
+
+var mergeIntoApis     = mergeProperties(api_v1)
+var prodUrls          = mergeIntoApis(prod_links)
+var mergeIntoProdUrls = mergeProperties(prodUrls)
 
 /**
  * =====================================================================================================================
@@ -141,22 +256,20 @@ const config = {
   // Configuration settings applicable for a development environment
   // ===================================================================================================================
   development : {
-    environment  : "development"
-  , refresh_freq : 1440
-  , tables       : standard_tables
-  , links        : mergeIntoProdLinks(dev_links)
-  , api          : api_v1
+    environment     : "development"
+  , refresh_freq    : refreshFrequency
+  , urls            : mergeIntoProdUrls(dev_links)
+  , genericRowLimit : rowLimit
   }
 
   // ===================================================================================================================
   // Configuration settings applicable for a production environment
   // ===================================================================================================================
 , production : {
-    environment  : "production"
-  , refresh_freq : 1440
-  , tables       : standard_tables
-  , links        : prod_links
-  , api          : api_v1
+    environment     : "production"
+  , refresh_freq    : refreshFrequency
+  , urls            : prodUrls
+  , genericRowLimit : rowLimit
   }
 }
 
