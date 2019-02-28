@@ -7,21 +7,28 @@
  * Geonames server
  * =====================================================================================================================
  */
-const cds    = require('@sap/cds')
-const http   = require('http')
-const fs     = require('fs')
-const mime   = require('mime-types')
-const bfu    = require('basic-formatting-utils')
+const cds  = require('@sap/cds')
+const http = require('http')
+const fs   = require('fs')
+const mime = require('mime-types')
 
-const loader   = require('./loader.js')
-const config   = require('./config/config.js')
+const loader = require('./loader.js')
+const config = require('./config/config.js')
 
-const { push
-      , updateObj
-      , isString
+const { typeOf
+      , isOfType
       } = require('./utils/functional_tools.js')
 
+const isPromise = isOfType("Promise")
+
+const { validateUrl
+      , subdivideUrl
+      } = require('./utils/url_utils.js')
+
+const { invokeApiInDb } = require('./utils/db_utils.js')
+
 const { showLink
+      , http400
       , buildLandingPage
       } = require('./utils/html_utils.js')
 
@@ -49,189 +56,26 @@ var serverSideObjectList = [
 , {title: "NodeJS process",   value: process}
 ]
 
-// Display no more than 7 levels of nested objects
-  bfu.set_depth_limit(7)
-
-// ---------------------------------------------------------------------------------------------------------------------
-// Parse a query string value
-// No attempt here is made to validate the query string parameter value
-// ---------------------------------------------------------------------------------------------------------------------
-const parseQsValue =
-  qsVal =>
-    ((openIdx, closeIdx) =>
-       // Minimal check to ensure that both open & close parenthesis characters are present
-       (openIdx !== -1 && closeIdx !== -1)
-       ? qsVal.substring(openIdx + 1, closeIdx).split(',')
-       : qsVal)
-    (qsVal.indexOf('('), qsVal.indexOf(')'))
-
-// ---------------------------------------------------------------------------------------------------------------------
-// Get query string parameters from incoming request object
-// Just for a giggle, I wrote this function such that it only ever uses single expressions; hence no internal variables
-// are declared.  Instead, anonymous inner functions are used and any needed internal variables become function
-// parameters whose values are bound when the function is called
-// ---------------------------------------------------------------------------------------------------------------------
-const fetchQsParams =
-  qs =>
-    qs.split('&').reduce((acc, item) =>
-        (eqIdx =>
-          eqIdx === -1
-          ? updateObj(acc, item, '')
-          : updateObj(acc, item.substr(0, eqIdx), parseQsValue(item.substr(eqIdx+1)))
-        )
-        (item.indexOf('=')), {})
-
-// ---------------------------------------------------------------------------------------------------------------------
-// Subdivide the URL into zero or more keys and zero or more query string parameters
-// ---------------------------------------------------------------------------------------------------------------------
-const subdivideUrl =
-  (requestUrl, templateUrl) =>
-    (urlParts => ({
-        keys    : urlParts[0].replace(templateUrl,'').split('/').filter(el => el.length > 0)
-      , qs      : (urlParts.length === 2)
-                  ? fetchQsParams(urlParts[urlParts.length - 1])
-                  : {}
-      })
-    )
-    // Split the URL at the '?', if there is one.
-    // This will always result in an array containing at least one element
-    (requestUrl.split('?'))
-
-// ---------------------------------------------------------------------------------------------------------------------
-// For a given paramater object, return the DB table column names and operators values that correspond to the query
-// string parameter names
-// ---------------------------------------------------------------------------------------------------------------------
-const qsNameToDbProperties =
-  (paramObj, qs, targetObj) =>
-    Object.keys(paramObj).reduce(
-      (acc, el) => qs[el] ? updateObj(acc, el, paramObj[el]) : acc
-    , targetObj
-    )
-
-
-// ---------------------------------------------------------------------------------------------------------------------
-// Validate the subdivided URL
-// This function gives back everything needed either to process the request or reject it with an appropriate reason
-// ---------------------------------------------------------------------------------------------------------------------
-const validateUrl =
-  (apiConfig, subdividedUrl) => {
-    // Transform the mandatory query string parameter names into the corresponding table column names
-    let dbProps = qsNameToDbProperties(apiConfig.parameters.mandatory, subdividedUrl.qs, {})
-
-    return {
-      // Are any mandatory query string parameters missing?
-      missing : Object
-                  .keys(apiConfig.parameters.mandatory)
-                  .reduce((acc, paramName) => subdividedUrl.qs[paramName] ? acc : push(acc, paramName), [])
-
-    // Transform the optional query string parameter names into the corresponding table column names
-    , dbProps : qsNameToDbProperties(apiConfig.parameters.optional, subdividedUrl.qs, dbProps)
-
-      // Pass the raw URL keys and query string back directly
-    , keys    : subdividedUrl.keys
-    , qs      : subdividedUrl.qs
-    }
-  }
-
-// ---------------------------------------------------------------------------------------------------------------------
-// Generate the operator and value parts of the SQL statement
-// ---------------------------------------------------------------------------------------------------------------------
-const genOpValue =
-  (operators, qsVal) => {
-    let retVal = 'NULL'
-
-    console.log(`genOpValue(): operators = [${operators}], qsVal = ${qsVal}`)
-
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // Is the 'operators' value a string?
-    if (isString(operators)) {
-      // Yup, is the query strring parameter value also a string
-      if (isString(qsVal)) {
-        // Yup, so return the simple case value
-        retVal = `${operators} '${qsVal}'`
-      }
-      else {
-        // Nope, so the query string value must be an array containing firstly the operator and secondly the value
-        // This is a somewhat redunadant case since only the 'operators' value is just a string.  Nonetheless, the 
-        // first element of query string value array must equal this one permitted operator value
-        if (operators === qsVal[0]) {
-          retVal = `${qsVal[0]} '${qsVal[1]}'`
-        }
-        else {
-          console.log(`Error: malformed query string value ${qsVal}`)
-        }
-      }
-    }
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    else {
-      // Nope, so the 'operators' value is a Map
-      if (isString(qsVal)) {
-        // If a Map of operators is permitted, but the query string value is just a string, then assume the operator
-        // must be '='
-        retVal = `= '${qsVal}'`
-      }
-      else {
-        // The query string value is an array and the operators value is a Map, so check that the operator listed in the
-        // query string is a permitted operator listed in the 'operators' array
-        if (operators.has(qsVal[0])) {
-          retVal = `${operators.get(qsVal[0])} '${qsVal[1]}'`
-        }
-        else {
-          console.log(`Error: Operator ${qsVal[0]} not permitted. Valid operators are '${operators}'`)
-        }
-      }
-    }
-    
-    return retVal
-  }
-// ---------------------------------------------------------------------------------------------------------------------
-// Generate generic query SQL statement
-// ---------------------------------------------------------------------------------------------------------------------
-const genSqlWhereClause =
-  (validatedUrl, apiConfig) =>
-    Object
-      .keys(validatedUrl.dbProps)
-      .reduce((acc,el) => {
-          let thisProp = validatedUrl.dbProps[el]
-          return push(acc, `"${thisProp.colName}" ${genOpValue(thisProp.operators, validatedUrl.qs[el])}`)
-        }, [])
-      .join(' AND ')
-
-const genSqlSelect =
-  (validatedUrl, apiConfig) =>
-    (selectPart =>
-      Object.keys(validatedUrl.qs).length === 0
-      // Then just return the number of rows defined in the generic row limit
-      ? `${selectPart};`
-      // Else, add a WHERE clause
-      : `${selectPart} WHERE "${genSqlWhereClause(validatedUrl, apiConfig)}';`)
-    (`SELECT TOP ${apiConfig.rowLimit} * FROM ${apiConfig.dbTableName}`)
-
 // ---------------------------------------------------------------------------------------------------------------------
 // HTTP request handlers
 // ---------------------------------------------------------------------------------------------------------------------
 const httpErrorHandler = err => console.error(`An HTTP Error occurred\n${err.stack}`)
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// Generate an API request handler for a given API config object
+// Partial function that returns an API request handler for a given API config object
 const genApiHandler =
   apiConfig =>
-    validatedUrl => {
-      // Are there any keys in the URL?
-      let sql = (validatedUrl.keys.length > 0)
-        // Yup, so this is a direct READ request which takes priority over a generic QUERY request
-        // Does this request have no keys and no query string?
-        ? `SELECT TOP ${config.genericRowLimit} * FROM ${apiConfig.dbTableName} WHERE "${apiConfig.keyField}"='${validatedUrl.keys[0]}';`
+    (recognisedUrl, url) =>
+      (validatedUrl =>
+        // Are all the query string parameters valid?
+        (validatedUrl.qsVals.reduce((acc, el) => acc && el.isValid, true))
+        ? invokeApiInDb(apiConfig, validatedUrl)
+        : new Promise((resolve, reject) => resolve(http400(validatedUrl)))
+      )
+      (validateUrl(recognisedUrl, subdivideUrl(url, recognisedUrl.url)))
 
-        // Nope, so this is a generic QUERY request.  By now, the validatedUrl object will contain at least the mandatory
-        // parameters and zero or more of the optional parameters.  No other parameters will be present in this object
-        : genSqlSelect(validatedUrl, apiConfig)
-      
-      console.log(`Executing SQL statement ${sql}`)
-
-      return cds.run(sql).catch(console.error)
-    }
-
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// Assign request handler functions based on URL type
 const assignRequestHandler =
   url =>
     config.urls[url].handler =
@@ -244,7 +88,7 @@ const assignRequestHandler =
           : null
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// Generate a generic request handler function
+// Generate a request handler functions to all the APIs and links in the config object
 const genRequestHandler = () => {
   return new Promise(
     (resolve, reject) => {
@@ -295,37 +139,33 @@ const httpRequestHandler =
               switch (recognisedUrl.type) {
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 case 'link':
-                  recognisedUrl.handler().then(result => res.end(result))
+                  recognisedUrl
+                    .handler()
+                    .then(result => res.end(result))
                   break
 
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 case 'api':
-                  // Yup, then subdivide the request URL
-                  let validatedUrl  = validateUrl(recognisedUrl, subdivideUrl(req.url, recognisedUrl.url))
-//                  console.log(`validatedUrl = ${JSON.stringify(validatedUrl)}`)
+                  let resultPromise = recognisedUrl.handler(recognisedUrl, req.url)
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  console.log(`resultPromise is of type ${typeOf(resultPromise)}`)
 
-                  // Look for reasons to reject this request
-                  // Is keys array empty?
-                  if (validatedUrl.keys.length === 0) { 
-                    // Yup, so for this to be a valid QUERY, the query string must either be empty, or missing none of
-                    // its mandatory parameters
-                    if (Object.keys(validatedUrl.qs).length === 0 ||
-                        validatedUrl.missing.length         === 0) {
-                      // This is a valid QUERY request
-                      res.setHeader('Content-Type', 'application/json; charset=utf-8')
-                      recognisedUrl.handler(validatedUrl).then(result => res.end(JSON.stringify(result)))
-                    }
-                    else {
-                      // Oops, this is a bad request because one or more mandatory query string parameters are missing
-                      res.statusCode = 400
-                      res.end(bfu.as_h2([],`The following mandatory parameters are missing from the request: ${validatedUrl.missing.join(', ')}`))
-                    }
+                  // If the SQL statement does not find anything, then you get a weird empty Promise object coming back,
+                  // so we must first check whether the 'then' function exists
+                  if (isPromise(resultPromise)) {
+                    resultPromise.then(result => {
+                      // If the result is a string, then its an error message
+                      if (typeOf(result) === 'String') {
+                        res.setHeader('Content-Type', 'text/html; charset=utf-8')
+                        res.end(result)
+                      }
+                      else {
+                        res.end(JSON.stringify(result))
+                      }
+                    })
                   }
                   else {
-                    // Nope, so treat this as a direct READ request, in which case, the query string parameters will be
-                    // ignored
-                    res.setHeader('Content-Type', 'application/json; charset=utf-8')
-                    recognisedUrl.handler(validatedUrl).then(result => res.end(JSON.stringify(result)))
+                    res.end('[]')
                   }
 
                   break

@@ -9,6 +9,12 @@
  */
 const bfu = require('basic-formatting-utils')
 
+  // Display no more than 7 levels of nested objects
+  bfu.set_depth_limit(7)
+
+const as_ul = bfu.as_html_el('ul')
+const as_li = bfu.as_html_el('li')
+
 const config     = require('../config/config.js')
 const styleSheet = require('./style_sheet.js')
 const { push }   = require('./functional_tools.js')
@@ -21,6 +27,27 @@ const { promiseToReadTable } = require('./db_utils.js')
 const genLink = (url, text) => bfu.as_a([`href="${url}"`], text)
 
 const urlAsLink = linkName => genLink(config.urls[linkName].url, config.urls[linkName].description)
+
+// =====================================================================================================================
+// HTTP 404 error message
+const qsErrorAsListItem = qsVal => as_li([], `${qsVal.name}: ${qsVal.msg}`)
+
+const qsErrorsAsListItems =
+  qsVals =>
+    qsVals
+      .reduce((acc, qsVal) => qsVal.isValid ? acc : push(acc, qsErrorAsListItem(qsVal)), [])
+      .join('')
+
+const http400 =
+  validatedUrl =>
+    bfu.as_div(
+      []
+    , [ bfu.as_h2([],'HTTP 400: Bad Request')
+      , bfu.as_p([], 'The following query string parameters are invalid:')
+      , as_ul([], qsErrorsAsListItems(validatedUrl.qsVals))
+      ].join('')
+    )
+
 
 // =====================================================================================================================
 // Return an HTML span element containing some text and a mouseover description
@@ -158,16 +185,11 @@ const showServerObjects =
   objectList => bfu.as_html([], bfu.create_content(objectList))
 
 // =====================================================================================================================
-// Generate the administration screen
+// Generate a dummy administration screen
 const genAdminScreen = () => {
   let refreshButton = bfu.as_button([], 'Refresh')
 
-  return bfu.as_html(
-    []
-  , [ bfu.as_style([], styleSheet)
-    , refreshButton
-    ].join('')
-  )
+  return bfu.as_html([], [ bfu.as_style([], styleSheet), refreshButton].join(''))
 }
 
 // =====================================================================================================================
@@ -207,6 +229,7 @@ module.exports = {
 , cdsModelDefinitions : cdsModelDefinitions
 , showTable           : showTable
 , showLink            : showLink
+, http400             : http400
 , genLink             : genLink
 , buildLandingPage    : buildLandingPage
 }

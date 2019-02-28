@@ -2,9 +2,6 @@
 /*eslint no-unused-expressions: ["error", { "allowTernary": true }]*/
 /*eslint-env node, es6 */
 
-const { updateObj } = require('../utils/functional_tools.js')
-
-
 // Return no more than this number of rows
 const rowLimit = 1000
 
@@ -65,15 +62,23 @@ const api_v1 = {
   , handler      : null
   , rowLimit     : rowLimit
   , parameters   : {
-      mandatory : {
-        name : { operators : like, colName : 'NAME' }
-      }
-    , optional : {
-        featureClass : { operators : simpleEquality,      colName : 'FEATURECLASS_FEATURECLASS' }
-      , featureCode  : { operators : simpleEquality,      colName : 'FEATURECODE_FEATURECODE' }
-      , countryCode  : { operators : simpleEquality,      colName : 'COUNTRYCODE_ISO2' }
-      , population   : { operators : numericOperatorsMap, colName : 'POPULATION'}
-      }
+       geonameId       : { operators : simpleEquality,      colName : 'GEONAMEID' }      
+     , name            : { operators : like,                colName : 'NAME' }
+     , latitude        : { operators : simpleEquality,      colName : 'LATITUDE'}
+     , longitude       : { operators : simpleEquality,      colName : 'LONGITUDE'}
+     , altCountryCodes : { operators : like,                colName : 'COUNTRYCODESALT'}
+     , admin1          : { operators : simpleEquality,      colName : 'ADMIN1'}
+     , admin2          : { operators : simpleEquality,      colName : 'ADMIN2'}
+     , admin3          : { operators : simpleEquality,      colName : 'ADMIN3'}
+     , admin4          : { operators : simpleEquality,      colName : 'ADMIN4'}
+     , population      : { operators : numericOperatorsMap, colName : 'POPULATION'}
+     , elevation       : { operators : numericOperatorsMap, colName : 'ELEVATION'}
+     , dem             : { operators : simpleEquality,      colName : 'DEM'}
+     , lastModified    : { operators : simpleEquality,      colName : 'LASTMODIFIED'}
+     , featureClass    : { operators : simpleEquality,      colName : 'FEATURECLASS_FEATURECLASS' }
+     , featureCode     : { operators : simpleEquality,      colName : 'FEATURECODE_FEATURECODE' }
+     , timezone        : { operators : like,                colName : 'TIMEZONE_TIMEZONENAME' }
+     , countryCode     : { operators : simpleEquality,      colName : 'COUNTRYCODE_ISO2' }
     }
   }
 
@@ -88,16 +93,16 @@ const api_v1 = {
   , handler      : null
   , rowLimit     : rowLimit
   , parameters   : {
-      mandatory : {
-        name     : { operators : like,           colName : 'ALTERNATENAME' }
-      , language : { operators : simpleEquality, colName : 'ISO_LANGUAGE' }
-      }
-    , optional : {
-        isPreferred  : { operators : simpleEquality, colName : 'ISPREFERREDNAME' }
-      , isShort      : { operators : simpleEquality, colName : 'ISSHORTNAME' }
-      , isColloquial : { operators : simpleEquality, colName : 'ISCOLLOQUIAL' }
-      , isHistoric   : { operators : simpleEquality, colName : 'ISHISTORIC' }
-      }
+      alternameNameId : { operators : simpleEquality, colName : 'ALTERNATENAMEID' }
+    , language        : { operators : simpleEquality, colName : 'ISOLANGUAGE' }
+    , name            : { operators : like,           colName : 'ALTERNATENAME' }
+    , isPreferred     : { operators : simpleEquality, colName : 'ISPREFERREDNAME' }
+    , isShort         : { operators : simpleEquality, colName : 'ISSHORTNAME' }
+    , isColloquial    : { operators : simpleEquality, colName : 'ISCOLLOQUIAL' }
+    , isHistoric      : { operators : simpleEquality, colName : 'ISHISTORIC' }
+    , isUseFrom       : { operators : like,           colName : 'INUSEFROM' }
+    , isUseTo         : { operators : like,           colName : 'INUSETO' }
+    , geonameId       : { operators : simpleEquality, colName : 'GEONAMEID_GEONAMEID' }
     }
   }
 
@@ -112,8 +117,21 @@ const api_v1 = {
   , handler      : null
   , rowLimit     : rowLimit
   , parameters   : {
-      mandatory : {}
-    , optional : {}
+      countryCode        : { operators : simpleEquality,      colName : 'ISO2'}
+    , countryCode3       : { operators : simpleEquality,      colName : 'ISO3'}
+    , numericCountryCode : { operators : simpleEquality,      colName : 'ISONUMERIC'}
+    , fips               : { operators : simpleEquality,      colName : 'FIPS'}
+    , name               : { operators : like,                colName : 'COUNTRYNAME'}
+    , capital            : { operators : like,                colName : 'CAPITAL'}
+    , area               : { operators : numericOperatorsMap, colName : 'AREA'}
+    , population         : { operators : numericOperatorsMap, colName : 'POPULATION'}
+    , tld                : { operators : simpleEquality,      colName : 'TLD'}
+    , currencyCode       : { operators : simpleEquality,      colName : 'CURRENCYCODE'}
+    , currencyName       : { operators : like,                colName : 'CURENCYNAME'}
+    , diallingCode       : { operators : simpleEquality,      colName : 'DIALLINGCODE'}
+    , languages          : { operators : like,                colName : 'LANGUAGE'}
+    , neighbours         : { operators : like,                colName : 'NEIGHBOURS'}
+    , continentCode      : { operators : simpleEquality,      colName : 'CONTINENT_CONTENTCODE'}
     }
   }
 
@@ -128,8 +146,8 @@ const api_v1 = {
   , handler      : null
   , rowLimit     : rowLimit
   , parameters   : {
-      mandatory : {}
-    , optional : {}
+      continentCode : { operators : simpleEquality, colName : 'CONTINENTCODE'}
+    , name          : { operators : like,           colName : 'CONTINENTNAME'}
     }
   }
 
@@ -144,8 +162,8 @@ const api_v1 = {
   , handler      : null
   , rowLimit     : rowLimit
   , parameters   : {
-      mandatory : {}
-    , optional : {}
+      featureClass : { operators : simpleEquality, colName : 'FEATURECLASS'}
+    , description  : { operators : like,           colName : 'DESCRIPTION'}
     }
   }
 
@@ -160,8 +178,10 @@ const api_v1 = {
   , handler      : null
   , rowLimit     : rowLimit
   , parameters   : {
-      mandatory : {}
-    , optional : {}
+      featureCode      : { operators : simpleEquality, colName : 'FEATURECODE'}
+    , shortDescription : { operators : like,           colName : 'SHORTDESCRIPTION'}
+    , longDescription  : { operators : like,           colName : 'LONGDESCRIPTION'}
+    , featureClass     : { operators : simpleEquality, colName : 'FEATURECLASS_FEATURECLASS'}
     }
   }
 
@@ -176,8 +196,10 @@ const api_v1 = {
   , handler      : null
   , rowLimit     : rowLimit
   , parameters   : {
-      mandatory : {}
-    , optional : {}
+      'iso639-3' : { operators : simpleEquality, colName : 'ISO639_3'}
+    , 'iso639-2' : { operators : simpleEquality, colName : 'ISO639_2'}
+    , 'iso639-1' : { operators : simpleEquality, colName : 'ISO639_1'}
+    , name       : { operators : simpleEquality, colName : 'LANGUAGENAME'}
     }
   }
 
@@ -192,13 +214,11 @@ const api_v1 = {
   , handler      : null
   , rowLimit     : rowLimit
   , parameters   : {
-      mandatory : {}
-    , optional : {
-        gmtOffset   : { operators : numericOperatorsMap, colName : 'GMTOFFSET' }
-      , rawOffset   : { operators : numericOperatorsMap, colName : 'RAWOFFSET' }
-      , dstOffset   : { operators : numericOperatorsMap, colName : 'DSTOFFSET' }
-      , countryCode : { operators : simpleEquality,      colName : 'COUNTRYCODE' }
-      }
+      name        : { operators : like,                colName : 'TIMEZONENAME' }
+    , gmtOffset   : { operators : numericOperatorsMap, colName : 'GMTOFFSET' }
+    , rawOffset   : { operators : numericOperatorsMap, colName : 'RAWOFFSET' }
+    , dstOffset   : { operators : numericOperatorsMap, colName : 'DSTOFFSET' }
+    , countryCode : { operators : simpleEquality,      colName : 'COUNTRYCODE_ISO2' }
     }
   }
 }
@@ -225,20 +245,6 @@ const prod_links = {
   , handler     : null
   }
 }
-
-// =====================================================================================================================
-// Add a link into the prod_links object for each table listed in the API object
-// =====================================================================================================================
-//   Object
-//     .keys(api_v1)
-//     .reduce((acc, api) =>
-//       updateObj(acc, api, {
-//         url         : api_v1[api].url
-//       , type        : 'link'
-//       , description : api_v1[api].description
-//       , handler     : null
-//       })
-//     , prod_links)
 
 var mergeIntoApis     = mergeProperties(api_v1)
 var prodUrls          = mergeIntoApis(prod_links)
@@ -281,6 +287,5 @@ const config = {
 // to be production
 //module.exports = config[process.env.NODE_ENV || 'development']
 module.exports = config['development']
-
 
 

@@ -11,9 +11,14 @@
 const { Writable } = require('stream')
 const cds          = require('@sap/cds')
 
-const {
-  isNotNullOrUndef
-, reduceUsing } = require('./functional_tools.js')
+const { isNotNullOrUndef
+      , push
+      , reduceUsing
+      , typeOf
+      , isString
+      } = require('./functional_tools.js')
+
+const config = require('../config/config.js')
 
 const columnList      = cols => cols.filter(isNotNullOrUndef)
 const genColumnList   = cols => columnList(cols).join(',')
@@ -89,6 +94,43 @@ class TableMetadata {
   }
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+// Generate generic query SQL statement
+// ---------------------------------------------------------------------------------------------------------------------
+const genSqlWhereClause =
+  validatedUrl =>
+    validatedUrl
+      .qsVals
+      .reduce((acc,qsVal) =>
+          push(acc, `"${validatedUrl.dbProps[qsVal.name].colName}" ${qsVal.operator} '${qsVal.value}'`)
+        , [])
+      .join(' AND ')
+
+const genSqlQuery =
+  (validatedUrl, apiConfig) =>
+    (selectPart =>
+      Object.keys(validatedUrl.qsVals).length === 0
+      // Then just return the number of rows defined in the generic row limit
+      ? `${selectPart};`
+      // Else, add a WHERE clause
+      : `${selectPart} WHERE ${genSqlWhereClause(validatedUrl)};`)
+    (`SELECT TOP ${apiConfig.rowLimit} * FROM ${apiConfig.dbTableName}`)
+
+const genSqlRead =
+  (validatedUrl, apiConfig) =>
+    `SELECT TOP ${config.genericRowLimit} * FROM ${apiConfig.dbTableName} WHERE "${apiConfig.keyField}"='${validatedUrl.keys[0]}';`
+
+const invokeApiInDb = (apiConfig, validatedUrl) => {
+  // If the URL contains any keys then this is a direct READ request which takes priority over a generic QUERY request
+  let sqlFn = (validatedUrl.keys.length > 0) ? genSqlRead : genSqlQuery
+  let sql   = sqlFn(validatedUrl, apiConfig)
+  
+  console.log(`Executing SQL statement ${sql}`)
+
+  // If the query returns nothing, then a weird empty Promise object will be returned
+  return cds.run(sql).catch(console.error)
+}
+
 /***********************************************************************************************************************
  * Public API
  */
@@ -97,6 +139,7 @@ module.exports = {
 , TableMetadata      : TableMetadata
 , genUpsertFrom      : genUpsertFrom
 , promiseToReadTable : promiseToReadTable
+, invokeApiInDb      : invokeApiInDb
 }
 
 
