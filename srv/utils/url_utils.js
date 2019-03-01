@@ -7,13 +7,18 @@
  * Utilities for managing URLs and query string validation
  * =====================================================================================================================
  */
+const bfu = require('basic-formatting-utils')
 
 const { isString
       , updateObj
       , push
       } = require('./functional_tools.js')
 
+// ---------------------------------------------------------------------------------------------------------------------
 // Class for parsed/validated query string parameter
+// After the query string has been parsed, all subsequent functions that handle this parsed data are expected to handle
+// objects of this type
+// ---------------------------------------------------------------------------------------------------------------------
 class ParsedQsParameter {
   constructor({isValid = true, name = '', operator = '', value = '', msg = ''}) {
     this.isValid  = isValid
@@ -59,10 +64,10 @@ const fetchQsParams =
 const subdivideUrl =
   (requestUrl, templateUrl) =>
     (urlParts => ({
-        keys    : urlParts[0].replace(templateUrl,'').split('/').filter(el => el.length > 0)
-      , qs      : (urlParts.length === 2)
-                  ? fetchQsParams(urlParts[urlParts.length - 1])
-                  : {}
+        keys : urlParts[0].replace(templateUrl,'').split('/').filter(el => el.length > 0)
+      , qs   : (urlParts.length === 2)
+               ? fetchQsParams(urlParts[urlParts.length - 1])
+               : {}
       })
     )
     // Split the URL at the '?', if there is one.
@@ -70,47 +75,49 @@ const subdivideUrl =
     (requestUrl.split('?'))
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Check that the query string property value match the permitted operators
+// Check that the name/value pair in a single query string parameter matches the permitted operators
+// This partial function returns a function suitable for use with Array.prototype.reduce
 // ---------------------------------------------------------------------------------------------------------------------
-const validateQsValues =
-  (configParams, qs) => {
-    console.log(`validateQsValues: qs = ${JSON.stringify(qs)}`)
+const operatorErrorMsg =
+  (configParam, badOp) =>
+    `Operator(s) permitted for ${configParam.colName} is/are ${configParam.operators}, not "${badOp}"`
 
-    return Object
-      .keys(configParams)
-      .reduce((acc, paramName) => {
-        let configParam = configParams[paramName]
-        // console.log(`validateQsValues: Checking for permitted parameter ${paramName}`)
-
-        if (qs[paramName]) {
-        //   console.log(`validateQsValues: Permitted operators for ${paramName} = ${JSON.stringify(configParam)}`)
+const validateNameValuePair =
+  (configParams, qs) =>
+    (acc, paramName) =>
+      // Self-executing inner function
+      ((configParam, qsParamName) => {
+        // If the permitted parameter does not exist in the query string, then ignore it and simply return the accumulator
+        if (qsParamName) {
           // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
           // Is the valid list of operators a string rather than an array?
           if (isString(configParam.operators)) {
             // Yup, is the query string parameter value also a string
-            if (isString(qs[paramName])) {
+            if (isString(qsParamName)) {
               // Yup, so return the simple case value
               push(acc, new ParsedQsParameter({
                   name     : paramName
                 , operator : configParam.operators
-                , value    : qs[paramName]
+                , value    : qsParamName
                 })
               )
             }
             else {
               // Nope, so the query string value must be an array containing firstly the operator and secondly the value
-              // This is a somewhat redunadant case since the valid list of operators is just a string.  Nonetheless, the 
-              // first element of query string value array must equal this one permitted operator value
-              if (configParam.operators === qs[paramName][0]) {
+              // This is a somewhat redundant case since we already know that the valid list of operators is just a
+              // string.  Nonetheless, the first element of query string value array must still equal the one permitted
+              // operator value held in that string
+              if (configParam.operators === qsParamName[0]) {
                 push(acc, new ParsedQsParameter({
                     name     : paramName
-                  , operator : qs[paramName][0]
-                  , value    : qs[paramName][1]
+                  , operator : qsParamName[0]
+                  , value    : qsParamName[1]
                   })
                 )
               }
               else {
-                let errMsg = `Error: Only operator "${configParam.operators}" is permitted for ${configParam.colName}, not "${qs[paramName][0]}"`
+                // The caller is trying to use an operator that is not permitted for this qs value
+                let errMsg = operatorErrorMsg(configParam, qsParamName[0])
                 console.log(errMsg)
                 push(acc, new ParsedQsParameter({
                     name    : paramName
@@ -124,29 +131,30 @@ const validateQsValues =
           // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
           else {
             // Nope, so the list of permitted operators must be a Map
-            if (isString(qs[paramName])) {
+            if (isString(qsParamName)) {
               // If a Map of operators is permitted, but the query string value is just a string, then assume the
               // operator must be '='
               push(acc, new ParsedQsParameter({
-                  name     : paramName
-                , operator : '='
-                , value    : qs[paramName]
-                })
+                    name     : paramName
+                  , operator : '='
+                  , value    : qsParamName
+                  })
               )
             }
             else {
               // The query string value is an array and the operators value is a Map, so check that the operator listed
               // in the query string is a permitted operator listed in the 'operators' array
-              if (configParam.operators.has(qs[paramName][0])) {
+              if (configParam.operators.has(qsParamName[0])) {
                 push(acc, new ParsedQsParameter({
                     name     : paramName
-                  , operator : configParam.operators.get(qs[paramName][0])
-                  , value    : qs[paramName][1]
+                  , operator : configParam.operators.get(qsParamName[0])
+                  , value    : qsParamName[1]
                   })
                 )
               }
               else {
-                let errMsg = `Error: Operator ${qs[paramName][0]} not permitted. Valid operators are [${JSON.stringify(configParam.operators)}]`
+                // The caller is trying to use an operator that is not permitted for this qs value
+                let errMsg = operatorErrorMsg(configParam, qsParamName[0])
                 console.log(errMsg)
                 push(acc, new ParsedQsParameter({
                     name    : paramName
@@ -160,8 +168,18 @@ const validateQsValues =
         }
 
         return acc
-      }, [])
-  }
+      }
+    )
+    // Pass the details of the permitted parameter and the current parameter to the inner function above
+    (configParams[paramName], qs[paramName])
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Validate the query string parameters.  Each query string name/value pair is proceesed by the partial function above
+const validateQsValues =
+  (configParams, qs) =>
+    Object
+      .keys(configParams)
+      .reduce(validateNameValuePair(configParams, qs), [])
 
 // ---------------------------------------------------------------------------------------------------------------------
 // For a given paramater object, return the DB table column names and operators values that correspond to the query
@@ -174,25 +192,22 @@ const qsNameToDbProperties =
     , targetObj
     )
 
-
 // ---------------------------------------------------------------------------------------------------------------------
 // Validate the subdivided URL
 // This function gives back everything needed either to process the request or reject it with an appropriate reason
 // ---------------------------------------------------------------------------------------------------------------------
 const validateUrl =
-  (apiConfig, subdividedUrl) => {
-    return {
-      // Transform the query string parameter names into the corresponding table column names
-      dbProps : qsNameToDbProperties(apiConfig.parameters, subdividedUrl.qs, {})
+  (apiConfig, subdividedUrl) => ({
+    // Transform the query string parameter names into the corresponding table column names
+    dbProps : qsNameToDbProperties(apiConfig.parameters, subdividedUrl.qs, {})
 
-      // Check that the query string values match the permitted operators
-    , qsVals  : validateQsValues(apiConfig.parameters, subdividedUrl.qs, {})
+    // Check that the query string values match the permitted operators
+  , qsVals  : validateQsValues(apiConfig.parameters, subdividedUrl.qs, {})
 
-      // Pass the raw URL keys and query string back directly
-    , keys    : subdividedUrl.keys
-    , qs      : subdividedUrl.qs
-    }
-  }
+    // Pass the raw URL keys and query string back directly
+  , keys    : subdividedUrl.keys
+  , qs      : subdividedUrl.qs
+  })
 
 
 /**

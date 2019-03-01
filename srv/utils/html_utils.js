@@ -195,28 +195,19 @@ const genAdminScreen = () => {
 // =====================================================================================================================
 // Return a handler that generates the appropriate page for a given link.
 const showLink =
-  (url, serverSideObjectList) =>
-    () => {
-      return new Promise((resolve, reject) => {
-        let response = ''
+  (url, serverSideObjectList) => {
+    let response =
+      (url === '/admin')
+      ? genAdminScreen()
+      : (url === '/debug')
+        ? showServerObjects(serverSideObjectList)
+        : bfu.as_html([], `Here's the page for ${url}` )
 
-        switch (url) {
-          case '/admin':
-            response = genAdminScreen()
-            break
-
-          case '/debug':
-            response = showServerObjects(serverSideObjectList)
-            break
-
-          default:
-            response = bfu.as_html([], `Here's the page for ${url}` )
-        }
-
-        resolve(response)
-      })
+    // Return a function, that when executed, return a Promise containing the required response
+    return () => {
+      return new Promise((resolve, reject) => resolve(response))
     }
-
+}
 
 
 /**

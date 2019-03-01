@@ -107,13 +107,11 @@ const httpRequestHandler =
   defaultResponse =>
     (req, res) => {
       let body = []
-//      console.log(`Server received request for URL ${req.url}`)
 
       req.on('err', httpErrorHandler)
         .on('data', chunk => body.push(chunk))
         .on('end',  ()    => {
           body = Buffer.from(body).toString('utf8')
-//          console.log(`Received HTTP request with method ${req.method} and ${body.length === 0 ? 'no' : ''} body ${body}`)
 
           // Assume that we will be able to process this request just fine...
           res.statusCode = 200
@@ -131,7 +129,6 @@ const httpRequestHandler =
             let recognisedUrl = Object
               .keys(config.urls)
               .reduce((acc, knownUrl) => req.url.startsWith(knownUrl) ? config.urls[knownUrl] : acc, null)
-//            console.log(`recognisedUrl = ${JSON.stringify(recognisedUrl)}`)
 
             // ---------------------------------------------------------------------------------------------------------
             // Is this URL one we specifically recognise?
@@ -150,8 +147,8 @@ const httpRequestHandler =
                   res.setHeader('Content-Type', 'application/json; charset=utf-8')
                   console.log(`resultPromise is of type ${typeOf(resultPromise)}`)
 
-                  // If the SQL statement does not find anything, then you get a weird empty Promise object coming back,
-                  // so we must first check whether the 'then' function exists
+                  // If the SQL statement does not find anything, then we get back a weird empty Promise object, so we
+                  // must first check whether there is a 'then' function to call
                   if (isPromise(resultPromise)) {
                     resultPromise.then(result => {
                       // If the result is a string, then its an error message
@@ -172,6 +169,8 @@ const httpRequestHandler =
 
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 default:
+                  console.log(`That's weird, the request for ${req.url} was thought to be of type ${recognisedUrl.type}`)
+                  res.end('[]')
               }
             }
             // ---------------------------------------------------------------------------------------------------------

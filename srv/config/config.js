@@ -44,6 +44,11 @@ const numericOperatorsMap = new Map()
   numericOperatorsMap.set ('GTE', '>=')
   numericOperatorsMap.set ('LTE', '<=')
 
+  numericOperatorsMap.toString = function() {
+    let acc = []
+    this.forEach((_,k) => acc.push(`"${k}"`))
+    return `${acc.join(', ')}`
+  }
 
 /**
  * =====================================================================================================================

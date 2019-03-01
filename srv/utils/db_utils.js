@@ -14,8 +14,6 @@ const cds          = require('@sap/cds')
 const { isNotNullOrUndef
       , push
       , reduceUsing
-      , typeOf
-      , isString
       } = require('./functional_tools.js')
 
 const config = require('../config/config.js')
@@ -120,16 +118,21 @@ const genSqlRead =
   (validatedUrl, apiConfig) =>
     `SELECT TOP ${config.genericRowLimit} * FROM ${apiConfig.dbTableName} WHERE "${apiConfig.keyField}"='${validatedUrl.keys[0]}';`
 
-const invokeApiInDb = (apiConfig, validatedUrl) => {
-  // If the URL contains any keys then this is a direct READ request which takes priority over a generic QUERY request
-  let sqlFn = (validatedUrl.keys.length > 0) ? genSqlRead : genSqlQuery
-  let sql   = sqlFn(validatedUrl, apiConfig)
-  
-  console.log(`Executing SQL statement ${sql}`)
-
-  // If the query returns nothing, then a weird empty Promise object will be returned
-  return cds.run(sql).catch(console.error)
-}
+const invokeApiInDb =
+  (apiConfig, validatedUrl) =>
+    (sqlGenFn =>
+      (sql =>
+        // 4) Execute the generate SQL statement
+        (_ => cds.run(sql).catch(console.error))
+        // 3) Use dummy inner function to print the SQL statement to the console
+        (console.log(`Executing SQ statement ${sql}`))
+        )
+      // 2) Invoke the generator function and pass the generated SQL to the inner function
+      (sqlGenFn(validatedUrl, apiConfig))
+    )
+    // 1) Decide which function should be used to generate the SQL statement. If the URL contains any keys then this is
+    //    a direct READ request which takes priority over a generic QUERY request
+    (validatedUrl.keys.length > 0 ? genSqlRead : genSqlQuery)
 
 /***********************************************************************************************************************
  * Public API
