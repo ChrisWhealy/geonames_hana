@@ -7,8 +7,6 @@
  * Utilities for managing URLs and query string validation
  * =====================================================================================================================
  */
-const bfu = require('basic-formatting-utils')
-
 const { isString
       , updateObj
       , push
@@ -17,7 +15,7 @@ const { isString
 // ---------------------------------------------------------------------------------------------------------------------
 // Class for parsed/validated URL
 // ---------------------------------------------------------------------------------------------------------------------
-class ValidatedURL {
+class ValidatedUrl {
   constructor({dbProps = {}, qsVals  = [], keys = [], qs = {}}) {
     this.dbProps = dbProps
     this.qsVals  = qsVals
@@ -42,13 +40,16 @@ class ParsedQsParameter {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Parse a query string value
-// No attempt here is made to validate the query string parameter value
+// Parse a query string value on the basis that it might contain a value such as "(GT,5000)" or "(<=,10000)"
+// If valid, this should be a pair of values where the first is numeric operator, then a comma, then a numeric value.
+// This value should be enclosed in parentheses
+// No attempt here is made to validate the query string parameter values
 // ---------------------------------------------------------------------------------------------------------------------
 const parseQsValue =
   qsVal =>
     ((openIdx, closeIdx) =>
        // Minimal check to ensure that both open & close parenthesis characters are present
+       // If this assumption turns out to be correct, then attempt to split the value at the assumed comma
        (openIdx !== -1 && closeIdx !== -1)
        ? qsVal.substring(openIdx + 1, closeIdx).split(',')
        : qsVal)
@@ -76,7 +77,10 @@ const fetchQsParams =
 const subdivideUrl =
   (requestUrl, templateUrl) =>
     (urlParts => ({
-        keys : urlParts[0].replace(templateUrl,'').split('/').filter(el => el.length > 0)
+        keys : urlParts[0]
+                 .replace(templateUrl,'')
+                 .split('/')
+                 .filter(el => el.length > 0)
       , qs   : (urlParts.length === 2)
                ? fetchQsParams(urlParts[urlParts.length - 1])
                : {}
@@ -210,8 +214,8 @@ const qsNameToDbProperties =
 // ---------------------------------------------------------------------------------------------------------------------
 const validateUrl =
   (recognisedUrlConfig, requestUrl) =>
-    (subdividedUrl => 
-      ({
+    (subdividedUrl => {
+      return new ValidatedUrl({
         // Transform the query string parameter names into the corresponding table column names
         dbProps : qsNameToDbProperties(recognisedUrlConfig.parameters, subdividedUrl.qs, {})
     
@@ -222,7 +226,7 @@ const validateUrl =
       , keys    : subdividedUrl.keys
       , qs      : subdividedUrl.qs
       })
-    )
+    })
     (subdivideUrl(requestUrl, recognisedUrlConfig.url))
 
 

@@ -114,11 +114,11 @@ const httpRequestHandler =
           res.statusCode = 200
           res.setHeader('Content-Type', 'text/html; charset=utf-8')
 
-          console.log(`request.url = ${req.url}`)
+          let requestUrl = decodeURI(req.url)
 
           // -----------------------------------------------------------------------------------------------------------
           // Do I recognise the request URL?
-          if (req.url === "/") {
+          if (requestUrl === "/") {
             // Yup, its the landing page
             res.end(defaultResponse)
           }
@@ -127,12 +127,12 @@ const httpRequestHandler =
             // Try to locate the handler for this URL
             let recognisedUrlConfig = Object
               .keys(config.urls)
-              .reduce((acc, knownUrl) => req.url.startsWith(knownUrl) ? config.urls[knownUrl] : acc, null)
+              .reduce((acc, knownUrl) => requestUrl.startsWith(knownUrl) ? config.urls[knownUrl] : acc, null)
 
             // ---------------------------------------------------------------------------------------------------------
             // Is this URL one we specifically recognise?
             if (recognisedUrlConfig) {
-              console.log(`Processing request of type '${recognisedUrlConfig.type}'`)
+              console.log(`Processing request for '${requestUrl}' of type '${recognisedUrlConfig.type}'`)
 
               switch (recognisedUrlConfig.type) {
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -146,7 +146,7 @@ const httpRequestHandler =
 
                   // If the SQL statement does not find anything, then we'll get back a weird empty object, so we must
                   // first check whether there is a 'then' function to call
-                  let resultPromise = recognisedUrlConfig.handler(recognisedUrlConfig, req.url)
+                  let resultPromise = recognisedUrlConfig.handler(recognisedUrlConfig, requestUrl)
 
                   if (isPromise(resultPromise)) {
                     resultPromise.then(result => {
@@ -168,14 +168,14 @@ const httpRequestHandler =
 
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 default:
-                  console.log(`That's weird, the request for ${req.url} was thought to be of type ${recognisedUrlConfig.type}`)
+                  console.log(`That's weird, the request for ${requestUrl} was thought to be of type ${recognisedUrlConfig.type}`)
                   res.end('[]')
               }
             }
             // ---------------------------------------------------------------------------------------------------------
             // Nope, so this could be simply a file request originating from index.html
             else {
-              let fName    = `${__dirname}${req.url}`
+              let fName    = `${__dirname}${requestUrl}`
               let response = ''
 
               if (fs.existsSync(fName)) {
@@ -202,7 +202,7 @@ cds.connect(connectionObj)
   // -------------------------------------------------------------------------------------------------------------------
   // Create and assign the request handlers, then fetch the list of countries
   // -------------------------------------------------------------------------------------------------------------------
-  .then(() => genRequestHandler())
+  .then(genRequestHandler)
   .then(() => cds.run('SELECT * FROM ORG_GEONAMES_BASE_GEO_COUNTRIES').catch(console.error))
 
   // -------------------------------------------------------------------------------------------------------------------
@@ -239,9 +239,9 @@ cds.connect(connectionObj)
         )
       )
       .then(() => {
-         console.log(separator)
-         console.log(`Finished table refresh in ${new Date(Date.now() - startedAt).toTimeString().slice(0,8)} hh:mm:ss`)
-         console.log(separator)
+        console.log(separator)
+        console.log(`Finished table refresh in ${new Date(Date.now() - startedAt).toTimeString().slice(0,8)} hh:mm:ss`)
+        console.log(separator)
       })
       .catch(console.error)
   })
