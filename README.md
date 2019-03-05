@@ -1,5 +1,5 @@
 <a name="top"></a>
-# cloud\_cf\_geonames\_hana
+# geonames\_hana
 
 
 <!-- *********************************************************************** -->
@@ -76,11 +76,9 @@ This project is provided "as-is": there is no guarantee that raised issues will 
 <a name="contributing"></a>
 ## Contributing
 
-SAP
-
+Chris Whealy
 
 <a name="license"></a>
 ## License
 
-Copyright (c) 2019 SAP SE or an SAP affiliate company. All rights reserved.
 This project is licensed under the Apache Software License, Version 2.0 except as noted otherwise in the [LICENSE](LICENSE) file.
