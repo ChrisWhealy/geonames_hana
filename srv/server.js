@@ -21,10 +21,7 @@ const { typeOf
 
 const isPromise = isOfType("Promise")
 
-const { validateUrl
-      , subdivideUrl
-      } = require('./utils/url_utils.js')
-
+const { validateUrl   } = require('./utils/url_utils.js')
 const { invokeApiInDb } = require('./utils/db_utils.js')
 
 const { showLink
@@ -65,25 +62,25 @@ const httpErrorHandler = err => console.error(`An HTTP Error occurred\n${err.sta
 // Partial function that returns an API request handler for a given API config object
 const genApiHandler =
   apiConfig =>
-    (recognisedUrl, url) =>
+    (recognisedUrlConfig, requestUrl) =>
       (validatedUrl =>
         // Are all the query string parameters valid?
-        (validatedUrl.qsVals.reduce((acc, el) => acc && el.isValid, true))
+        (validatedUrl.qsVals.reduce((acc, qsVal) => acc && qsVal.isValid, true))
         ? invokeApiInDb(apiConfig, validatedUrl)
         : new Promise((resolve, reject) => resolve(http400(validatedUrl)))
       )
-      (validateUrl(recognisedUrl, subdivideUrl(url, recognisedUrl.url)))
+      (validateUrl(recognisedUrlConfig, requestUrl))
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Assign request handler functions based on URL type
 const assignRequestHandler =
   url =>
     config.urls[url].handler =
-      // API handler
       config.urls[url].type === 'api'
+        // API handler
         ? genApiHandler(config.urls[url])
-        // Link handler
         : config.urls[url].type === 'link'
+          // Link handler
           ? showLink(url, serverSideObjectList)
           : null
 
@@ -117,6 +114,8 @@ const httpRequestHandler =
           res.statusCode = 200
           res.setHeader('Content-Type', 'text/html; charset=utf-8')
 
+          console.log(`request.url = ${req.url}`)
+
           // -----------------------------------------------------------------------------------------------------------
           // Do I recognise the request URL?
           if (req.url === "/") {
@@ -126,29 +125,29 @@ const httpRequestHandler =
           // -----------------------------------------------------------------------------------------------------------
           else {
             // Try to locate the handler for this URL
-            let recognisedUrl = Object
+            let recognisedUrlConfig = Object
               .keys(config.urls)
               .reduce((acc, knownUrl) => req.url.startsWith(knownUrl) ? config.urls[knownUrl] : acc, null)
 
             // ---------------------------------------------------------------------------------------------------------
             // Is this URL one we specifically recognise?
-            if (recognisedUrl) {
-              switch (recognisedUrl.type) {
+            if (recognisedUrlConfig) {
+              console.log(`Processing request of type '${recognisedUrlConfig.type}'`)
+
+              switch (recognisedUrlConfig.type) {
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 case 'link':
-                  recognisedUrl
-                    .handler()
-                    .then(result => res.end(result))
+                  recognisedUrlConfig.handler().then(result => res.end(result))
                   break
 
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 case 'api':
-                  let resultPromise = recognisedUrl.handler(recognisedUrl, req.url)
                   res.setHeader('Content-Type', 'application/json; charset=utf-8')
-                  console.log(`resultPromise is of type ${typeOf(resultPromise)}`)
 
-                  // If the SQL statement does not find anything, then we get back a weird empty Promise object, so we
-                  // must first check whether there is a 'then' function to call
+                  // If the SQL statement does not find anything, then we'll get back a weird empty object, so we must
+                  // first check whether there is a 'then' function to call
+                  let resultPromise = recognisedUrlConfig.handler(recognisedUrlConfig, req.url)
+
                   if (isPromise(resultPromise)) {
                     resultPromise.then(result => {
                       // If the result is a string, then its an error message
@@ -169,7 +168,7 @@ const httpRequestHandler =
 
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 default:
-                  console.log(`That's weird, the request for ${req.url} was thought to be of type ${recognisedUrl.type}`)
+                  console.log(`That's weird, the request for ${req.url} was thought to be of type ${recognisedUrlConfig.type}`)
                   res.end('[]')
               }
             }

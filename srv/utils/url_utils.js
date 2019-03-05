@@ -15,6 +15,18 @@ const { isString
       } = require('./functional_tools.js')
 
 // ---------------------------------------------------------------------------------------------------------------------
+// Class for parsed/validated URL
+// ---------------------------------------------------------------------------------------------------------------------
+class ValidatedURL {
+  constructor({dbProps = {}, qsVals  = [], keys = [], qs = {}}) {
+    this.dbProps = dbProps
+    this.qsVals  = qsVals
+    this.keys    = keys
+    this.qs      = qs
+  }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
 // Class for parsed/validated query string parameter
 // After the query string has been parsed, all subsequent functions that handle this parsed data are expected to handle
 // objects of this type
@@ -197,17 +209,22 @@ const qsNameToDbProperties =
 // This function gives back everything needed either to process the request or reject it with an appropriate reason
 // ---------------------------------------------------------------------------------------------------------------------
 const validateUrl =
-  (apiConfig, subdividedUrl) => ({
-    // Transform the query string parameter names into the corresponding table column names
-    dbProps : qsNameToDbProperties(apiConfig.parameters, subdividedUrl.qs, {})
+  (recognisedUrlConfig, requestUrl) =>
+    (subdividedUrl => 
+      ({
+        // Transform the query string parameter names into the corresponding table column names
+        dbProps : qsNameToDbProperties(recognisedUrlConfig.parameters, subdividedUrl.qs, {})
+    
+        // Check that the query string values match the permitted operators
+      , qsVals  : validateQsValues(recognisedUrlConfig.parameters, subdividedUrl.qs, {})
+    
+        // Pass the raw URL keys and query string back directly
+      , keys    : subdividedUrl.keys
+      , qs      : subdividedUrl.qs
+      })
+    )
+    (subdivideUrl(requestUrl, recognisedUrlConfig.url))
 
-    // Check that the query string values match the permitted operators
-  , qsVals  : validateQsValues(apiConfig.parameters, subdividedUrl.qs, {})
-
-    // Pass the raw URL keys and query string back directly
-  , keys    : subdividedUrl.keys
-  , qs      : subdividedUrl.qs
-  })
 
 
 /**
@@ -217,6 +234,5 @@ const validateUrl =
  */
 module.exports = {
   validateUrl  : validateUrl
-, subdivideUrl : subdivideUrl
 }
 
