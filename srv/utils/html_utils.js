@@ -21,8 +21,7 @@ const { push }   = require('./functional_tools.js')
 
 // =====================================================================================================================
 // Transform a table or link name from the config object into a hypertext link
-const genLink = (url, text) => bfu.as_a([`href="${url}"`], text)
-
+const genLink   = (url, text) => bfu.as_a([`href="${url}"`], text)
 const urlAsLink = linkName => genLink(config.urls[linkName].url, config.urls[linkName].description)
 
 // =====================================================================================================================
@@ -100,7 +99,6 @@ const showLink =
     }
 }
 
-
 /**
  * ---------------------------------------------------------------------------------------------------------------------
  *  Public API
@@ -111,5 +109,3 @@ module.exports = {
 , http400             : http400
 , buildLandingPage    : buildLandingPage
 }
-
-

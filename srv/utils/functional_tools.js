@@ -55,8 +55,8 @@ const isNotNullOrUndef = x => !isNullOrUndef(x)
  */
 const reduceUsing =
   propList =>
-    (acc, el, idx) =>
-      isNullOrUndef(propList[idx]) ? acc : push(acc, el.indexOf(",") > -1 ? `"${el}"` : el)
+    (acc, el, idx, array) =>
+      isNullOrUndef(array[idx]) ? acc : push(acc, el.indexOf(",") > -1 ? `"${el}"` : el)
 
 
 // *********************************************************************************************************************

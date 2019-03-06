@@ -8,6 +8,11 @@ const rowLimit = 1000
 // DB refresh period in minutes
 const refreshFrequency = 1440
 
+// Number of rows to write to HANA in a single batch
+const hanaWriteBatchSize = 20000
+
+const apiVersionPrefix = '/api/v1/'
+
 /**
  * =====================================================================================================================
  * Partial function to merge the properties of an incoming object into a base object
@@ -57,6 +62,9 @@ const numericOperatorsMap = new Map()
  */
 const api_v1 = {
   // ===================================================================================================================
+  // The data for this HANA table is imported directly from the GeoNames website rather than a hard-coded CSV file.
+  // The colNames array must contain one entry for every column in the CSV file imported from GeoNames.org, but set that
+  //field to null if that particular column value is not needed
   '/api/v1/geonames' : {
     dbTableName  : 'ORG_GEONAMES_GEONAMES'
   , cdsTableName : 'org.geonames.Geonames'
@@ -85,9 +93,19 @@ const api_v1 = {
      , timezone        : { operators : like,                colName : 'TIMEZONE_TIMEZONENAME' }
      , countryCode     : { operators : simpleEquality,      colName : 'COUNTRYCODE_ISO2' }
     }
+  , colNames : [
+      "GeonameId", "Name", null, null
+    , "Latitude", "Longitude", "FeatureClass_FeatureClass"
+    , "FeatureCode_FeatureCode", "CountryCode_ISO2", "CountryCodesAlt"
+    , "Admin1", "Admin2", "Admin3", "Admin4"
+    , "Population", "Elevation", "DEM"
+    , "Timezone_TimezoneName", "LastModified"]
   }
 
   // ===================================================================================================================
+  // The data for this HANA table is imported directly from the GeoNames website rather than a hard-coded CSV file.
+  // The colNames array must contain one entry for every column in the CSV file imported from GeoNames.org, but set that
+  // field to null if that particular column value is not needed
 , '/api/v1/alternate-names' : {
     dbTableName  : 'ORG_GEONAMES_ALTERNATENAMES'
   , cdsTableName : 'org.geonames.AlternateNames'
@@ -109,6 +127,11 @@ const api_v1 = {
     , isUseTo         : { operators : like,           colName : 'INUSETO' }
     , geonameId       : { operators : simpleEquality, colName : 'GEONAMEID_GEONAMEID' }
     }
+  , colNames : [
+      "AlternateNameId", "GeonameId_GeonameId", "ISOLanguage"
+    , "AlternateName", "isPreferredName", "isShortName"
+    , "isColloquial", "isHistoric", "inUseFrom", "inUseTo"
+    ]
   }
 
   // ===================================================================================================================
@@ -138,6 +161,7 @@ const api_v1 = {
     , neighbours         : { operators : like,                colName : 'NEIGHBOURS'}
     , continentCode      : { operators : simpleEquality,      colName : 'CONTINENT_CONTENTCODE'}
     }
+  , colNames : []
   }
 
   // ===================================================================================================================
@@ -154,6 +178,7 @@ const api_v1 = {
       continentCode : { operators : simpleEquality, colName : 'CONTINENTCODE'}
     , name          : { operators : like,           colName : 'CONTINENTNAME'}
     }
+  , colNames : []
   }
 
   // ===================================================================================================================
@@ -170,6 +195,7 @@ const api_v1 = {
       featureClass : { operators : simpleEquality, colName : 'FEATURECLASS'}
     , description  : { operators : like,           colName : 'DESCRIPTION'}
     }
+  , colNames : []
   }
 
   // ===================================================================================================================
@@ -188,6 +214,7 @@ const api_v1 = {
     , longDescription  : { operators : like,           colName : 'LONGDESCRIPTION'}
     , featureClass     : { operators : simpleEquality, colName : 'FEATURECLASS_FEATURECLASS'}
     }
+  , colNames : []
   }
 
   // ===================================================================================================================
@@ -206,6 +233,7 @@ const api_v1 = {
     , 'iso639-1' : { operators : simpleEquality, colName : 'ISO639_1'}
     , name       : { operators : simpleEquality, colName : 'LANGUAGENAME'}
     }
+  , colNames : []
   }
 
   // ===================================================================================================================
@@ -226,6 +254,7 @@ const api_v1 = {
     , countryCode : { operators : simpleEquality,      colName : 'COUNTRYCODE_ISO2' }
     }
   }
+  , colNames : []
 }
 
 /**
@@ -267,20 +296,24 @@ const config = {
   // Configuration settings applicable for a development environment
   // ===================================================================================================================
   development : {
-    environment     : "development"
-  , refresh_freq    : refreshFrequency
-  , urls            : mergeIntoProdUrls(dev_links)
-  , genericRowLimit : rowLimit
+    batchSize        : hanaWriteBatchSize
+  , environment      : "development"
+  , refresh_freq     : refreshFrequency
+  , urls             : mergeIntoProdUrls(dev_links)
+  , genericRowLimit  : rowLimit
+  , apiVersionPrefix : apiVersionPrefix
   }
 
   // ===================================================================================================================
   // Configuration settings applicable for a production environment
   // ===================================================================================================================
 , production : {
-    environment     : "production"
-  , refresh_freq    : refreshFrequency
-  , urls            : prodUrls
-  , genericRowLimit : rowLimit
+    batchSize        : hanaWriteBatchSize
+  , environment      : "production"
+  , refresh_freq     : refreshFrequency
+  , urls             : prodUrls
+  , genericRowLimit  : rowLimit
+  , apiVersionPrefix : apiVersionPrefix
   }
 }
 

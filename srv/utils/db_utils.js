@@ -13,7 +13,7 @@ const cds          = require('@sap/cds')
 
 const { isNotNullOrUndef
       , push
-      , reduceUsing
+      , isNullOrUndef
       } = require('./functional_tools.js')
 
 const config = require('../config/config.js')
@@ -22,28 +22,36 @@ const columnList      = cols => cols.filter(isNotNullOrUndef)
 const genColumnList   = cols => columnList(cols).join(',')
 const genPlaceHolders = cols => columnList(cols).map(_ => '?').join(',')
 
-// Read a generic DB table
-const promiseToReadTable = tableName => query => cds.run(`${query} FROM ${tableName}`).catch(console.error)
-
 const genUpsertFrom =
   (tabName, cols) => `UPSERT ${tabName} (${genColumnList(cols)}) VALUES (${genPlaceHolders(cols)}) WITH PRIMARY KEY`
+
+/***********************************************************************************************************************
+ * Partial function used by Array.reduce on one line of a text file to filter out unneeded columns
+ * If a particular column value contains a comma, then this value must be delimited with double quotes
+ */
+const reduceUsingColsFrom =
+  propList =>
+    (acc, el, idx) =>
+      isNullOrUndef(propList[idx]) ? acc : push(acc, el.indexOf(",") > -1 ? `"${el}"` : el)
 
 /***********************************************************************************************************************
  * Writable stream handler to generate upsert statements
  */
 class Upsert extends Writable {
   constructor({
-    batchSize = 20000
-  , dbTableData = {tableName : "", colNames : []}
-  , iso2 = ""}) {
+    batchSize   = config.batchSize
+  , tableConfig = {}
+  , iso2        = ""
+  }) {
+    // Since we're extending an existing class, we must call that class's constructor
     super()
 
     // Initialise instance variables
     this._batchSize    = batchSize
     this._buffer       = []
     this._iso2         = iso2
-    this._upsert       = genUpsertFrom(dbTableData.tableName, dbTableData.colNames)
-    this._colReducer   = reduceUsing(dbTableData.colNames)
+    this._upsert       = genUpsertFrom(tableConfig.dbTableName, tableConfig.colNames)
+    this._colReducer   = reduceUsingColsFrom(tableConfig.colNames)
     this._rowCount     = 0
   }
 
@@ -82,16 +90,6 @@ class Upsert extends Writable {
   }
 }
 
-/***********************************************************************************************************************
- * Basic table metadata data object
- */
-class TableMetadata {
-  constructor({tableName = "", colNames = []}) {
-    this.tableName = tableName
-    this.colNames  = colNames
-  }
-}
-
 // ---------------------------------------------------------------------------------------------------------------------
 // Generate generic query SQL statement
 // ---------------------------------------------------------------------------------------------------------------------
@@ -118,31 +116,30 @@ const genSqlRead =
   (validatedUrl, apiConfig) =>
     `SELECT TOP ${config.genericRowLimit} * FROM ${apiConfig.dbTableName} WHERE "${apiConfig.keyField}"='${validatedUrl.keys[0]}';`
 
+// ---------------------------------------------------------------------------------------------------------------------
+// 1) Decide which function should be used to generate the SQL statement. If the URL contains any keys then this is a
+//    direct READ request which takes priority over a generic QUERY request.  This value becomes the argument passed to
+//    to the first IIFE (Immediately Invoked Function Expression)
+// 2) Invoke the generator function and pass the generated SQL to the nested IIFE
+// 3) Use another IIFE simply as a construct to print the SQL statement to the console
+// 4) console.log always returns undefined, so we simply ignore this argument value and execute the generate SQL
+//    statement
 const invokeApiInDb =
   (apiConfig, validatedUrl) =>
     (sqlGenFn =>
       (sql =>
-        // 4) Execute the generate SQL statement
         (_ => cds.run(sql).catch(console.error))
-        // 3) Use dummy inner function to print the SQL statement to the console
-        (console.log(`Executing SQ statement ${sql}`))
-        )
-      // 2) Invoke the generator function and pass the generated SQL to the inner function
-      (sqlGenFn(validatedUrl, apiConfig))
-    )
-    // 1) Decide which function should be used to generate the SQL statement. If the URL contains any keys then this is
-    //    a direct READ request which takes priority over a generic QUERY request
+        (console.log(`Executing SQ statement ${sql}`)))
+      (sqlGenFn(validatedUrl, apiConfig)))
     (validatedUrl.keys.length > 0 ? genSqlRead : genSqlQuery)
 
 /***********************************************************************************************************************
  * Public API
  */
 module.exports = {
-  Upsert             : Upsert
-, TableMetadata      : TableMetadata
-, genUpsertFrom      : genUpsertFrom
-, promiseToReadTable : promiseToReadTable
-, invokeApiInDb      : invokeApiInDb
+  Upsert        : Upsert
+, genUpsertFrom : genUpsertFrom
+, invokeApiInDb : invokeApiInDb
 }
 
 

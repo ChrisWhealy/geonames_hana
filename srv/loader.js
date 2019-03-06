@@ -10,8 +10,11 @@
 
 const unzip          = require('unzip-stream')
 const http           = require('http')
-const hana_transform = require('./utils/hana_transform.js')
 const config         = require('./config/config.js')
+
+const { handleGeonamesFile
+      , handleAlternateNamesFile
+      } = require('./utils/hana_transform.js')
 
 const geonames_path  = '/export/dump/'
 const altnames_path  = `${geonames_path}alternatenames/`
@@ -135,6 +138,6 @@ var fetchZipFile =
  * Public API
  */
 module.exports = {
-  geonamesHandler : fetchZipFile(geonames_path, hana_transform.handleGeonamesFile)
-, altNamesHandler : fetchZipFile(altnames_path, hana_transform.handleAlternateNamesFile)
+  geonamesHandler : fetchZipFile(geonames_path, handleGeonamesFile)
+, altNamesHandler : fetchZipFile(altnames_path, handleAlternateNamesFile)
 }

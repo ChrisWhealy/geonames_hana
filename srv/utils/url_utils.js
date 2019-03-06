@@ -63,7 +63,8 @@ const parseQsValue =
 // ---------------------------------------------------------------------------------------------------------------------
 const fetchQsParams =
   qs =>
-    qs.split('&').reduce((acc, item) =>
+    qs.split('&')
+      .reduce((acc, item) =>
         (eqIdx =>
           eqIdx === -1
           ? updateObj(acc, item, '')
@@ -77,10 +78,13 @@ const fetchQsParams =
 const subdivideUrl =
   (requestUrl, templateUrl) =>
     (urlParts => ({
+        // Split up the first part of the URL at the slash characters
+        // This will return an array containing at least one element
         keys : urlParts[0]
                  .replace(templateUrl,'')
                  .split('/')
                  .filter(el => el.length > 0)
+        // If the urlParts array has a length of two, then the query string values should be found in the second element 
       , qs   : (urlParts.length === 2)
                ? fetchQsParams(urlParts[urlParts.length - 1])
                : {}
@@ -203,10 +207,9 @@ const validateQsValues =
 // ---------------------------------------------------------------------------------------------------------------------
 const qsNameToDbProperties =
   (paramObj, qs, targetObj) =>
-    Object.keys(paramObj).reduce(
-      (acc, el) => qs[el] ? updateObj(acc, el, paramObj[el]) : acc
-    , targetObj
-    )
+    Object
+      .keys(paramObj)
+      .reduce((acc, el) => qs[el] ? updateObj(acc, el, paramObj[el]) : acc, targetObj)
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Validate the subdivided URL
