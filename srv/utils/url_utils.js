@@ -109,18 +109,17 @@ const validateNameValuePair =
       ((configParam, qsParamName) => {
         // If the permitted parameter does not exist in the query string, then ignore it and simply return the accumulator
         if (qsParamName) {
+          // Create a ParsedQsParameter object as this will be needed irrespective of the validity of the current value
+          let parsedQsParm = new ParsedQsParameter({name : paramName})
+
           // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
           // Is the valid list of operators a string rather than an array?
           if (isString(configParam.operators)) {
             // Yup, is the query string parameter value also a string
             if (isString(qsParamName)) {
               // Yup, so return the simple case value
-              push(acc, new ParsedQsParameter({
-                  name     : paramName
-                , operator : configParam.operators
-                , value    : qsParamName
-                })
-              )
+              parsedQsParm.operator = configParam.operators
+              parsedQsParm.value    = qsParamName
             }
             else {
               // Nope, so the query string value must be an array containing firstly the operator and secondly the value
@@ -128,23 +127,15 @@ const validateNameValuePair =
               // string.  Nonetheless, the first element of query string value array must still equal the one permitted
               // operator value held in that string
               if (configParam.operators === qsParamName[0]) {
-                push(acc, new ParsedQsParameter({
-                    name     : paramName
-                  , operator : qsParamName[0]
-                  , value    : qsParamName[1]
-                  })
-                )
+                parsedQsParm.operator = qsParamName[0]
+                parsedQsParm.value    = qsParamName[1]
               }
               else {
                 // The caller is trying to use an operator that is not permitted for this qs value
                 let errMsg = operatorErrorMsg(configParam, qsParamName[0])
                 console.log(errMsg)
-                push(acc, new ParsedQsParameter({
-                    name    : paramName
-                  , isValid : false
-                  , msg     : errMsg
-                  })
-                )
+                parsedQsParm.isValid = false
+                parsedQsParm.msg     = errMsg
               }
             }
           }
@@ -154,37 +145,28 @@ const validateNameValuePair =
             if (isString(qsParamName)) {
               // If a Map of operators is permitted, but the query string value is just a string, then assume the
               // operator must be '='
-              push(acc, new ParsedQsParameter({
-                    name     : paramName
-                  , operator : '='
-                  , value    : qsParamName
-                  })
-              )
+              parsedQsParm.operator = '='
+              parsedQsParm.value    = qsParamName
             }
             else {
               // The query string value is an array and the operators value is a Map, so check that the operator listed
               // in the query string is a permitted operator listed in the 'operators' array
               if (configParam.operators.has(qsParamName[0])) {
-                push(acc, new ParsedQsParameter({
-                    name     : paramName
-                  , operator : configParam.operators.get(qsParamName[0])
-                  , value    : qsParamName[1]
-                  })
-                )
+                parsedQsParm.operator = configParam.operators.get(qsParamName[0])
+                parsedQsParm.value    = qsParamName[1]
               }
               else {
                 // The caller is trying to use an operator that is not permitted for this qs value
                 let errMsg = operatorErrorMsg(configParam, qsParamName[0])
                 console.log(errMsg)
-                push(acc, new ParsedQsParameter({
-                    name    : paramName
-                  , isValid : false
-                  , msg     : errMsg
-                  })
-                )
+                parsedQsParm.isValid = false
+                parsedQsParm.msg     = errMsg
               }
             }
           }
+
+          // Add parsed query string parameter to the accumulator
+          acc.push(parsedQsParm)
         }
 
         return acc

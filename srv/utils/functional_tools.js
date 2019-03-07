@@ -49,16 +49,6 @@ const isObject      = x => isJsObject(x) || isNodeJsProcess(x) || isNodeJsGlobal
 const isNotNullOrUndef = x => !isNullOrUndef(x)
 
 
-/***********************************************************************************************************************
- * Partial function that can be used with Array.reduce on one line of a text file to filter out unneeded columns
- * If a particular column value contains a comma, then this value must be delimited with double quotes
- */
-const reduceUsing =
-  propList =>
-    (acc, el, idx, array) =>
-      isNullOrUndef(array[idx]) ? acc : push(acc, el.indexOf(",") > -1 ? `"${el}"` : el)
-
-
 // *********************************************************************************************************************
 //                                                        Public API
 // *********************************************************************************************************************
@@ -87,7 +77,6 @@ module.exports = {
 
   // Object handlers
 , updateObj        : updateObj
-, reduceUsing      : reduceUsing
 }
 
 
