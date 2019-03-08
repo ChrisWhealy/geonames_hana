@@ -63,8 +63,8 @@ const numericOperatorsMap = new Map()
 const api_v1 = {
   // ===================================================================================================================
   // The data for this HANA table is imported directly from the GeoNames website rather than a hard-coded CSV file.
-  // The colNames array must contain one entry for every column in the CSV file imported from GeoNames.org, but set that
-  //field to null if that particular column value is not needed
+  // The colNames array must contain one entry for every column in the CSV file imported from GeoNames.org.  If any
+  // particular column value is not needed, then set that array element to null
   '/api/v1/geonames' : {
     dbTableName  : 'ORG_GEONAMES_GEONAMES'
   , cdsTableName : 'org.geonames.Geonames'
@@ -104,8 +104,8 @@ const api_v1 = {
 
   // ===================================================================================================================
   // The data for this HANA table is imported directly from the GeoNames website rather than a hard-coded CSV file.
-  // The colNames array must contain one entry for every column in the CSV file imported from GeoNames.org, but set that
-  // field to null if that particular column value is not needed
+  // The colNames array must contain one entry for every column in the CSV file imported from GeoNames.org.  If any
+  // particular column value is not needed, then set that array element to null
 , '/api/v1/alternate-names' : {
     dbTableName  : 'ORG_GEONAMES_ALTERNATENAMES'
   , cdsTableName : 'org.geonames.AlternateNames'
@@ -116,7 +116,7 @@ const api_v1 = {
   , handler      : null
   , rowLimit     : rowLimit
   , parameters   : {
-      alternameNameId : { operators : simpleEquality, colName : 'ALTERNATENAMEID' }
+      alternateNameId : { operators : simpleEquality, colName : 'ALTERNATENAMEID' }
     , language        : { operators : simpleEquality, colName : 'ISOLANGUAGE' }
     , name            : { operators : like,           colName : 'ALTERNATENAME' }
     , isPreferred     : { operators : simpleEquality, colName : 'ISPREFERREDNAME' }

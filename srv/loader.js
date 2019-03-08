@@ -8,9 +8,9 @@
  * =====================================================================================================================
  */
 
-const unzip          = require('unzip-stream')
-const http           = require('http')
-const config         = require('./config/config.js')
+const unzip  = require('unzip-stream')
+const http   = require('http')
+const config = require('./config/config.js')
 
 const { handleGeonamesFile
       , handleAlternateNamesFile
@@ -47,7 +47,7 @@ const svcAgent = http.Agent({
 // Construct the HTTP options object for reading from geonames.org using the agent created above
 // Need to allow for the special country code XX which becomes the filename "no-country"
 // Select the correct eTag value from the country object depending on whether this is a request for a country ZIP file
-// or alternate names ZIP file
+// or an alternate names ZIP file
 const buildHttpOptions =
   (countryObj, geonamesPath, isAltName) => ({
     hostname: 'download.geonames.org'
@@ -125,7 +125,7 @@ var fetchZipFile =
               }
           )
         }
-        // Refresh of this file is not needed because we're still within the refresh period
+        // This file does not need to be refreshed because the refresh period has not yet elapsed
         else {
           console.log(`Skipping download of ${countryObj.ISO2}.zip - refresh period elapses in ${config.refresh_freq - minutesBetweenNowAnd(lastRefreshTime)} minutes`)
           resolve()
