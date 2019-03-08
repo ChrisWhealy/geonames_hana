@@ -64,7 +64,7 @@ Occasionally, the Geonames server will unexpectedly close an open socket, thus k
 
 The data in <http://geonames.org> is crowd sourced and typically changes every day.  Therefore, it is necessary to define a refresh period, after which, the duplicated data in the HANA database must be refreshed.
 
-The refresh period is defined in minutes at the start of file `srv/config/config.js`.
+The refresh period is defined in minutes at the start of file [`srv/config/config.js`](./blob/master/srv/config/config.js).
 
 ```javascript
 // DB refresh period in minutes
@@ -75,7 +75,7 @@ By default, it is set to 24 hours (1440 minutes)
 
 ### HANA write batch size
 
-When writing data to HANA, table rows are grouped into batches.  By default, the batch size is 20,000 rows, but if needed, this can be changed by altering the value of `hanaWriteBatchSize` at the start of file `srv/config/config.js`.
+When writing data to HANA, table rows are grouped into batches.  By default, the batch size is 20,000 rows, but if needed, this can be changed by altering the value of `hanaWriteBatchSize` at the start of file [`srv/config/config.js`](./blob/master/srv/config/config.js).
 
 ```javascript
 // Number of rows to write to HANA in a single batch
@@ -149,7 +149,7 @@ This will return zero or more rows where `<key-name>` matches `<key-value>`.  Fo
 
 The property names of the returned JSON objects are not always intuitive.  For example, the 3-character language code in the `languages` table is stored in field `iso639-3`.  Such field names are technical and obscure and therefore don't improve the API's useability.  Therefore, alternate, human-readable names have been configured that can be used in the API as more user-friendly alternatives.
 
-These alternative names are listed in file `srv/config/config.js`.  Look at the definition of object `api_v1`.  This object contains multiple properties whose names are the URL paths used to read a particular table.
+These alternative names are listed in file [`srv/config/config.js`](./blob/master/srv/config/config.js).  Look at the definition of object `api_v1`.  This object contains multiple properties whose names are the URL paths used to read a particular table.
 
 Each pathname property is itself an object containing a `parameters` property.  For instance, part of the pathname object for `api/v1/countries` contains this `parameters` configuration:
 
@@ -200,7 +200,7 @@ The operators that are permitted for a given parameter are defined in the `opera
 
 These operators can be specified either as the mathematical symbol (`=`, `>`, `<=` etc), or as their character equivalents (`EQ`, `GT`, `LTE` etc)
 
-Refer to the `numericOperatorsMap` object in file `srv/config/config.js` for a complet list of the permitted operators.
+Refer to the `numericOperatorsMap` object in file [`srv/config/config.js`](./blob/master/srv/config/config.js) for a complete list of the permitted operators.
 
 <!-- *********************************************************************** -->
 <a name="limitations"></a>
