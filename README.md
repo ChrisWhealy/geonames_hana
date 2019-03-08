@@ -107,7 +107,7 @@ The following table names are used by the API.  These names are used only by the
 
 Once the server has started, it will accept non-modifying HTTP requests.  Query or read requests will be accepted, but update, delete or create requests will be rejected.
 
-When specifying field names in a query string, you can use either the camel-cased version of the property name seen in the returned JSON object, or you can use the convenience API name listed in the table structure above.
+When specifying field names in a query string, you can use either the camel-cased version of the property name seen in the returned JSON object, or you can use the convenience API name described [below](#user-content-alt-field-names).
 
 ### Query Requests
 
@@ -144,6 +144,7 @@ This will return zero or more rows where `<key-name>` matches `<key-value>`.  Fo
 
 `https://<hostname>/api/v1/languages?iso639-3=deu`
 
+<a name="alt-field-names"></a>
 #### Alternative Field Names
 
 The property names of the returned JSON objects are not always intuitive.  For example, the 3-character language code in the `languages` table is stored in field `iso639-3`.  Such field names are technical and obscure and therefore don't improve the API's useability.  Therefore, alternate, human-readable names have been configured that can be used in the API as more user-friendly alternatives.
