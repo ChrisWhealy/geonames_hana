@@ -145,21 +145,26 @@ const api_v1 = {
   , handler      : null
   , rowLimit     : rowLimit
   , parameters   : {
-      countryCode        : { operators : simpleEquality,      colName : 'ISO2'}
-    , countryCode3       : { operators : simpleEquality,      colName : 'ISO3'}
-    , numericCountryCode : { operators : simpleEquality,      colName : 'ISONUMERIC'}
-    , fips               : { operators : simpleEquality,      colName : 'FIPS'}
-    , name               : { operators : like,                colName : 'COUNTRYNAME'}
-    , capital            : { operators : like,                colName : 'CAPITAL'}
-    , area               : { operators : numericOperatorsMap, colName : 'AREA'}
-    , population         : { operators : numericOperatorsMap, colName : 'POPULATION'}
-    , tld                : { operators : simpleEquality,      colName : 'TLD'}
-    , currencyCode       : { operators : simpleEquality,      colName : 'CURRENCYCODE'}
-    , currencyName       : { operators : like,                colName : 'CURENCYNAME'}
-    , diallingCode       : { operators : simpleEquality,      colName : 'DIALLINGCODE'}
-    , languages          : { operators : like,                colName : 'LANGUAGE'}
-    , neighbours         : { operators : like,                colName : 'NEIGHBOURS'}
-    , continentCode      : { operators : simpleEquality,      colName : 'CONTINENT_CONTENTCODE'}
+      countryCode            : { operators : simpleEquality,      colName : 'ISO2'}
+    , iso2                   : { operators : simpleEquality,      colName : 'ISO2'}
+    , countryCode3           : { operators : simpleEquality,      colName : 'ISO3'}
+    , iso3                   : { operators : simpleEquality,      colName : 'ISO3'}
+    , numericCountryCode     : { operators : simpleEquality,      colName : 'ISONUMERIC'}
+    , isoNumeric             : { operators : simpleEquality,      colName : 'ISONUMERIC'}
+    , fips                   : { operators : simpleEquality,      colName : 'FIPS'}
+    , name                   : { operators : like,                colName : 'COUNTRYNAME'}
+    , countryName            : { operators : like,                colName : 'COUNTRYNAME'}
+    , capital                : { operators : like,                colName : 'CAPITAL'}
+    , area                   : { operators : numericOperatorsMap, colName : 'AREA'}
+    , population             : { operators : numericOperatorsMap, colName : 'POPULATION'}
+    , tld                    : { operators : simpleEquality,      colName : 'TLD'}
+    , currencyCode           : { operators : simpleEquality,      colName : 'CURRENCYCODE'}
+    , currencyName           : { operators : like,                colName : 'CURENCYNAME'}
+    , diallingCode           : { operators : simpleEquality,      colName : 'DIALLINGCODE'}
+    , languages              : { operators : like,                colName : 'LANGUAGE'}
+    , neighbours             : { operators : like,                colName : 'NEIGHBOURS'}
+    , continentCode          : { operators : simpleEquality,      colName : 'CONTINENT_CONTENTCODE'}
+    , continentContinentCode : { operators : simpleEquality,      colName : 'CONTINENT_CONTENTCODE'}
     }
   , colNames : []
   }
