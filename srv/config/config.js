@@ -2,7 +2,7 @@
 /*eslint no-unused-expressions: ["error", { "allowTernary": true }]*/
 /*eslint-env node, es6 */
 
-// Return no more than this number of rows
+// Return no more than this number of rows from a generic query
 const rowLimit = 1000
 
 // DB refresh period in minutes
