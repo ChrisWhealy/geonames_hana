@@ -80,6 +80,7 @@ const api_v1 = {
      , latitude        : { operators : simpleEquality,      colName : 'LATITUDE'}
      , longitude       : { operators : simpleEquality,      colName : 'LONGITUDE'}
      , altCountryCodes : { operators : like,                colName : 'COUNTRYCODESALT'}
+     , countryCodesAlt : { operators : like,                colName : 'COUNTRYCODESALT'}
      , admin1          : { operators : simpleEquality,      colName : 'ADMIN1'}
      , admin2          : { operators : simpleEquality,      colName : 'ADMIN2'}
      , admin3          : { operators : simpleEquality,      colName : 'ADMIN3'}
@@ -92,6 +93,7 @@ const api_v1 = {
      , featureCode     : { operators : simpleEquality,      colName : 'FEATURECODE_FEATURECODE' }
      , timezone        : { operators : like,                colName : 'TIMEZONE_TIMEZONENAME' }
      , countryCode     : { operators : simpleEquality,      colName : 'COUNTRYCODE_ISO2' }
+     , countryCodeIso2 : { operators : simpleEquality,      colName : 'COUNTRYCODE_ISO2' }
     }
   , colNames : [
       "GeonameId", "Name", null, null
@@ -118,9 +120,13 @@ const api_v1 = {
   , parameters   : {
       alternateNameId : { operators : simpleEquality, colName : 'ALTERNATENAMEID' }
     , language        : { operators : simpleEquality, colName : 'ISOLANGUAGE' }
+    , isoLanguage     : { operators : simpleEquality, colName : 'ISOLANGUAGE' }
     , name            : { operators : like,           colName : 'ALTERNATENAME' }
+    , alternateName   : { operators : like,           colName : 'ALTERNATENAME' }
     , isPreferred     : { operators : simpleEquality, colName : 'ISPREFERREDNAME' }
+    , isPreferredName : { operators : simpleEquality, colName : 'ISPREFERREDNAME' }
     , isShort         : { operators : simpleEquality, colName : 'ISSHORTNAME' }
+    , isShortName     : { operators : simpleEquality, colName : 'ISSHORTNAME' }
     , isColloquial    : { operators : simpleEquality, colName : 'ISCOLLOQUIAL' }
     , isHistoric      : { operators : simpleEquality, colName : 'ISHISTORIC' }
     , isUseFrom       : { operators : like,           colName : 'INUSEFROM' }
@@ -182,6 +188,7 @@ const api_v1 = {
   , parameters   : {
       continentCode : { operators : simpleEquality, colName : 'CONTINENTCODE'}
     , name          : { operators : like,           colName : 'CONTINENTNAME'}
+    , continentName : { operators : like,           colName : 'CONTINENTNAME'}
     }
   , colNames : []
   }
@@ -233,10 +240,13 @@ const api_v1 = {
   , handler      : null
   , rowLimit     : rowLimit
   , parameters   : {
-      'iso639-3' : { operators : simpleEquality, colName : 'ISO639_3'}
-    , 'iso639-2' : { operators : simpleEquality, colName : 'ISO639_2'}
-    , 'iso639-1' : { operators : simpleEquality, colName : 'ISO639_1'}
-    , name       : { operators : simpleEquality, colName : 'LANGUAGENAME'}
+      'iso639-3'    : { operators : simpleEquality, colName : 'ISO639_3'}
+    , 'iso639-2'    : { operators : simpleEquality, colName : 'ISO639_2'}
+    , languageCode3 : { operators : simpleEquality, colName : 'ISO639_2'}
+    , 'iso639-1'    : { operators : simpleEquality, colName : 'ISO639_1'}
+    , languageCode2 : { operators : simpleEquality, colName : 'ISO639_1'}
+    , name          : { operators : simpleEquality, colName : 'LANGUAGENAME'}
+    , languageName  : { operators : simpleEquality, colName : 'LANGUAGENAME'}
     }
   , colNames : []
   }
@@ -252,11 +262,13 @@ const api_v1 = {
   , handler      : null
   , rowLimit     : rowLimit
   , parameters   : {
-      name        : { operators : like,                colName : 'TIMEZONENAME' }
-    , gmtOffset   : { operators : numericOperatorsMap, colName : 'GMTOFFSET' }
-    , rawOffset   : { operators : numericOperatorsMap, colName : 'RAWOFFSET' }
-    , dstOffset   : { operators : numericOperatorsMap, colName : 'DSTOFFSET' }
-    , countryCode : { operators : simpleEquality,      colName : 'COUNTRYCODE_ISO2' }
+      name            : { operators : like,                colName : 'TIMEZONENAME' }
+    , timezoneName    : { operators : like,                colName : 'TIMEZONENAME' }
+    , gmtOffset       : { operators : numericOperatorsMap, colName : 'GMTOFFSET' }
+    , rawOffset       : { operators : numericOperatorsMap, colName : 'RAWOFFSET' }
+    , dstOffset       : { operators : numericOperatorsMap, colName : 'DSTOFFSET' }
+    , countryCode     : { operators : simpleEquality,      colName : 'COUNTRYCODE_ISO2' }
+    , countryCodeIso2 : { operators : simpleEquality,      colName : 'COUNTRYCODE_ISO2' }
     }
   }
   , colNames : []
