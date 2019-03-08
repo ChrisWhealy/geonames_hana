@@ -183,7 +183,7 @@ Both will return the country having the 3-character country code of `DEU` (I.E. 
 
 #### Operator Values in Query String Fields
 
-Often you will need to issue a query that tests a value using some operator other than simple equivalnce (`=`)
+Often you will need to issue a query that tests a value using some operator other than simple equivalence (`=`)
 
 For instance, if you wish to search for all cities or administrative regions having a population greater than 10 million, you should issue the following query to the `geonames` table:
 
