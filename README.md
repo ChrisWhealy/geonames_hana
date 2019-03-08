@@ -43,9 +43,9 @@ Clone this repository into Web IDE Full-Stack
     * `ORG_GEONAMES_ALTERNATENAMES`
 
 ***WARNING***  
-The `ORG_GEONAMES_BASE_GEO_COUNTRIES` table contains data not only for all 252 countries in the world, but also a special country with the country code `XX`.
+The `ORG_GEONAMES_BASE_GEO_COUNTRIES` table contains data not only for all 252 countries in the world, but also a special country with the non-standard country code `XX`.
 
-This is the country code for geopolitical information that does not belong to any particular country.  However, the geopolitical data falling into this category is downloaded from a GeoNames.org file called `no-country.zip` rather than the expected `XX.zip`.
+This is the country code for geopolitical information that does not belong to any particular country (such as underwater features that exist in international waters).  However, the geopolitical data falling into this category is downloaded from a file called `no-country.zip` rather than the expected `XX.zip`.
 
 <!-- *********************************************************************** -->
 <a name="functionality"></a>
@@ -73,13 +73,22 @@ const refreshFrequency = 1440
 
 By default, it is set to 24 hours (1440 minutes)
 
+### HANA write batch size
+
+When writing data to HANA, table rows are grouped into batches.  By default, the batch size is 20,000 rows, but if needed, this can be changed by altering the value of `hanaWriteBatchSize` at the start of file `srv/config/config.js`.
+
+```javascript
+// Number of rows to write to HANA in a single batch
+const hanaWriteBatchSize = 20000
+```
+
 ## Data Model
 
 The data model is derived from the table structure used by <http://geonames.org>
 
 ### Table Names
 
-The following table names are used by the API; however, these names are used for convenience rather than directly exposing the underlying database tables names
+The following table names are used by the API.  These names are used only by the API and exist for convenience.  The underlying database tables names are shown in the table below
 
 | API Table Name | API Key Field | Type | DB Table Name | Description |
 |---|---|---|---|---|
@@ -93,26 +102,6 @@ The following table names are used by the API; however, these names are used for
 | `timezones` | `name` | `String(40)` | `ORG_GEONAMES_BASE_TIME_TIMEZONES` |  All timezones
 
 
-### GEONAMES
-
-This table contains all the geopolitical data keyed by `geonameId`.  The `geonameId` is an arbitrary 64-bit integer assigned by the <http://geonames.org> organisation
-
-| API Field Name | DB Field Name | Type | Description
-|---|---|---|---|
-| `geonameId` | `GEONAMEID` | `Integer64` | Unique geoname id
-| `name` | `NAME` | `String(200)` | Name of geographical point (utf8)
-| `Latitude` | `Decimal(12,9)` | Latitude in decimal degrees (wgs84)
-| `Longitude` | `Decimal(12,9)` | Longitude in decimal degrees (wgs84)
-| `CountryCodesAlt` | `String(200)` | Comma seperated list of alternate, ISO-3166 2-character, country codes
-| `Admin1` | `String(20)` | FIPS code (subject to change to ISO code)
-| `Admin2` | `String(80)` | Code for the second administrative division
-| `Admin3` | `String(20)` | Code for third level administrative division
-| `Admin4` | `String(20)` | Code for fourth level administrative division
-| `Population` | `Integer64` | Population
-| `Elevation` | `Integer` | Elevation above sea level of this geographical point in meters
-| `DEM` | `Integer` | Digital elevation model. srtm3 or gtopo30
-| `LastModified` | `String(10)` | Date country file was last modification in yyyy-MM-dd format
-
 
 ## API
 
@@ -122,20 +111,103 @@ When specifying field names in a query string, you can use either the camel-case
 
 ### Query Requests
 
-***Simple Query***
+#### Simple Query
 
 `https://<hostname>/api/v1/<table-name>`
 
 This will return the first 1000 rows of `<table-name>` as a JSON object
 
-***Query***
+#### Read
 
+`https://<hostname>/api/v1/<table-name>/<key-value>`
+
+This will return the JSON Object whose key exactly matches `<key-value>`, or an empty list.
+
+For example, the URL `https://<hostname>/api/v1/languages/deu` will return the single row from the `languages` table that has teh key `deu`:
+
+```json
+[
+  {
+    "ISO639_3": "deu",
+    "ISO639_2": "deu / ger*",
+    "ISO639_1": "de",
+    "LANGUAGENAME": "German"
+  }
+]
+```
+
+#### Query
+
+`https://<hostname>/api/v1/<table-name>?<key-name>=<key-value>`
+
+This will return zero or more rows where `<key-name>` matches `<key-value>`.  For instance, the above READ request shown above can be turned into an equivalent QUERY request as follows:
+
+`https://<hostname>/api/v1/languages?iso639-3=deu`
+
+#### Alternative Field Names
+
+The property names of the returned JSON objects are not always intuitive.  For example, the 3-character language code in the `languages` table is stored in field `iso639-3`.  Such field names are technical and obscure and therefore don't improve the API's useability.  Therefore, alternate, human-readable names have been configured that can be used in the API as more user-friendly alternatives.
+
+These alternative names are listed in file `srv/config/config.js`.  Look at the definition of object `api_v1`.  This object contains multiple properties whose names are the URL paths used to read a particular table.
+
+Each pathname property is itself an object containing a `parameters` property.  For instance, part of the pathname object for `api/v1/countries` contains this `parameters` configuration:
+
+```javascript
+'/api/v1/countries' : {
+  // Snip
+  , parameters   : {
+      countryCode        : { operators : simpleEquality, colName : 'ISO2'}
+    , iso2               : { operators : simpleEquality, colName : 'ISO2'}
+    , countryCode3       : { operators : simpleEquality, colName : 'ISO3'}
+    , iso3               : { operators : simpleEquality, colName : 'ISO3'}
+    , numericCountryCode : { operators : simpleEquality, colName : 'ISONUMERIC'}
+    , isoNumeric         : { operators : simpleEquality, colName : 'ISONUMERIC'}
+    // Snip
+    }
+  }
+```
+
+Each properties in the `parameters` object defines the name of a field permitted in the query string.  However, notice that the properties `countryCode` and `iso2` are both configured with the `colName` of `ISO2`, and the properties `countryCode3` and `iso3` are both configured with the `colName` of `ISO3`
+
+This means that either of the property names can be used to read the `ISO2` or `ISO3` database columns.  This means that the following pairs of query strings will have equivalent results:
+
+`https://<hostname>/api/v1/countries?iso2=GB`  
+`https://<hostname>/api/v1/countries?countryCode=GB`
+
+Both will return the country having the 2-character country code of `GB` (I.E. Great Britain)
+
+`https://<hostname>/api/v1/countries?iso3=DEU`  
+`https://<hostname>/api/v1/countries?countryCode3=DEU`
+
+Both will return the country having the 3-character country code of `DEU` (I.E. Germany)
+
+#### Operator Values in Query String Fields
+
+Often you will need to issue a query that tests a value using some operator other than simple equivalnce (`=`)
+
+For instance, if you wish to search for all cities or administrative regions having a population greater than 10 million, you should issue the following query to the `geonames` table:
+
+`https://<hostname>/api/v1/geonames?featureClass=P&population=(GT,10000000)`  
+
+Notice the syntax for the `population` query string parameter: `(GT,10000000)` 
+
+By placing parentheses around the value, you can specify the operator first, followed by a comma, then the value.  The general pattern is:
+
+`(<operator>,<value>)`
+
+The operators that are permitted for a given parameter are defined in the `operators` property of the `parameters` object with each pathname object.
+
+These operators can be specified either as the mathematical symbol (`=`, `>`, `<=` etc), or as their character equivalents (`EQ`, `GT`, `LTE` etc)
+
+Refer to the `numericOperatorsMap` object in file `srv/config/config.js` for a complet list of the permitted operators.
 
 <!-- *********************************************************************** -->
 <a name="limitations"></a>
 ## Limitations
 
-None so far...
+1) All query string parameter values are `And`ed together.  It is not possible to create an API query that uses the `OR` operator
+1) Only one parenthesised operator can be specified for a given query string parameter
+1) If the server remains running for more than 24 hours (the default refresh period), it will need to be restarted in order to refresh the country data from <http://geonames.org>
 
 
 <!-- *********************************************************************** -->
