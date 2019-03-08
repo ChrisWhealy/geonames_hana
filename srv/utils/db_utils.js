@@ -129,7 +129,7 @@ const invokeApiInDb =
     (sqlGenFn =>
       (sql =>
         (_ => cds.run(sql).catch(console.error))
-        (console.log(`Executing SQ statement ${sql}`)))
+        (console.log(`Executing SQL statement ${sql}`)))
       (sqlGenFn(validatedUrl, apiConfig)))
     (validatedUrl.keys.length > 0 ? genSqlRead : genSqlQuery)
 
