@@ -12,7 +12,7 @@ const push    = (arr, el) => (_ => arr)(arr.push(el))
 const unshift = (arr, el) => (_ => arr)(arr.unshift(el))
 
 // Add or overwrite property 'p' in 'obj' with value 'v'
-const updateObj = (obj, p, v) => (_ => obj)(obj[p] = v)
+const updateObj = (obj, prop, val) => (_ => obj)(obj[prop] = val)
 
 // *********************************************************************************************************************
 // Discover what data type the object itself thinks it has - as opposed to the data type JavaScript thinks it has

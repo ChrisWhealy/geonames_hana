@@ -84,14 +84,9 @@ const assignRequestHandler =
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Generate request handler functions for all the APIs and links found in the Config object
 const genRequestHandler =
-  () => {
-    return new Promise(
-      (resolve, reject) => {
-        Object.keys(Config.urls).map(assignRequestHandler)
-        resolve()
-      }
-    )
-  }
+  () =>
+    new Promise((resolve, reject) => (_ => resolve())
+                                     (Object.keys(Config.urls).map(assignRequestHandler)))
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Partial function that returns an HTTP request handler function with a built-in default response
@@ -169,7 +164,7 @@ const httpRequestHandler =
               }
             }
             // ---------------------------------------------------------------------------------------------------------
-            // Nope, so this could be simply a file request originating from index.html
+            // Nope, so this could be a request originating from an HTML file
             else {
               let fName    = `${__dirname}${requestUrl}`
               let response = ''

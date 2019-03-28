@@ -3,7 +3,7 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>GeoNames Server Administration</title>
-  <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+  <link rel="icon" href="favicon.ico">
   <link rel="stylesheet" type="text/css" href="/css/geonames.css"> 
 </head>
 
@@ -29,7 +29,7 @@
       }
     )
 
-  var ws = new WebSocket(`${document.location.hostname}/ws/serverUpdates`)
+  var ws = new WebSocket(`wss://${document.location.hostname}/ws/updateServer`)
  
   ws.onopen  = ()  => console.log("WebSocket connection is now open")
   ws.onerror = err => console.error(`Error in WebSocket connection: ${err}`)
