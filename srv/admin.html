@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GeoNames Server Administration</title>
+  <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+  <link rel="stylesheet" type="text/css" href="/css/geonames.css"> 
+</head>
+
+<body class="admin-screen">
+  <div class="nav-bar"></div>
+  
+  <button type="button" autofocus>Refresh server data</button>
+  <button type="button" onclick="ws.close()">Close server connection</button>
+  
+  <input type="text" id="msg">
+
+  <textarea id="log-output" rows="40" cols="120"></textarea>
+  
+  <script>
+  document
+    .getElementById("msg")
+    .addEventListener(
+      "keyup"
+    , evt => {
+        evt.preventDefault()
+        
+        if (evt.keyCode === 13) sendMsg(document.getElementById("msg"))
+      }
+    )
+
+  var ws = new WebSocket(`${document.location.hostname}/ws/serverUpdates`)
+ 
+  ws.onopen  = ()  => console.log("WebSocket connection is now open")
+  ws.onerror = err => console.error(`Error in WebSocket connection: ${err}`)
+ 
+  const sendMsg = el => {
+    ws.send(el.value)
+    el.value = ""
+  }
+
+  const closeConnection = () => ws.close()
+  
+  </script>
+</body>
+</html>

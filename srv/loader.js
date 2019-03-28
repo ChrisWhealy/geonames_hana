@@ -8,13 +8,10 @@
  * =====================================================================================================================
  */
 
-const unzip  = require('unzip-stream')
-const http   = require('http')
-const config = require('./config/config.js')
-
-const { handleGeonamesFile
-      , handleAlternateNamesFile
-      } = require('./utils/hana_transform.js')
+const Unzip  = require('unzip-stream')
+const HTTP   = require('http')
+const Config = require('./config/config.js')
+const HANA   = require('./utils/hana_transform.js')
 
 const geonames_path  = '/export/dump/'
 const altnames_path  = `${geonames_path}alternatenames/`
@@ -32,14 +29,14 @@ const refreshFrequency =
       // If timeInThePast is falsey, then always assume the refresh period has expired
       timeInThePast ? minutesBetweenNowAnd(timeInThePast) > refresh_freq : true
 
-const refreshNeeded = refreshFrequency(config.refresh_freq)
+const refreshNeeded = refreshFrequency(Config.refresh_freq)
 
 /**
  ***********************************************************************************************************************
  * Be careful, the connection to geonames.org becomes unreliable if you try to open too many parallel sockets
  * Even NodeJS's default of 5 sometimes causes a socket hang up error...
  */
-const svcAgent = http.Agent({
+const svcAgent = HTTP.Agent({
   keepAlive  : true
 , maxSockets : 5
 })
@@ -77,7 +74,7 @@ var fetchZipFile =
       return new Promise((resolve, reject) => {
         // Using the appropriate eTag time field, check whether or not a refresh is needed
         if (refreshNeeded(lastRefreshTime)) {
-          http.get(
+          HTTP.get(
             buildHttpOptions(countryObj, geonamesPath, isAlternateNameFile)
           , response => {
               var sourceURL = getUrl(response.req)
@@ -98,7 +95,7 @@ var fetchZipFile =
                   // Yup...
                   ? response
                       // Unzip the HTTP response stream
-                      .pipe((_ => unzip.Parse())
+                      .pipe((_ => Unzip.Parse())
                             (process.stdout.write(`unzipping ${response.headers["content-length"]} bytes... `)))
                       // Then, when we encounter a file within the unzipped stream...
                       .on('entry'
@@ -127,7 +124,7 @@ var fetchZipFile =
         }
         // This file does not need to be refreshed because the refresh period has not yet elapsed
         else {
-          console.log(`Skipping download of ${countryObj.ISO2}.zip - refresh period elapses in ${config.refresh_freq - minutesBetweenNowAnd(lastRefreshTime)} minutes`)
+          console.log(`Skipping download of ${countryObj.ISO2}.zip - refresh period elapses in ${Config.refresh_freq - minutesBetweenNowAnd(lastRefreshTime)} minutes`)
           resolve()
         }
       })
@@ -138,6 +135,6 @@ var fetchZipFile =
  * Public API
  */
 module.exports = {
-  geonamesHandler : fetchZipFile(geonames_path, handleGeonamesFile)
-, altNamesHandler : fetchZipFile(altnames_path, handleAlternateNamesFile)
+  geonamesHandler : fetchZipFile(geonames_path, HANA.handleGeonamesFile)
+, altNamesHandler : fetchZipFile(altnames_path, HANA.handleAlternateNamesFile)
 }

@@ -7,26 +7,25 @@
  * HTML Utilities
  * =====================================================================================================================
  */
-const bfu = require('basic-formatting-utils')
+const FS         = require('fs')
+const BFU        = require('basic-formatting-utils')
+const Config     = require('../config/config.js')
+const { push }   = require('./functional_tools.js')
+//const styleSheet = require('./style_sheet.js')
 
   // Display no more than 7 levels of nested objects
-  bfu.set_depth_limit(7)
-
-const as_ul = bfu.as_html_el('ul')
-const as_li = bfu.as_html_el('li')
-
-const config     = require('../config/config.js')
-const styleSheet = require('./style_sheet.js')
-const { push }   = require('./functional_tools.js')
+  BFU.set_depth_limit(7)
 
 // =====================================================================================================================
-// Transform a table or link name from the config object into a hypertext link
-const genLink   = (url, text) => bfu.as_a([`href="${url}"`], text)
-const urlAsLink = linkName => genLink(config.urls[linkName].url, config.urls[linkName].description)
+// Transform a link name from the Config object into a hypertext link
+const urlAsLink =
+  linkName =>
+    (linkConfig => BFU.as_a([`href="${linkConfig.url}"`], linkConfig.description))
+    (Config.urls[linkName])
 
 // =====================================================================================================================
 // HTTP 404 error message
-const qsErrorAsListItem = qsVal => as_li([], `${qsVal.name}: ${qsVal.msg}`)
+const qsErrorAsListItem = qsVal => BFU.as_li([], `${qsVal.name}: ${qsVal.msg}`)
 
 const qsErrorsAsListItems =
   qsVals =>
@@ -36,51 +35,57 @@ const qsErrorsAsListItems =
 
 const http400 =
   validatedUrl =>
-    bfu.as_div(
+    BFU.as_div(
       []
-    , [ bfu.as_h2([],'HTTP 400: Bad Request')
-      , bfu.as_p([], 'The following query string parameters are invalid:')
-      , as_ul([], qsErrorsAsListItems(validatedUrl.qsVals))
+    , [ BFU.as_h2([],'HTTP 400: Bad Request')
+      , BFU.as_p([], 'The following query string parameters are invalid:')
+      , BFU.as_ul([], qsErrorsAsListItems(validatedUrl.qsVals))
       ].join('')
     )
 
 // =====================================================================================================================
-// Build the default landing page using the URLs and descriptions found in the config object
+// Build the default landing page using the URLs and descriptions found in the Config object
 const genLinksForUrlsOfType =
   linkType =>
     Object
-      .keys(config.urls)
-      .reduce((acc, url) => (config.urls[url].type === linkType) ? push(acc, url) : acc, [])
-      .map(linkName => bfu.as_p([], urlAsLink(linkName)))
+      .keys(Config.urls)
+      .reduce((acc, url) => (Config.urls[url].type === linkType) ? push(acc, url) : acc, [])
+      .map(linkName => BFU.as_p([], urlAsLink(linkName)))
       .join('')
 
-const buildLandingPage = countryCount =>
-  bfu.as_html(
-    []
-  , bfu.as_body(
+const buildLandingPage =
+  countryCount =>
+    BFU.as_html(
       []
-    , [ bfu.as_h1([],`GeoNames Server (${process.env.NODE_ENV})`)
-      , bfu.as_p([], `Provides geopolitical data for ${countryCount} countries`)
-
-      // Display a link to the API for each table name listed in the config object
-      , bfu.as_h2([], 'Tables')
-      , genLinksForUrlsOfType('api')
-
-      // Display each URL of type 'link' listed in the config object
-      , bfu.as_h2([], 'Links')
-      , genLinksForUrlsOfType('link')
-      ].join('')
+    , [ BFU.as_head([], BFU.as_link(['rel="stylesheet"', 'type="text/css"', 'href="/css/geonames.css"']))
+      , BFU.as_body(
+          []
+        , [ BFU.as_h1([],`GeoNames Server (${process.env.NODE_ENV})`)
+          , BFU.as_p([], `Provides geopolitical data for ${countryCount} countries`)
+    
+          // Display a link to the API for each table name listed in the Config object
+          , BFU.as_h2([], 'Tables')
+          , genLinksForUrlsOfType('api')
+    
+          // Display each URL of type 'link' listed in the Config object
+          , BFU.as_h2([], 'Links')
+          , genLinksForUrlsOfType('link')
+          ].join('')
+        )].join('')
     )
-  )
 
 // =====================================================================================================================
 // Display the contents of various server-side object.
 // This function should only be used when the evironment variable NODE_ENV is set to 'development'
-const showServerObjects = objectList => bfu.as_html([], bfu.create_content(objectList))
+const showServerObjects = objectList => BFU.as_html([], BFU.show_objects(objectList))
 
 // =====================================================================================================================
 // Generate a dummy administration screen
-const genAdminScreen = () => bfu.as_html([], [ bfu.as_style([], styleSheet), bfu.as_button([], 'Refresh')].join(''))
+//const genAdminScreen = () => BFU.as_html([], [ BFU.as_style([], styleSheet), BFU.as_button([], 'Refresh')].join(''))
+
+// =====================================================================================================================
+// Generate the administration screen
+const genAdminScreen = () => FS.readFileSync(__dirname + '/../admin.html').toString('utf8')
 
 // =====================================================================================================================
 // Return a handler that generates the appropriate page for a given link.
@@ -91,12 +96,10 @@ const showLink =
       ? genAdminScreen()
       : (url === '/debug')
         ? showServerObjects(serverSideObjectList)
-        : bfu.as_html([], `Here's the page for ${url}` )
+        : BFU.as_html([], `Here's the page for ${url}` )
 
-    // Return a function, that when executed, return a Promise containing the required response
-    return () => {
-      return new Promise((resolve, reject) => resolve(response))
-    }
+    // Return a function, that when executed, returns a Promise containing the required response
+    return () => new Promise((resolve, reject) => resolve(response))
 }
 
 /**

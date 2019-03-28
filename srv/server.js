@@ -8,26 +8,23 @@
  * =====================================================================================================================
  */
 const cds  = require('@sap/cds')
-const http = require('http')
-const fs   = require('fs')
-const mime = require('mime-types')
+const HTTP = require('http')
+const FS   = require('fs')
+const MIME = require('mime-types')
 
-const loader = require('./loader.js')
-const config = require('./config/config.js')
+const Loader = require('./loader.js')
+const Config = require('./config/config.js')
 
 const { typeOf
       , isOfType
+      , isObject
       } = require('./utils/functional_tools.js')
 
 const isPromise = isOfType("Promise")
 
-const { validateUrl   } = require('./utils/url_utils.js')
-const { invokeApiInDb } = require('./utils/db_utils.js')
-
-const { showLink
-      , http400
-      , buildLandingPage
-      } = require('./utils/html_utils.js')
+const URL  = require('./utils/url_utils.js')
+const DB   = require('./utils/db_utils.js')
+const HTML = require('./utils/html_utils.js')
 
 const vcapApp = JSON.parse(process.env.VCAP_APPLICATION)
 const vcapSrv = JSON.parse(process.env.VCAP_SERVICES)
@@ -66,36 +63,35 @@ const genApiHandler =
       (validatedUrl =>
         // Are all the query string parameters valid?
         (validatedUrl.qsVals.reduce((acc, qsVal) => acc && qsVal.isValid, true))
-        ? invokeApiInDb(apiConfig, validatedUrl)
-        : new Promise((resolve, reject) => resolve(http400(validatedUrl)))
+        ? DB.invokeApiInDb(apiConfig, validatedUrl)
+        : new Promise((resolve, reject) => resolve(HTML.http400(validatedUrl)))
       )
-      (validateUrl(recognisedUrlConfig, requestUrl))
+      (URL.validateUrl(recognisedUrlConfig, requestUrl))
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Assign request handler functions based on URL type
 const assignRequestHandler =
   url =>
-    config.urls[url].handler =
-      config.urls[url].type === 'api'
+    Config.urls[url].handler =
+      Config.urls[url].type === 'api'
         // API handler
-        ? genApiHandler(config.urls[url])
-        : config.urls[url].type === 'link'
+        ? genApiHandler(Config.urls[url])
+        : Config.urls[url].type === 'link'
           // Link handler
-          ? showLink(url, serverSideObjectList)
+          ? HTML.showLink(url, serverSideObjectList)
           : null
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// Generate a request handler functions to all the APIs and links in the config object
-const genRequestHandler = () => {
-  return new Promise(
-    (resolve, reject) => {
-      Object
-        .keys(config.urls)
-        .map(assignRequestHandler)
-      
-      resolve()
-    }
-  )}
+// Generate request handler functions for all the APIs and links found in the Config object
+const genRequestHandler =
+  () => {
+    return new Promise(
+      (resolve, reject) => {
+        Object.keys(Config.urls).map(assignRequestHandler)
+        resolve()
+      }
+    )
+  }
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Partial function that returns an HTTP request handler function with a built-in default response
@@ -126,8 +122,8 @@ const httpRequestHandler =
           else {
             // Try to locate the handler for this URL
             let recognisedUrlConfig = Object
-              .keys(config.urls)
-              .reduce((acc, knownUrl) => requestUrl.startsWith(knownUrl) ? config.urls[knownUrl] : acc, null)
+              .keys(Config.urls)
+              .reduce((acc, knownUrl) => requestUrl.startsWith(knownUrl) ? Config.urls[knownUrl] : acc, null)
 
             // ---------------------------------------------------------------------------------------------------------
             // Is this URL one we specifically recognise?
@@ -178,9 +174,9 @@ const httpRequestHandler =
               let fName    = `${__dirname}${requestUrl}`
               let response = ''
 
-              if (fs.existsSync(fName)) {
-                res.setHeader('Content-Type', mime.lookup(fName))
-                response = fs.readFileSync(fName).toString('utf8')
+              if (FS.existsSync(fName)) {
+                res.setHeader('Content-Type', MIME.lookup(fName))
+                response = FS.readFileSync(fName).toString('utf8')
               }
               else {
                 console.log(`Can't find file ${fName}`)
@@ -208,34 +204,34 @@ cds.connect(connectionObj)
   // -------------------------------------------------------------------------------------------------------------------
   // Start the HTTP server
   // -------------------------------------------------------------------------------------------------------------------
-  .then(listOfCountries => {
-    return new Promise((resolve, reject) => {
+  .then(listOfCountries =>
+    new Promise((resolve, reject) => {
       // Create an HTTP server
-      const server = http.createServer()
+      const server = HTTP.createServer()
 
       // Sort the country list
       let countryList = listOfCountries.sort(sortByCountryCode)
       // ---------------------------------------------------------------------------------------------------------------
       // Define HTTP handler with default landing page
-      server.on('request', httpRequestHandler(buildLandingPage(countryList.length)))
-      //server.on('request', httpRequestHandler(fs.readFileSync(__dirname + '/index.html').toString('utf8')))
+      server.on('request', httpRequestHandler(HTML.buildLandingPage(countryList.length)))
+      //server.on('request', httpRequestHandler(FS.readFileSync(__dirname + '/index.html').toString('utf8')))
       server.listen(port, () => console.log(`Server running at https://${vcapApp.uris[0]}:${port}/`))
   
       // Pass the sorted list of countries through to the next promise
       resolve(countryList)
     })
-  })
+  )
 
   // -------------------------------------------------------------------------------------------------------------------
   // For each country fetch its GeoName and Alternate Name ZIP files
   .then(listOfCountries => {
     console.log(`Fetching GeoName and Alternate Name ZIP files for ${listOfCountries.length} countries`)
-    console.log(`Refresh period ${config.refresh_freq} minutes`)
+    console.log(`Refresh period ${Config.refresh_freq} minutes`)
 
     Promise
       .all(
         listOfCountries.map(
-          el => loader.geonamesHandler(el).then((resolve, reject) => loader.altNamesHandler(el))
+          el => Loader.geonamesHandler(el).then((resolve, reject) => Loader.altNamesHandler(el))
         )
       )
       .then(() => {

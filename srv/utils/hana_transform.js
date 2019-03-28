@@ -7,10 +7,10 @@
  * Transform a tab-delimited text strean into batches of HANA UPSERT statements
  * =====================================================================================================================
  **/
-const es       = require('event-stream')
-const cds      = require('@sap/cds')
-const db_utils = require('./db_utils.js')
-const config   = require('../config/config.js')
+const ES     = require('event-stream')
+const CDS    = require('@sap/cds')
+const DB     = require('./db_utils.js')
+const Config = require('../config/config.js')
 
 /***********************************************************************************************************************
  * Handle a text file stream encountered within a ZIP file
@@ -20,8 +20,8 @@ const handleTextFile =
   tableConfig =>
     (entry, countryObj, isAltNames, etag) =>
       entry
-        .pipe(es.split())
-        .pipe(new db_utils.Upsert({tableConfig: tableConfig, iso2: countryObj.ISO2}))
+        .pipe(ES.split())
+        .pipe(new DB.Upsert({tableConfig: tableConfig, iso2: countryObj.ISO2}))
         .on('finish', () => {
           // Update the appropriate eTag value and time fields
           if (isAltNames) {
@@ -33,7 +33,7 @@ const handleTextFile =
             countryObj.COUNTRYETAGTIME = Date.now()
           }
 
-          return cds.run( db_utils.genUpsertFrom( "ORG_GEONAMES_BASE_GEO_COUNTRIES", Object.keys(countryObj))
+          return CDS.run( DB.genUpsertFrom( "ORG_GEONAMES_BASE_GEO_COUNTRIES", Object.keys(countryObj))
                         , Object.values(countryObj))
                     .catch(console.error)
         })
@@ -45,6 +45,6 @@ const handleTextFile =
  **/
 
 module.exports = {
-  handleGeonamesFile       : handleTextFile(config.urls[`${config.apiVersionPrefix}geonames`])
-, handleAlternateNamesFile : handleTextFile(config.urls[`${config.apiVersionPrefix}alternate-names`])
+  handleGeonamesFile       : handleTextFile(Config.urls[`${Config.apiVersionPrefix}geonames`])
+, handleAlternateNamesFile : handleTextFile(Config.urls[`${Config.apiVersionPrefix}alternate-names`])
 }
