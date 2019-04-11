@@ -7,28 +7,26 @@ const { updateObj } = require('../utils/functional_tools.js')
 
 /**
  * =====================================================================================================================
- * Partial function to merge the properties of an incoming object into a base object
- * If the incoming object contains a property that is already present in the base object, then the base object's
- * property value is simply overwritten
+ * Partial function to merge the properties of a base object with some other object that will be supplied at a later
+ * point in time.
+ * 
+ * Neither the base object nor the incoming object are mutated
+ * 
+ * If the incoming object contains a property that is already present in the base object, then the copy of the base
+ * object's property value in the returned object is simply overwritten
  * =====================================================================================================================
  */
 const mergeProperties =
-  baseObj =>
-    incomingObj =>
-      Object.keys(incomingObj).reduce(
-        (acc, prop) => (_ => acc)(acc[prop] = incomingObj[prop])
-      , baseObj
-      )
+  baseObj => (copyOfBaseObj => incomingObj => Object.assign(copyOfBaseObj, incomingObj))
+             (Object.assign({}, baseObj))
 
 /**
  * =====================================================================================================================
- * Define the API structure
+ * Define the names permitted as API calls
  * =====================================================================================================================
  */
 const apiNames = [
-  'alternate-names', 'continents', 'countries'
-, 'feature-classes', 'feature-codes'
-, 'geonames', 'languages', 'timezones'
+  'alternate-names', 'continents', 'countries', 'feature-classes', 'feature-codes', 'geonames', 'languages', 'timezones'
 ]
 
 // Build the API config object from the list of API names
@@ -36,6 +34,14 @@ const api_v1 = apiNames.reduce(
   (acc, apiName) => updateObj(acc, `${settings.apiVersionPrefix}${apiName}`, require(`./${apiName}.js`))
 , {}
 )
+
+  // Urls requiring a WebSocket connection
+  api_v1['/ws/updateServer'] = {
+    type        : 'ws'
+  , url         : '/ws/updateServer'
+  , description : 'Update server-side data from GeoNames.org'
+  , handler     : null
+  }
 
 /**
  * =====================================================================================================================
@@ -47,8 +53,8 @@ const api_v1 = apiNames.reduce(
  */
 const dev_links = {
   '/debug' : {
-    url         : '/debug'
-  , type        : 'link'
+    type        : 'link'
+  , url         : '/debug'
   , description : 'Show server-side object contents'
   , handler     : null
   }
@@ -56,8 +62,8 @@ const dev_links = {
 
 const prod_links = {
   '/admin' : {
-    url         : '/admin'
-  , type        : 'link'
+    type        : 'link'
+  , url         : '/admin'
   , description : 'Server admin'
   , handler     : null
   }
@@ -78,8 +84,7 @@ const config = {
   // ===================================================================================================================
   development : {
     environment      : "development"
-//  , urls             : mergeProperties(prodUrls)(dev_links)
-  , urls             : prodUrls
+  , urls             : mergeProperties(prodUrls)(dev_links)
   , batchSize        : settings.hanaWriteBatchSize
   , refresh_freq     : settings.refreshFrequency
   , genericRowLimit  : settings.rowLimit
@@ -103,6 +108,7 @@ const config = {
 // Public API
 // =====================================================================================================================
 
+console.log(`Server is running in ${process.env.NODE_ENV} mode`)
 // Sometimes its necessary to force the use of development mode, even though you're running in an environment configured
 // to be production
 //module.exports = config[process.env.NODE_ENV || 'development']

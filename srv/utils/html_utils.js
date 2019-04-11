@@ -80,10 +80,6 @@ const buildLandingPage =
 const showServerObjects = objectList => BFU.as_html([], BFU.show_objects(objectList))
 
 // =====================================================================================================================
-// Generate a dummy administration screen
-//const genAdminScreen = () => BFU.as_html([], [ BFU.as_style([], styleSheet), BFU.as_button([], 'Refresh')].join(''))
-
-// =====================================================================================================================
 // Generate the administration screen
 const genAdminScreen = () => FS.readFileSync(__dirname + '/../admin.html').toString('utf8')
 

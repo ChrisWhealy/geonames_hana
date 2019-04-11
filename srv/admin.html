@@ -31,9 +31,10 @@
 
   var ws = new WebSocket(`wss://${document.location.hostname}/ws/updateServer`)
  
-  ws.onopen  = ()  => console.log("WebSocket connection is now open")
-  ws.onerror = err => console.error(`Error in WebSocket connection: ${err}`)
- 
+  ws.onopen    = ()  => console.log("WebSocket connection is now open")
+  ws.onerror   = err => console.error(`Error in WebSocket connection: ${JSON.stringify(err, null, 2)}`)
+  ws.onmessage = (data, flags) => console.log('Received Message: ' + data)
+
   const sendMsg = el => {
     ws.send(el.value)
     el.value = ""

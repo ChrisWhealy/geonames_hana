@@ -7,9 +7,10 @@
  * Geonames server
  * =====================================================================================================================
  */
-const cds  = require('@sap/cds')
+const CDS  = require('@sap/cds')
 const HTTP = require('http')
 const FS   = require('fs')
+const WS   = require('ws')
 const MIME = require('mime-types')
 
 const Loader = require('./loader.js')
@@ -17,7 +18,7 @@ const Config = require('./config/config.js')
 
 const { typeOf
       , isOfType
-      , isObject
+      , isNull
       } = require('./utils/functional_tools.js')
 
 const isPromise = isOfType("Promise")
@@ -44,11 +45,16 @@ const sortByCountryCode = (el1, el2) => el1.ISO2 < el2.ISO2 ? -1 : el1.ISO2 > el
 
 // List of server-side objects displayed on the debug screen
 var serverSideObjectList = [
-  {title: "cds",              value: cds}
-, {title: "VCAP_SERVICES",    value: vcapSrv}
-, {title: "VCAP_APPLICATION", value: vcapApp}
-, {title: "NodeJS process",   value: process}
+//   {title: "CDS",              value: CDS}
+  {title: "VCAP_SERVICES",      value: vcapSrv}
+, {title: "VCAP_APPLICATION",   value: vcapApp}
+, {title: "NodeJS environment", value: process.env}
 ]
+
+// ---------------------------------------------------------------------------------------------------------------------
+// WebSocket server
+// ---------------------------------------------------------------------------------------------------------------------
+var wss = null
 
 // ---------------------------------------------------------------------------------------------------------------------
 // HTTP request handlers
@@ -69,6 +75,12 @@ const genApiHandler =
       (URL.validateUrl(recognisedUrlConfig, requestUrl))
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// Partial function that returns an API request handler for a given API config object
+const genWsHandler =
+  apiConfig =>
+    "Dummy WS page"
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Assign request handler functions based on URL type
 const assignRequestHandler =
   url =>
@@ -77,9 +89,12 @@ const assignRequestHandler =
         // API handler
         ? genApiHandler(Config.urls[url])
         : Config.urls[url].type === 'link'
-          // Link handler
           ? HTML.showLink(url, serverSideObjectList)
-          : null
+          : Config.urls[url].type === 'ws'
+            // WebSocket handler
+            ? genWsHandler(Config.urls[url])
+            : null
+            
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Generate request handler functions for all the APIs and links found in the Config object
@@ -106,6 +121,7 @@ const httpRequestHandler =
           res.setHeader('Content-Type', 'text/html; charset=utf-8')
 
           let requestUrl = decodeURI(req.url)
+          console.log(`Request URL: ${requestUrl}`)
 
           // -----------------------------------------------------------------------------------------------------------
           // Do I recognise the request URL?
@@ -158,6 +174,19 @@ const httpRequestHandler =
                   break
 
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                case 'ws':
+                  if (isNull(wss)) {
+                    wss = new WS.Server({ port : process.env.PORT || 8080})
+
+                    wss.on('connection', ws => {
+                      ws.on('message', msg => console.log(`Received message => ${msg}`))
+                      ws.send('WebSocket connection opened')
+                    })
+                  }
+                  
+                  break
+
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 default:
                   console.log(`That's weird, the request for ${requestUrl} was thought to be of type ${recognisedUrlConfig.type}`)
                   res.end('[]')
@@ -186,15 +215,18 @@ const httpRequestHandler =
 
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Connect to HANA.  This must be done first, otherwise the cds object is unusable
+// Connect to HANA.  This must be done first, otherwise the CDS object is unusable
 // ---------------------------------------------------------------------------------------------------------------------
-cds.connect(connectionObj)
+CDS.connect(connectionObj)
 
   // -------------------------------------------------------------------------------------------------------------------
   // Create and assign the request handlers, then fetch the list of countries
   // -------------------------------------------------------------------------------------------------------------------
-  .then(genRequestHandler)
-  .then(() => cds.run('SELECT * FROM ORG_GEONAMES_BASE_GEO_COUNTRIES').catch(console.error))
+  .then(() => {
+    console.log("Generating request handlers")
+    return genRequestHandler()
+  })
+  .then(() => CDS.run('SELECT * FROM ORG_GEONAMES_BASE_GEO_COUNTRIES').catch(console.error))
 
   // -------------------------------------------------------------------------------------------------------------------
   // Start the HTTP server
