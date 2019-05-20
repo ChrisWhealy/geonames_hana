@@ -18,7 +18,7 @@ const Config = require('./config/config.js')
 
 const { typeOf
       , isOfType
-      , isNull
+      , isUndefined
       } = require('./utils/functional_tools.js')
 
 const isPromise = isOfType("Promise")
@@ -29,16 +29,13 @@ const HTML = require('./utils/html_utils.js')
 
 const vcapApp = JSON.parse(process.env.VCAP_APPLICATION)
 const vcapSrv = JSON.parse(process.env.VCAP_SERVICES)
-const port    = process.env.PORT || 3000
+const port    = process.env.VCAP_APP_PORT || 3000
 
 const connectionObj = {
   "kind": "hana"
 , "model": "gen/csn.json"
 , "credentials": (vcapSrv['hana'] || vcapSrv['hanatrial'])[0].credentials
 }
-
-const startedAt = Date.now()
-const separator = "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *"
 
 // Sort function based on 2-character ISO country code
 const sortByCountryCode = (el1, el2) => el1.ISO2 < el2.ISO2 ? -1 : el1.ISO2 > el2.ISO2 ? 1 : 0
@@ -52,14 +49,10 @@ var serverSideObjectList = [
 ]
 
 // ---------------------------------------------------------------------------------------------------------------------
-// WebSocket server
+// HTTP and WS request handlers
 // ---------------------------------------------------------------------------------------------------------------------
-var wss = null
-
-// ---------------------------------------------------------------------------------------------------------------------
-// HTTP request handlers
-// ---------------------------------------------------------------------------------------------------------------------
-const httpErrorHandler = err => console.error(`An HTTP Error occurred\n${err.stack}`)
+const httpErrorHandler = err => console.error(`An HTTP error occurred\n${err.stack}`)
+const wsErrorHandler   = err => console.error(`A Web Socket error occurred\n${err.stack}`)
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Partial function that returns an API request handler for a given API config object
@@ -76,9 +69,12 @@ const genApiHandler =
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Partial function that returns an API request handler for a given API config object
-const genWsHandler =
-  apiConfig =>
-    "Dummy WS page"
+const genWsMsg      = msgType => msgPayload => JSON.stringify({type: msgType, payload : msgPayload})
+const wsCountryList = genWsMsg('countryList')
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// Partial function that returns an API request handler for a given API config object
+const genWsHandler = apiConfig => "Dummy WS page"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Assign request handler functions based on URL type
@@ -174,19 +170,6 @@ const httpRequestHandler =
                   break
 
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                case 'ws':
-                  if (isNull(wss)) {
-                    wss = new WS.Server({ port : process.env.PORT || 8080})
-
-                    wss.on('connection', ws => {
-                      ws.on('message', msg => console.log(`Received message => ${msg}`))
-                      ws.send('WebSocket connection opened')
-                    })
-                  }
-                  
-                  break
-
-                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 default:
                   console.log(`That's weird, the request for ${requestUrl} was thought to be of type ${recognisedUrlConfig.type}`)
                   res.end('[]')
@@ -215,6 +198,22 @@ const httpRequestHandler =
 
 
 // ---------------------------------------------------------------------------------------------------------------------
+// WSS message handler
+// ---------------------------------------------------------------------------------------------------------------------
+const wsMsgHandler =
+  (ws, countryList) =>
+    msg => {
+      switch(msg) {
+        case "refreshCountryData":
+          Loader.refreshCountryData(ws, countryList)
+          break
+
+        default:
+          console.log(`Unknown message received from client: "${msg}"`)
+      }
+    }
+
+// ---------------------------------------------------------------------------------------------------------------------
 // Connect to HANA.  This must be done first, otherwise the CDS object is unusable
 // ---------------------------------------------------------------------------------------------------------------------
 CDS.connect(connectionObj)
@@ -222,10 +221,7 @@ CDS.connect(connectionObj)
   // -------------------------------------------------------------------------------------------------------------------
   // Create and assign the request handlers, then fetch the list of countries
   // -------------------------------------------------------------------------------------------------------------------
-  .then(() => {
-    console.log("Generating request handlers")
-    return genRequestHandler()
-  })
+  .then(genRequestHandler)
   .then(() => CDS.run('SELECT * FROM ORG_GEONAMES_BASE_GEO_COUNTRIES').catch(console.error))
 
   // -------------------------------------------------------------------------------------------------------------------
@@ -233,39 +229,28 @@ CDS.connect(connectionObj)
   // -------------------------------------------------------------------------------------------------------------------
   .then(listOfCountries =>
     new Promise((resolve, reject) => {
-      // Create an HTTP server
-      const server = HTTP.createServer()
-
+      // ---------------------------------------------------------------------------------------------------------------
       // Sort the country list
       let countryList = listOfCountries.sort(sortByCountryCode)
+
       // ---------------------------------------------------------------------------------------------------------------
-      // Define HTTP handler with default landing page
-      server.on('request', httpRequestHandler(HTML.buildLandingPage(countryList.length)))
-      //server.on('request', httpRequestHandler(FS.readFileSync(__dirname + '/index.html').toString('utf8')))
-      server.listen(port, () => console.log(`Server running at https://${vcapApp.uris[0]}:${port}/`))
-  
-      // Pass the sorted list of countries through to the next promise
-      resolve(countryList)
+      // Create HTTP and WS servers
+      const http_server = HTTP.createServer()
+      http_server.on('request', httpRequestHandler(HTML.buildLandingPage(countryList.length)))
+
+      const wss_server = new WS.Server({ server: http_server })
+      wss_server.on('connection', ws => {
+        console.log('WS connection established')
+        
+        // Send the country list to the client when the WebSocket connection is first established
+        ws.send(wsCountryList(countryList))
+
+        ws.on('message', wsMsgHandler(ws, countryList))
+        ws.on('close', () => console.log('WS connection closed'))
+      })
+
+      http_server.listen(port, () => console.log(`Server running at https://${vcapApp.uris[0]}:${port}/`))
     })
   )
 
-  // -------------------------------------------------------------------------------------------------------------------
-  // For each country fetch its GeoName and Alternate Name ZIP files
-  .then(listOfCountries => {
-    console.log(`Fetching GeoName and Alternate Name ZIP files for ${listOfCountries.length} countries`)
-    console.log(`Refresh period ${Config.refresh_freq} minutes`)
-
-    Promise
-      .all(
-        listOfCountries.map(
-          el => Loader.geonamesHandler(el).then((resolve, reject) => Loader.altNamesHandler(el))
-        )
-      )
-      .then(() => {
-        console.log(separator)
-        console.log(`Finished table refresh in ${new Date(Date.now() - startedAt).toTimeString().slice(0,8)} hh:mm:ss`)
-        console.log(separator)
-      })
-      .catch(console.error)
-  })
 

@@ -18,6 +18,8 @@ const { isNotNullOrUndef
 
 const config = require('../config/config.js')
 
+const genWsMsg = (msgType, msgCountry) => msgPayload => JSON.stringify({type: msgType, country: msgCountry, payload: msgPayload})
+
 const columnList      = cols => cols.filter(isNotNullOrUndef)
 const genColumnList   = cols => columnList(cols).join(',')
 const genPlaceHolders = cols => columnList(cols).map(_ => '?').join(',')
@@ -42,17 +44,21 @@ class Upsert extends Writable {
     batchSize   = config.batchSize
   , tableConfig = {}
   , iso2        = ""
+  , webSocket   = null
   }) {
     // Since we're extending an existing class, we must call that class's constructor
     super()
 
     // Initialise instance variables
-    this._batchSize    = batchSize
-    this._buffer       = []
-    this._iso2         = iso2
-    this._upsert       = genUpsertFrom(tableConfig.dbTableName, tableConfig.colNames)
-    this._colReducer   = reduceUsingColsFrom(tableConfig.colNames)
-    this._rowCount     = 0
+    this._batchSize  = batchSize
+    this._buffer     = []
+    this._iso2       = iso2
+    this._ws         = webSocket
+    this._upsert     = genUpsertFrom(tableConfig.dbTableName, tableConfig.colNames)
+    this._colReducer = reduceUsingColsFrom(tableConfig.colNames)
+    this._rowCount   = 0
+    this._genLogMsg  = genWsMsg("country", this._iso2)
+    this._logger     = isNullOrUndef(this._ws) ? console.log : this._ws.send
   }
 
  // Put each row to the buffer.  Then when the buffer is full, dump it to HANA
@@ -82,7 +88,8 @@ class Upsert extends Writable {
 
  // Finally, ensure there's nothing left over in the buffer
   _final(cb) {
-    console.log(`Country code ${this._iso2}: ${this._rowCount + this._buffer.length} rows written`)
+    console.log(JSON.stringify(this._ws, null, 2))
+    this._logger(this._genLogMsg(`${this._rowCount + this._buffer.length} rows written`))
 
     this._buffer.length > 0
     ? this._writeBufferToDb().then(() => cb())

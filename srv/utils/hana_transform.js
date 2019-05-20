@@ -18,10 +18,10 @@ const Config = require('../config/config.js')
  */
 const handleTextFile =
   tableConfig =>
-    (entry, countryObj, isAltNames, etag) =>
+    (ws, entry, countryObj, isAltNames, etag) =>
       entry
         .pipe(ES.split())
-        .pipe(new DB.Upsert({tableConfig: tableConfig, iso2: countryObj.ISO2}))
+        .pipe(new DB.Upsert({webSocket: ws, tableConfig: tableConfig, iso2: countryObj.ISO2}))
         .on('finish', () => {
           // Update the appropriate eTag value and time fields
           if (isAltNames) {
@@ -33,7 +33,7 @@ const handleTextFile =
             countryObj.COUNTRYETAGTIME = Date.now()
           }
 
-          return CDS.run( DB.genUpsertFrom( "ORG_GEONAMES_BASE_GEO_COUNTRIES", Object.keys(countryObj))
+          return CDS.run( DB.genUpsertFrom("ORG_GEONAMES_BASE_GEO_COUNTRIES", Object.keys(countryObj))
                         , Object.values(countryObj))
                     .catch(console.error)
         })

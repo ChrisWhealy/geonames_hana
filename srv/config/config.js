@@ -86,7 +86,7 @@ const config = {
     environment      : "development"
   , urls             : mergeProperties(prodUrls)(dev_links)
   , batchSize        : settings.hanaWriteBatchSize
-  , refresh_freq     : settings.refreshFrequency
+  , refreshFrequency : settings.refreshFrequency
   , genericRowLimit  : settings.rowLimit
   , apiVersionPrefix : settings.apiVersionPrefix
   }
@@ -98,7 +98,7 @@ const config = {
     environment      : "production"
   , urls             : prodUrls
   , batchSize        : settings.hanaWriteBatchSize
-  , refresh_freq     : settings.refreshFrequency
+  , refreshFrequency : settings.refreshFrequency
   , genericRowLimit  : settings.rowLimit
   , apiVersionPrefix : settings.apiVersionPrefix
   }

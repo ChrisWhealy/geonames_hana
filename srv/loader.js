@@ -16,6 +16,13 @@ const HANA   = require('./utils/hana_transform.js')
 const geonames_path  = '/export/dump/'
 const altnames_path  = `${geonames_path}alternatenames/`
 
+const startedAt = Date.now()
+const separator = "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *"
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// Partial function that returns an API request handler for a given API config object
+const genWsMsg = (msgType, msgCountry) => msgPayload => JSON.stringify({type: msgType, country: msgCountry, payload: msgPayload})
+
 const mapCountryCode = iso2 => iso2 === 'XX' ? 'no-country' : iso2
 
 // How many whole minutes have elapsed since some particular time in the past?
@@ -23,13 +30,13 @@ const minutesBetweenNowAnd = then => Math.trunc((Date.now() - then) / 60000)
 
 // Partial function that takes a refresh frequency (in minutes) and returns a function that checks for a given time in
 // the past, whether or not the refresh period has expired
-const refreshFrequency =
-  refresh_freq =>
+const refreshNeededAfter =
+  refreshFrequency =>
     timeInThePast =>
       // If timeInThePast is falsey, then always assume the refresh period has expired
-      timeInThePast ? minutesBetweenNowAnd(timeInThePast) > refresh_freq : true
+      timeInThePast ? minutesBetweenNowAnd(timeInThePast) > refreshFrequency : true
 
-const refreshNeeded = refreshFrequency(Config.refresh_freq)
+const refreshNeeded = refreshNeededAfter(Config.refreshFrequency)
 
 /**
  ***********************************************************************************************************************
@@ -66,7 +73,9 @@ const getUrl = request => `${request.agent.protocol}//${request._headers.host}${
  */
 var fetchZipFile =
   (geonamesPath, textStreamHandler) =>
-    countryObj => {
+    (ws, countryObj) => {
+      let wsCountry = genWsMsg('country', countryObj.ISO2)
+
       // Are we fetching a country ZIP file or an alternate name ZIP file?
       let isAlternateNameFile = geonamesPath.indexOf("alternate") > -1
       let lastRefreshTime     = isAlternateNameFile ? countryObj.ALTNAMESETAGTIME : countryObj.COUNTRYETAGTIME
@@ -78,7 +87,7 @@ var fetchZipFile =
             buildHttpOptions(countryObj, geonamesPath, isAlternateNameFile)
           , response => {
               var sourceURL = getUrl(response.req)
-              process.stdout.write(`Fetching ${sourceURL}... `)
+              ws.send(wsCountry(`Fetching ${sourceURL}`))
       
               // -----------------------------------------------------------------------------------------------------------
               // The HTTP request might fail...
@@ -88,7 +97,7 @@ var fetchZipFile =
                 response.statusCode === 304
                 // Nope
                 ? (_ => resolve())
-                  (process.stdout.write(`Skipping ${geonamesPath}${countryObj.ISO2}.zip - unchanged since last access\n`))
+                  (ws.send(wsCountry("Unchanged since last access")))
                 // Yup, so did the download succeed?
                 : response.statusCode === 200
                   // -------------------------------------------------------------------------------------------------------
@@ -96,14 +105,14 @@ var fetchZipFile =
                   ? response
                       // Unzip the HTTP response stream
                       .pipe((_ => Unzip.Parse())
-                            (process.stdout.write(`unzipping ${response.headers["content-length"]} bytes... `)))
+                            (ws.send(wsCountry(`Unzipping ${response.headers["content-length"]} bytes`))))
                       // Then, when we encounter a file within the unzipped stream...
                       .on('entry'
                          , entry =>
                              // Is this the country's text file?
                              entry.path === `${mapCountryCode(countryObj.ISO2)}.txt`
                              // Yup, so write its contents to HANA
-                             ? textStreamHandler(entry, countryObj, isAlternateNameFile, response.headers.etag)
+                             ? textStreamHandler(ws, entry, countryObj, isAlternateNameFile, response.headers.etag)
     
                              // No, these are not the droids we're looking for..., so drain the stream and resolve the promise
                              : (_ => resolve())
@@ -124,7 +133,7 @@ var fetchZipFile =
         }
         // This file does not need to be refreshed because the refresh period has not yet elapsed
         else {
-          console.log(`Skipping download of ${countryObj.ISO2}.zip - refresh period elapses in ${Config.refresh_freq - minutesBetweenNowAnd(lastRefreshTime)} minutes`)
+          ws.send(wsCountry(`Refresh period elapses in ${Config.refreshFrequency - minutesBetweenNowAnd(lastRefreshTime)} minutes`))
           resolve()
         }
       })
@@ -132,9 +141,41 @@ var fetchZipFile =
 
 /**
  ***********************************************************************************************************************
+ * Build file download handlers
+ */
+const geonamesHandler = fetchZipFile(geonames_path, HANA.handleGeonamesFile)
+const altNamesHandler = fetchZipFile(altnames_path, HANA.handleAlternateNamesFile)
+
+
+/**
+ ***********************************************************************************************************************
+ * Refresh Country Data
+ */
+const refreshCountryData =
+  (ws, listOfCountries) => {
+    console.log(`Fetching GeoName and Alternate Name ZIP files for ${listOfCountries.length} countries`)
+    console.log(`Refresh period ${Config.refreshFrequency} minutes`)
+
+    Promise
+      .all(
+        listOfCountries.map(
+          el => geonamesHandler(ws, el).then((resolve, reject) => altNamesHandler(ws, el))
+        )
+      )
+      .then(() => {
+        console.log(separator)
+        console.log(`Finished country data refresh in ${new Date(Date.now() - startedAt).toTimeString().slice(0,8)} hh:mm:ss`)
+        console.log(separator)
+      })
+      .catch(console.error)
+  }
+
+
+
+/**
+ ***********************************************************************************************************************
  * Public API
  */
 module.exports = {
-  geonamesHandler : fetchZipFile(geonames_path, HANA.handleGeonamesFile)
-, altNamesHandler : fetchZipFile(altnames_path, HANA.handleAlternateNamesFile)
+  refreshCountryData : refreshCountryData
 }

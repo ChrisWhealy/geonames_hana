@@ -8,40 +8,99 @@
 </head>
 
 <body class="admin-screen">
-  <div class="nav-bar"></div>
+  <div class="nav-bar">
+    <button type="button" onclick="refreshCountryData()" autofocus>Refresh server data</button>
+  </div>
   
-  <button type="button" autofocus>Refresh server data</button>
-  <button type="button" onclick="ws.close()">Close server connection</button>
-  
-  <input type="text" id="msg">
-
-  <textarea id="log-output" rows="40" cols="120"></textarea>
+  <div id="country-table"></div>
   
   <script>
-  document
-    .getElementById("msg")
-    .addEventListener(
-      "keyup"
-    , evt => {
-        evt.preventDefault()
-        
-        if (evt.keyCode === 13) sendMsg(document.getElementById("msg"))
-      }
-    )
+  var typeOf = typeName => Object.prototype.toString.apply(typeName).slice(8).slice(0, -1)
+  var isOfType = targetType => someObject => typeOf(someObject) === targetType
+  
+  // Primitive type identifiers
+  var isUndefined = isOfType("Undefined")
+  var isArray     = isOfType("Array")
+
+  const zeroPad = val => (val < 10) ? `0${val}` : val
+
+  const timeBetweenNowAnd =
+    then =>
+      (diff => `${diff.getHours()}:${zeroPad(diff.getMinutes())}:${zeroPad(diff.getSeconds())}`)
+      (new Date(Date.now() - then))
+
+  const push = (arr, el) => (_ => arr)(arr.push(el))
+
+  const countryRowId = iso2 => `country-row-${iso2}`
+  
+  const emptyElements = [
+    'area', 'base', 'basefont', 'br', 'col', 'frame', 'hr', 'img'
+  , 'input', 'isindex', 'link', 'meta', 'param', 'command', 'keygen', 'source'
+  ]
+
+  const isEmptyElement = tagName => emptyElements.indexOf(tagName) >= 0
+  
+  const genHtmlEl =
+    elName =>
+      (content, parms) =>
+        `<${elName} ${isUndefined(parms) ? "" : parms.join(" ")}>${isEmptyElement(elName) ? "" : `${isArray(content) ? content.join("") : content}</${elName}>`}`
+  
+  const td    = genHtmlEl("td")
+  const th    = genHtmlEl("th")
+  const tr    = genHtmlEl("tr")
+  const table = genHtmlEl("table")
+
+  const genCountryTableRows =
+    countries =>
+      countries.reduce((acc, country) =>
+        // Ignore the "No country" country
+        country.ISO2 === "XX"
+        ? acc
+        : push(acc, tr([ td(country.ISO2)
+                       , td(country.COUNTRYNAME)
+                       , td(new Date(country.COUNTRYETAGTIME))
+                       , td("", [`id="${countryRowId(country.ISO2)}"`])
+                       ]))
+      , [])
 
   var ws = new WebSocket(`wss://${document.location.hostname}/ws/updateServer`)
  
-  ws.onopen    = ()  => console.log("WebSocket connection is now open")
-  ws.onerror   = err => console.error(`Error in WebSocket connection: ${JSON.stringify(err, null, 2)}`)
-  ws.onmessage = (data, flags) => console.log('Received Message: ' + data)
+  ws.onopen  = evt => console.log(`WebSocket connection opened\n${JSON.stringify(evt, null, 2)}`)
+  ws.onclose = evt => console.log(`WebSocket connection closed\n${JSON.stringify(evt, null, 2)}`)
+  ws.onerror = err => console.error(`Error in WebSocket connection: ${JSON.stringify(err, null, 2)}`)
 
-  const sendMsg = el => {
-    ws.send(el.value)
-    el.value = ""
+  ws.onmessage = evt => {
+    // console.log(`Received Message: ${evt.data}`)
+    msg = JSON.parse(evt.data)
+    
+    switch(msg.type) {
+      case "countryList":
+        var tableHdr  = tr([ th("ISO2")
+                           , th("Country")
+                           , th("Last Updated")
+                           , th("Action")]
+                           )
+        var tableRows = genCountryTableRows(msg.payload)
+
+        document.getElementById("country-table").innerHTML = table( [tableHdr].concat(tableRows)
+                                                                  , ["cellpadding='3'", "cellspacing='0'", "border='1'"])
+
+        break
+    
+      case "country":
+        // Skip the "no country" country
+        if (msg.country !== "XX") {
+          document.getElementById(countryRowId(msg.country)).innerText = msg.payload
+        }
+        
+        break
+
+      default:
+        console.log(`That's weird, got a message of type "${msg.type}" with payload ${msg.payload}`)
+    }
   }
 
-  const closeConnection = () => ws.close()
-  
+  const refreshCountryData = () => ws.send("refreshCountryData")
   </script>
 </body>
 </html>
