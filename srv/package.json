@@ -4,7 +4,7 @@
 , "version": "1.0.0"
 , "dependencies": {
     "vue": "^2.5.21"
-  , "@sap/cds": "^3.7.x"
+  , "@sap/cds": "^3.7"
   , "@ui5/webcomponents": "*"
   , "unzip-stream": "0.3.0"
   , "event-stream": "^4.0.0"

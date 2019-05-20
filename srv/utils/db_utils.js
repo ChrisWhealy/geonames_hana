@@ -88,8 +88,8 @@ class Upsert extends Writable {
 
  // Finally, ensure there's nothing left over in the buffer
   _final(cb) {
-    console.log(JSON.stringify(this._ws, null, 2))
-    this._logger(this._genLogMsg(`${this._rowCount + this._buffer.length} rows written`))
+    //console.log(JSON.stringify(this._ws, null, 2))
+    //this._logger(this._genLogMsg(`${this._rowCount + this._buffer.length} rows written`))
 
     this._buffer.length > 0
     ? this._writeBufferToDb().then(() => cb())
