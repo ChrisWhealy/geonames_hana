@@ -8,7 +8,11 @@
 
 This repository contains a CDS data model to represent all the open-source, geopolitical information available from the <http://geonames.org> website
 
-Once the data model has been deployed to HANA, this app starts an HTTP server that first synchronises the data in the HANA database with the current data available from <http://geonames.org>, then accepts HTTP calls to search that data
+The data model must first be deployed to a HANA, the start the HTTP server.
+
+The HTTP server responds to RESTful HTTP queries and supplies a wide range of information available from <http://geonames.org>
+
+Since the data on <http://geonames.org> is crowd-sourced, it changes regularly.  Therefore, the data that has been transferred into HANA will potentially become stale after 24 hours (or 1440 minutes).  Therefore, from the HTTP server's `/admin` page, you can see a list of all the countries and the timestamp of when each country's data was last refreshed.  Simply hit the "Refresh Server Data" button and as long a gap of at least 1440 minutes has elapsed, the HANA database will be updated
 
 
 
@@ -20,9 +24,8 @@ In order to implement this server, you will need:
 
 1. A HANA instance.  A productive HANA instance is preferable, but a trial HANA instance will suffice.
 1. An HDI container - the default name for this container being `geonames-hdi`.  
-    Its fine to use a different HDI container name, but you must then change `geonames-hdi` name where it appears in lines 21 and 23 of `mta.yaml`
+    Its fine to use a different HDI container name, but you must then change the name `geonames-hdi` where it appears in lines 21 and 23 of `mta.yaml`
 1. Access to SAP Web IDE Full-Stack.  Web IDE must be configured to connect to the Cloud Foundry account in which the above HDI Container lives
-1. Via Web IDE Full-Stack, you have installed an up-to-date Builder application in your CF account
 
 
 <!-- *********************************************************************** -->
@@ -37,15 +40,20 @@ Clone this repository into Web IDE Full-Stack
 <a name="configuration"></a>
 ## Configuration
 
-1. Build and deploy the `db/` folder.  This will deploy the CDS data model to your HANA instance and load ***some*** of the tables with static data
-1. Run the `srv/` service to start the server.  When this server starts for the first time, it will download all the relevant ZIP files from <http://geonames.org> (approximately 500 files), unzip them, and transfer the tab-delimited text data into the two main database tables:
+***IMPORTANT***
+Some of the data loaded into the HANA database changes so infrequently, that is can be considered static.  Therefore, this data has been hard-coded into `.csv` files that are part of the CDS data model definition.
+
+1. Build and deploy the `/db` folder.  This will deploy the CDS data model to your HANA instance and load ***some*** of the tables with static data
+1. Run the `/srv` service to start the server.  When this server starts for the very first time, the two main database tables will be empty.  Go to the `/admin` screen and press the "Refresh Server Data" button.  This will download all the relevant ZIP files from <http://geonames.org> (approximately 500 files - 2 per country), unzip them, and transfer the tab-delimited text data into the two main database tables:
     * `ORG_GEONAMES_GEONAMES` 
     * `ORG_GEONAMES_ALTERNATENAMES`
 
 ***WARNING***  
 The `ORG_GEONAMES_BASE_GEO_COUNTRIES` table contains data not only for all 252 countries in the world, but also a special country with the non-standard country code `XX`.
 
-This is the country code for geopolitical information that does not belong to any particular country (such as underwater features that exist in international waters).  However, the geopolitical data falling into this category is downloaded from a file called `no-country.zip` rather than the expected `XX.zip`.
+This is the country code for geopolitical information that does ***not*** belong to any particular country (such as underwater features that exist in international waters).  However, the geopolitical data falling into this category is downloaded from a file called `no-country.zip` rather than the expected `XX.zip`.
+
+Data belonging to country `XX` must be treated as a special case in various parts of the coding
 
 <!-- *********************************************************************** -->
 <a name="functionality"></a>
@@ -53,16 +61,20 @@ This is the country code for geopolitical information that does not belong to an
 
 ### Startup Sequence
 
-When the server starts, it will first synchronise all the country data from <http://geonames.org> into your HANA HDI Container.  When loading all the country data into a productive HANA instance, synchronisation takes between 12 and 15 minutes; however, if you are using a trial HANA instance, it could be as long as 30 minutes.
+When the server starts, an HTTP server is made available that will respond to simple RESTful queries.
 
-Also, the GeoNames website does not allow more than about 5 open sockets from the same IP address; hence, all download requests must be grouped into batches of 5.
+Every 24 hours (1440 minutes) the data in the HANA database needs to be refreshed.  This is done from the `/admin` page.  It is not possible to refresh the data more often then every 24 hours.
+
+When loading all the country data into a productive HANA instance, synchronisation takes between 12 and 15 minutes; however, if you are using a trial HANA instance, it could be as long as 30 minutes.
+
+Also, the GeoNames website does not allow more than about 5 open sockets from the same IP address; hence, all download requests must be grouped into batches of 5.  This is the main reason for why the refresh process takes as long as it does
 
 ***IMPORTANT***  
-Occasionally, the Geonames server will unexpectedly close an open socket, thus killing the server start up process.  If this happens, simply restart the server and the synchronisation will continue from where it last stopped
+Occasionally, the Geonames server will unexpectedly close an open socket, thus killing the server start up process.  If this happens, simply restart the server and restart the synchronisation process
 
 ### Refresh Period
 
-The data in <http://geonames.org> is crowd sourced and typically changes every day.  Therefore, it is necessary to define a refresh period, after which, the duplicated data in the HANA database must be refreshed.
+The data in <http://geonames.org> is crowd-sourced and typically changes every day.  Therefore, it is necessary to define a refresh period, after which, the duplicated data in the HANA database must be refreshed.
 
 The refresh period is defined in minutes at the start of file [`srv/config/config.js`](./srv/config/config.js).
 
@@ -105,9 +117,9 @@ The following table names are used by the API.  These names are used only by the
 
 ## API
 
-Once the server has started, it will accept non-modifying HTTP requests.  Query or read requests will be accepted, but update, delete or create requests will be rejected.
+The server accepts non-modifying HTTP requests.  Query or read requests will be accepted, but update, delete or create requests will be rejected.
 
-When specifying field names in a query string, you can use either the camel-cased version of the property name seen in the returned JSON object, or you can use the convenience API name described [below](#user-content-alt-field-names).
+When specifying field names in a query string, you must use the camel-cased version of the property name seen in the returned JSON object, or you can use the convenience API name described [below](#user-content-alt-field-names).
 
 ### Query Requests
 
@@ -123,7 +135,7 @@ This will return the first 1000 rows of `<table-name>` as a JSON object
 
 This will return the JSON Object whose key exactly matches `<key-value>`, or an empty list.
 
-For example, the URL `https://<hostname>/api/v1/languages/deu` will return the single row from the `languages` table that has teh key `deu`:
+For example, the URL `https://<hostname>/api/v1/languages/deu` will return the single row from the `languages` table that has the key `deu`:
 
 ```json
 [
@@ -147,7 +159,7 @@ This will return zero or more rows where `<key-name>` matches `<key-value>`.  Fo
 <a name="alt-field-names"></a>
 #### Alternative Field Names
 
-The property names of the returned JSON objects are not always intuitive.  For example, the 3-character language code in the `languages` table is stored in field `iso639-3`.  Such field names are technical and obscure and therefore don't improve the API's useability.  Therefore, alternate, human-readable names have been configured that can be used in the API as more user-friendly alternatives.
+The property names of the returned JSON objects are not always intuitive.  For example, the 3-character language code in the `languages` table is stored in field `iso639-3`.  Such field names are technical and obscure and therefore don't improve the API's usability.  Therefore, alternate, human-readable names have been configured that can be used in the API as more user-friendly alternatives.
 
 These alternative names are listed in file [`srv/config/config.js`](./srv/config/config.js).  Look at the definition of object `api_v1`.  This object contains multiple properties whose names are the URL paths used to read a particular table.
 
@@ -168,7 +180,7 @@ Each pathname property is itself an object containing a `parameters` property.  
   }
 ```
 
-Each properties in the `parameters` object defines the name of a field permitted in the query string.  However, notice that the properties `countryCode` and `iso2` are both configured with the `colName` of `ISO2`, and the properties `countryCode3` and `iso3` are both configured with the `colName` of `ISO3`
+Each properties in the `parameters` object defines the name of a field permitted in the query string.  However, notice that the properties `countryCode` and `iso2` are both configured with the `colName` of `ISO2`, and the properties `countryCode3` and `iso3` are both configured with the column name of `ISO3`
 
 This means that either of the property names can be used to read the `ISO2` or `ISO3` database columns.  This means that the following pairs of query strings will have equivalent results:
 
@@ -206,9 +218,11 @@ Refer to the `numericOperatorsMap` object in file [`srv/config/config.js`](./srv
 <a name="limitations"></a>
 ## Limitations
 
-1) All query string parameter values are `And`ed together.  It is not possible to create an API query that uses the `OR` operator
-1) Only one parenthesised operator can be specified for a given query string parameter
-1) If the server remains running for more than 24 hours (the default refresh period), it will need to be restarted in order to refresh the country data from <http://geonames.org>
+1. All query string parameter values are `And`'ed together.  It is not possible to create an API query that uses the `OR` operator across the query string parameters
+
+1. Only one parenthesised operator can be specified for a given query string parameter
+
+1. If the server remains running for more than 24 hours (the default refresh period), the data in the database will need to be refreshed.  This is done by visiting the `/admin` page and pressing "Refresh Server Data"
 
 
 <!-- *********************************************************************** -->
@@ -231,7 +245,7 @@ This project is provided "as-is": there is no guarantee that raised issues will 
 <a name="contributing"></a>
 ## Contributing
 
-Chris Whealy
+Chris Whealy  <chris@whealy.com>
 
 <a name="license"></a>
 ## License
