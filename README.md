@@ -12,9 +12,11 @@ The data model must first be deployed to a HANA database, then the HTTP server s
 
 The HTTP server responds to RESTful queries and supplies a wide range of geopolitical information available from <http://geonames.org>
 
-Since the data on <http://geonames.org> is crowd-sourced, it changes regularly.  Therefore, the data that has been transferred into HANA will potentially become stale after 24 hours (or 1440 minutes).  Therefore, from the HTTP server's `/admin` page, you can see a list of all the countries and the timestamp of when each country's data was last refreshed.  Simply hit the "Refresh Server Data" button and as long a gap of at least 1440 minutes has elapsed, the HANA database will be updated
+Since the data on <http://geonames.org> is crowd-sourced, it changes regularly.  Consequently, the data in the HANA will potentially become stale after 24 hours (or 1440 minutes).
 
+From the HTTP server's `/admin` page, you can see a list of all the countries and the timestamp of when each country's data was last refreshed.  Simply hit the "Refresh Server Data" button and as long a gap of at least 1440 minutes has elapsed, the HANA database will be updated
 
+This server is designed for public access, therefore, incoming requests do not require any authentication.  However, access to the `/admin` page is also not authenticated.
 
 <!-- *********************************************************************** -->
 <a name="requirements"></a>
