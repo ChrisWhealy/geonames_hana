@@ -111,5 +111,5 @@ const config = {
 console.log(`Server is running in ${process.env.NODE_ENV} mode`)
 // Sometimes its necessary to force the use of development mode, even though you're running in an environment configured
 // to be production
-//module.exports = config[process.env.NODE_ENV || 'development']
-module.exports = config['development']
+module.exports = config[process.env.NODE_ENV || 'development']
+//module.exports = config['development']
