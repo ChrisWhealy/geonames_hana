@@ -8,7 +8,7 @@
 
 This repository contains a CDS data model to represent all the open-source, geopolitical information available from the <http://geonames.org> website
 
-The data model must first be deployed to a HANA DATABASE, then the HTTP server started.
+The data model must first be deployed to a HANA database, then the HTTP server started.
 
 The HTTP server responds to RESTful queries and supplies a wide range of geopolitical information available from <http://geonames.org>
 
@@ -64,11 +64,11 @@ Data belonging to country `XX` must be treated as a special case in various part
 
 When the server starts, an HTTP server is made available that responds to simple RESTful queries.
 
-Every 24 hours (1440 minutes) the data in the HANA database needs to be refreshed.  This is done from the `/admin` page.  It is not possible to refresh the data more often then every 24 hours.
+Every 24 hours (1440 minutes) the data in the HANA database needs to be refreshed.  This is done from the `/admin` page.  It is not possible to refresh the data more often than once in any given 24 hour period.
 
 When loading all the country data into a productive HANA instance, synchronisation takes between 12 and 15 minutes; however, if you are using a trial HANA instance, it could be as long as 30 minutes.
 
-Also, the GeoNames website does not allow more than about 5 open sockets from the same IP address; hence, all download requests must be grouped into batches of 5.  This is the main reason for why the refresh process takes as long as it does
+Also, the GeoNames website does not allow more than about 5 open sockets from the same IP address; hence, all download requests must be grouped into batches of 5.  This is the main reason for why the refresh process takes as long as it does.
 
 ***IMPORTANT***  
 Occasionally, the Geonames server will unexpectedly close an open socket, thus killing the server start up process.  If this happens, simply restart the server and restart the synchronisation process
@@ -86,11 +86,11 @@ const refreshFrequency = 1440
 
 By default, it is set to 24 hours (1440 minutes)
 
-It is possible however that the data for a certain country has not checked within the last 24 hours.  Therefore, the request to download a country's ZIP always contains the `'If-None-Match'` HTTP header and the eTag value returned from the last time this ZIP was downloaded.
+It is possible however that the data for a certain country has not changed within the last 24 hours.  Therefore, the requests to download a country's ZIP are always made with the `'If-None-Match'` HTTP header field set to the eTag value returned from the last time this ZIP was downloaded.
 
 ### HANA write batch size
 
-When writing data to HANA, table rows are grouped into default batches of 20,000 rows.  If needed, the batch size can be changed by altering the value of `hanaWriteBatchSize` at the start of file [`srv/config/config.js`](./srv/config/config.js).
+By default, when writing data to HANA, table rows are grouped into batches of 20,000 rows.  If needed, the batch size can be changed by altering the value of `hanaWriteBatchSize` at the start of file [`srv/config/config.js`](./srv/config/config.js).
 
 ```javascript
 // Number of rows to write to HANA in a single batch
@@ -105,7 +105,7 @@ The data model is derived from the table structure used by <http://geonames.org>
 
 The following table names are used by the API.  These names are used only by the API and exist for convenience.  The underlying database tables names are shown in the table below
 
-| API Table Name | API Key Field | API Key Field Type | HANA DB Table Name | Description |
+| API Table Name | API Key<br>Field | API Key<br>Field Type | HANA DB Table Name | Description |
 |---|---|---|---|---|
 | `geonames` | `geonameId` | `Integer64` | `ORG_GEONAMES_GEONAMES` | All geopolitical data 
 | `alternate-names` | `alternateNameId` | `Integer64` | `ORG_GEONAMES_ALTERNATENAMES` |  Colloquial, shortened or language-specific names for entries in the `geonames` table
@@ -168,7 +168,7 @@ For example, the 3-character language code in the `languages` table is stored in
 
 These alternative names are listed in file [`srv/config/config.js`](./srv/config/config.js).  Look at the definition of object `api_v1`.  This object contains multiple properties whose names define the URL paths used to read a particular table.
 
-Each pathname property is itself an object containing a `parameters` property.  For instance, part of the pathname object for `api/v1/countries` contains this `parameters` configuration:
+Each pathname property is itself an object containing a `parameters` property.  For instance, part of the pathname object for `api/v1/countries` contains a property called `parameters` that itself is another object:
 
 ```javascript
 '/api/v1/countries' : {
@@ -185,9 +185,11 @@ Each pathname property is itself an object containing a `parameters` property.  
   }
 ```
 
-Each properties in the `parameters` object defines the name of a field permitted in the query string.  However, notice that the `colName` property of both `countryCode` and `iso2` have the same value of `ISO2`, and the properties `countryCode3` and `iso3` are both configured with the column name of `ISO3`
+Each property in the `parameters` object defines the name of a field permitted in the query string.
 
-This means that either of the property names can be used to read the `ISO2` or `ISO3` database columns.  For example, the following pairs of query strings are equivalent:
+However, notice that for both the `countryCode` and `iso2` objects, the `colName` properties share the same value of `ISO2`.  Similarly, the `colName` properties of the `countryCode3` and `iso3` objects share the value `ISO3`
+
+This means that in the query string, the actual database field name `ISO2` can be queried using either name `countryCode` or the name `iso2`.  For example, the following pairs of query strings are equivalent:
 
 `https://<hostname>/api/v1/countries?iso2=GB`  
 `https://<hostname>/api/v1/countries?countryCode=GB`
@@ -226,7 +228,7 @@ Refer to the `numericOperatorsMap` object in file [`srv/config/config.js`](./srv
 1. All query string parameter values are `And`'ed together.  
     It is not currently possible to create an API query that uses the `OR` operator across the query string parameters
 
-1. Only one parenthesised operator can be specified for a given query string parameter
+1. Only one parenthesised value can be specified for a given query string parameter
 
 1. If the server remains running for more than 24 hours (the default refresh period), the data in the database will need to be refreshed.  This is done by visiting the `/admin` page and pressing "Refresh Server Data"
 
