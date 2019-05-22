@@ -11,6 +11,9 @@ An NodeJS HTTP server that provides a wide range of geopolitical information ava
 * [Download](#user-content-download)
 * [Configuration](#user-content-configuration)
 * [Functionality](#user-content-functionality)
+    * [Startup](#user-content-startup)
+    * [Refresh Period](#user-content-refresh)
+    * [HANA Write Batch Size](#user-content-batch-size)
 * [Data Model](#user-content-datamodel)
 * [API](#user-content-api)
     * [Simple Query](#user-content-simple-query)
@@ -91,6 +94,7 @@ Data belonging to country `XX` must be treated as a special case in various part
 <a name="functionality"></a>
 ## Functionality
 
+<a name="startup"></a>
 ### Startup Sequence
 
 When the server starts, an HTTP server is made available that responds to read-only RESTful queries.
@@ -104,6 +108,7 @@ Also, the GeoNames website does not allow more than about 5 open sockets from th
 ***IMPORTANT***  
 Occasionally, the Geonames server will unexpectedly close an open socket, thus killing the server start up process.  If this happens, simply restart the server and restart the synchronisation process
 
+<a name="refresh"></a>
 ### Refresh Period
 
 The data in <http://geonames.org> is crowd-sourced and typically changes every day.  Therefore, it is necessary to define a refresh period, after which, the duplicated data in the HANA database must be refreshed.
@@ -119,6 +124,7 @@ By default, it is set to 24 hours (1440 minutes)
 
 It is possible however that the data for a certain country has not changed within the last 24 hours.  Therefore, the requests to download a country's ZIP are always made with the `'If-None-Match'` HTTP header field set to the eTag value returned from the last time this ZIP was downloaded.
 
+<a name="batch-size"></a>
 ### HANA write batch size
 
 By default, when writing data to HANA, table rows are grouped into batches of 20,000 rows.  If needed, the batch size can be changed by altering the value of `hanaWriteBatchSize` at the start of file [`srv/config/config.js`](./srv/config/config.js).
