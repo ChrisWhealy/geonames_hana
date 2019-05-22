@@ -1,22 +1,42 @@
 <a name="top"></a>
 # geonames\_hana
 
+An NodeJS HTTP server that provides a wide range of geopolitical information available from <http://geonames.org>
+
+
+## Table of Contents
+
+* [Description](#user-content-description)
+* [Requirements](#user-content-requirements)
+* [Download](#user-content-download)
+* [Configuration](#user-content-configuration)
+* [Functionality](#user-content-functionality)
+* [Data Model](#user-content-datamodel)
+* [API](#user-content-api)
+    * [Simple Query](#user-content-simple-query)
+    * [Simple Read](#user-content-simple-read)
+    * [Parameterised Query](#user-content-parameterised-query)
+    * [Alternative API Field Names](#user-content-alt-field-names)
+    * [API Field Names for Generated HANA DB Column Names](#user-content-gen-field-names)
+    * [Querying Boolean Fields](#user-content-boolean-fields)
+    * [Operator Values in Query String Fields](#user-content-op-values)
+* [Limitation](#user-content-limitations)
+* [Issues](#user-content-issues)
+* [Support](#user-content-support)
+* [Contribution](#user-content-contribution)
+* [License](#user-content-license)
+
+
 
 <!-- *********************************************************************** -->
 <a name="description"></a>
 ## Description
 
-This repository contains a CDS data model to represent all the open-source, geopolitical information available from the <http://geonames.org> website
+The HTTP server responds to read-only, RESTful queries and supplies a wide range of geopolitical information available from <http://geonames.org>
 
-The data model must first be deployed to a HANA database, then the HTTP server started.
+This server is designed for public access, therefore, incoming requests do not require any authentication.  
 
-The HTTP server responds to RESTful queries and supplies a wide range of geopolitical information available from <http://geonames.org>
-
-Since the data on <http://geonames.org> is crowd-sourced, it changes regularly.  Consequently, the data in the HANA will potentially become stale after 24 hours (or 1440 minutes).
-
-From the HTTP server's `/admin` page, you can see a list of all the countries and the timestamp of when each country's data was last refreshed.  Simply hit the "Refresh Server Data" button and as long a gap of at least 1440 minutes has elapsed, the HANA database will be updated
-
-This server is designed for public access, therefore, incoming requests do not require any authentication.  However, access to the `/admin` page is also not authenticated.
+[Top](#user-content-top)
 
 <!-- *********************************************************************** -->
 <a name="requirements"></a>
@@ -29,12 +49,17 @@ In order to implement this server, you will need:
     Its fine to use a different HDI container name, but you must then change the name `geonames-hdi` where it appears in lines 21 and 23 of `mta.yaml`
 1. Access to SAP Web IDE Full-Stack.  Web IDE must be configured to connect to the Cloud Foundry account in which the above HDI Container lives
 
+[Top](#user-content-top)
+
+
 
 <!-- *********************************************************************** -->
 <a name="download"></a>
 ## Download and Installation
 
 Clone this repository into Web IDE Full-Stack
+
+[Top](#user-content-top)
 
 
 
@@ -58,13 +83,17 @@ This country code exists in order to identify geopolitical information that does
 
 Data belonging to country `XX` must be treated as a special case in various parts of the coding (E.G. in [`srv/loader.js`](./srv/loader.js#L26))
 
+[Top](#user-content-top)
+
+
+
 <!-- *********************************************************************** -->
 <a name="functionality"></a>
 ## Functionality
 
 ### Startup Sequence
 
-When the server starts, an HTTP server is made available that responds to simple RESTful queries.
+When the server starts, an HTTP server is made available that responds to read-only RESTful queries.
 
 Every 24 hours (1440 minutes) the data in the HANA database needs to be refreshed.  This is done from the `/admin` page.  It is not possible to refresh the data more often than once in any given 24 hour period.
 
@@ -99,9 +128,20 @@ By default, when writing data to HANA, table rows are grouped into batches of 20
 const hanaWriteBatchSize = 20000
 ```
 
+[Top](#user-content-top)
+
+
+
+<!-- *********************************************************************** -->
+<a name="datamodel"></a>
 ## Data Model
 
-The data model is derived from the table structure used by <http://geonames.org>
+The CDS data model is derived from the table structure used by <http://geonames.org>.  This geopolitical information is both crowd-sourced and public.
+
+Since the data on <http://geonames.org> is crowd-sourced, it changes regularly.  Consequently, the data in the HANA database will potentially become stale after 24 hours (or 1440 minutes).
+
+From the HTTP server's `/admin` page, you can see a list of all the countries and the timestamp of when each country's data was last refreshed.  Simply hit the "Refresh Server Data" button and as long a gap of at least 1440 minutes has elapsed, the HANA database will be updated from the latest country files available on <http://geonames.org>
+
 
 ### Table Names
 
@@ -118,23 +158,27 @@ The following table names are used by the API.  These names are used only by the
 | `languages` | `iso639-3` | `String(3)` | `ORG_GEONAMES_BASE_LANG_LANGUAGECODES` |  All known languages.  This includes not only langauges that are extinct, ancient, historical or constructed, but also macrolanguages (E.G. There are many regional dialects of Arabic, but all belong to the macrolanguage known as "Generic Arabic")
 | `timezones` | `name` | `String(40)` | `ORG_GEONAMES_BASE_TIME_TIMEZONES` |  All timezones
 
+[Top](#user-content-top)
 
 
+
+<!-- *********************************************************************** -->
+<a name="api"></a>
 ## API
 
 The server accepts non-modifying HTTP requests.  Query or read requests will be accepted, but update, delete or create requests will be rejected.
 
 When specifying field names in a query string, you must use the camel-cased version of the property name seen in the returned JSON object, or you can use the convenience property names described [below](#user-content-alt-field-names).
 
-### Query Requests
-
-#### Simple Query
+<a name="simple-query"></a>
+### Simple Query
 
 `https://<hostname>/api/v1/<table-name>`
 
 This will return the first 1000 rows of `<table-name>` as a JSON object
 
-#### Read
+<a name="simple-read"></a>
+### Simple Read
 
 `https://<hostname>/api/v1/<table-name>/<key-value>`
 
@@ -153,7 +197,8 @@ For example, the URL `https://<hostname>/api/v1/languages/deu` will return the s
 ]
 ```
 
-#### Query
+<a name="parameterised-query"></a>
+### Parameterised Query
 
 `https://<hostname>/api/v1/<table-name>?<key-name>=<key-value>`
 
@@ -162,7 +207,7 @@ This will return zero or more rows where `<key-name>` matches `<key-value>`.  Fo
 `https://<hostname>/api/v1/languages?iso639-3=deu`
 
 <a name="alt-field-names"></a>
-#### Alternative API Field Names
+### Alternative API Field Names
 
 The property names of the returned JSON objects are the field names used in the HANA database tables - and these names are not always intuitive!
 
@@ -203,7 +248,62 @@ Both will return the country having the 2-character country code of `GB` (I.E. G
 
 Both will return the country having the 3-character country code of `DEU` (I.E. Germany)
 
-#### Operator Values in Query String Fields
+<a name="gen-field-names"></a>
+### API Field Names for Generated HANA DB Column Names
+
+When CDS compiles a data model, any table column declared as having an association to a field in another table will be given a two-part, generated column name.  For instance, we happen to know that New York is also known as "The Big Apple", so we can search the `alternateName` table as follows:
+
+`https://<app-name>.<hostname>/api/v1/alternate-names?alternateName=Big%20Apple`
+
+This then generates the following result:
+
+```json
+[
+  {
+    "ALTERNATENAMEID": 1554355,
+    "ISOLANGUAGE": "en",
+    "ALTERNATENAME": "Big Apple",
+    "ISPREFERREDNAME": 0,
+    "ISSHORTNAME": 0,
+    "ISCOLLOQUIAL": 1,
+    "ISHISTORIC": 0,
+    "INUSEFROM": "",
+    "INUSETO": "",
+    "GEONAMEID_GEONAMEID": 5128581
+  }
+]
+```
+
+From this response, we can see that the id of New York is  `5128581` in the `geonames` table; however, the table column name is `GEONAMEID_GEONAMEID`, not the expected `GEONAMEID`.  This is due to the declaration of field `GeonameId` in in [`Geonames.cds`](./db/Geonames.cds#L95)
+
+For ease of use, the configuration allows you simply to use the expected field name, instead of the longer generated name.  We can now discover all the alternate names for New York by issuing the URL:
+
+`https://<app-name>.<hostname>/api/v1/alternate-names?geonameId=5128581`
+
+This then returns an array containing 266 different names for New York.
+
+It is at this point that we discover that the `ISOLANGUAGE` field has been overloaded and could contain a variety of values other than a 2- or 3-character ISO language code.
+
+<a name="boolean-fields"></a>
+### Querying Boolean Fields
+
+The `alternateName` table contains four Boolean fields: `ISPREFERREDNAME`, `ISSHORTNAME`, `ISCOLLOQUIAL` and `ISHISTORIC`.
+
+From the above response, we can see that these field values are not displayed as the expected jeywords `true` and `false`, but simply as `1` and `0`.
+
+***IMPORTANT***  
+When issuing a query against a Boolean field, you must use the `true` and `false` keywords in the query string parameter!
+
+For instance, if you want to show only colloquial names for New York, this query will ***always*** return an empty array:
+
+`https://<app-name>.<hostname>/api/v1/alternate-names?geonameId=5128581&isHistoric=1`
+
+But this query will return an array with one entry
+
+`https://<app-name>.<hostname>/api/v1/alternate-names?geonameId=5128581&isHistoric=true`
+
+<a name="op-values"></a>
+### Operator Values in Query String Fields
 
 Often you will need to issue a query that tests a value using some operator other than simple equivalence (`=`)
 
@@ -223,6 +323,10 @@ These operators can be specified either as the mathematical symbol (`=`, `>`, `<
 
 Refer to the `numericOperatorsMap` object in file [`srv/config/config.js`](./srv/config/config.js) for a complete list of the permitted operators.
 
+[Top](#user-content-top)
+
+
+
 <!-- *********************************************************************** -->
 <a name="limitations"></a>
 ## Limitations
@@ -234,12 +338,19 @@ Refer to the `numericOperatorsMap` object in file [`srv/config/config.js`](./srv
 
 1. If the server remains running for more than 24 hours (the default refresh period), the data in the database will need to be refreshed.  This is done by visiting the `/admin` page and pressing "Refresh Server Data"
 
+[Top](#user-content-top)
+
+
 
 <!-- *********************************************************************** -->
 <a name="issues"></a>
 ## Known Issues
 
 None so far...
+
+:-)
+
+[Top](#user-content-top)
 
 
 
@@ -249,6 +360,8 @@ None so far...
 
 This project is provided "as-is": there is no guarantee that raised issues will be answered or addressed in future releases.
 
+[Top](#user-content-top)
+
 
 
 <!-- *********************************************************************** -->
@@ -257,7 +370,14 @@ This project is provided "as-is": there is no guarantee that raised issues will 
 
 Chris Whealy  <chris@whealy.com>
 
+[Top](#user-content-top)
+
+
+
+<!-- *********************************************************************** -->
 <a name="license"></a>
 ## License
 
 This project is licensed under the Apache Software License, Version 2.0 except as noted otherwise in the [LICENSE](LICENSE) file.
+
+[Top](#user-content-top)
