@@ -95,7 +95,7 @@ Data belonging to country `XX` must be treated as a special case in various part
 ## Functionality
 
 <a name="startup"></a>
-### Startup Sequence
+### Startup
 
 When the server starts, an HTTP server is made available that responds to read-only RESTful queries.
 
@@ -259,7 +259,7 @@ Both will return the country having the 3-character country code of `DEU` (I.E. 
 
 When CDS compiles a data model, any table column declared as having an association to a field in another table will be given a two-part, generated column name.  For instance, we happen to know that New York is also known as "The Big Apple", so we can search the `alternateName` table as follows:
 
-`https://<app-name>.<hostname>/api/v1/alternate-names?alternateName=Big%20Apple`
+`https://<hostname>/api/v1/alternate-names?alternateName=Big%20Apple`
 
 This then generates the following result:
 
@@ -284,7 +284,7 @@ From this response, we can see that the id of New York is  `5128581` in the `geo
 
 For ease of use, the configuration allows you simply to use the expected field name, instead of the longer generated name.  We can now discover all the alternate names for New York by issuing the URL:
 
-`https://<app-name>.<hostname>/api/v1/alternate-names?geonameId=5128581`
+`https://<hostname>/api/v1/alternate-names?geonameId=5128581`
 
 This then returns an array containing 266 different names for New York.
 
@@ -302,11 +302,11 @@ When issuing a query against a Boolean field, you must use the `true` and `false
 
 For instance, if you want to show only colloquial names for New York, this query will ***always*** return an empty array:
 
-`https://<app-name>.<hostname>/api/v1/alternate-names?geonameId=5128581&isHistoric=1`
+`https://<hostname>/api/v1/alternate-names?geonameId=5128581&isHistoric=1`
 
 But this query will return an array with one entry
 
-`https://<app-name>.<hostname>/api/v1/alternate-names?geonameId=5128581&isHistoric=true`
+`https://<hostname>/api/v1/alternate-names?geonameId=5128581&isHistoric=true`
 
 <a name="op-values"></a>
 ### Operator Values in Query String Fields
