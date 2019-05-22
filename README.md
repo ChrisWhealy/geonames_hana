@@ -295,7 +295,7 @@ BTW: It is at this point we discover that the `ISOLANGUAGE` field has been overl
 
 The `alternateNames` table contains four Boolean fields: `ISPREFERREDNAME`, `ISSHORTNAME`, `ISCOLLOQUIAL` and `ISHISTORIC`.
 
-From the above response, we can see that these field values are not displayed as the expected jeywords `true` and `false`, but simply as `1` and `0`.
+From the above response, we can see that these field values are not displayed as the expected keywords `true` and `false`, but simply as `1` and `0`.
 
 ***IMPORTANT***  
 When issuing a query against a Boolean field, you must use the `true` and `false` keywords in the query string parameter!
