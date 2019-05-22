@@ -20,10 +20,10 @@ An NodeJS HTTP server that provides a wide range of geopolitical information ava
     * [API Field Names for Generated HANA DB Column Names](#user-content-gen-field-names)
     * [Querying Boolean Fields](#user-content-boolean-fields)
     * [Operator Values in Query String Fields](#user-content-op-values)
-* [Limitation](#user-content-limitations)
+* [Limitations](#user-content-limitations)
 * [Issues](#user-content-issues)
 * [Support](#user-content-support)
-* [Contribution](#user-content-contribution)
+* [Contributing](#user-content-contributing)
 * [License](#user-content-license)
 
 
