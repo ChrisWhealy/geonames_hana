@@ -257,7 +257,7 @@ Both will return the country having the 3-character country code of `DEU` (I.E. 
 <a name="gen-field-names"></a>
 ### API Field Names for Generated HANA DB Column Names
 
-When CDS compiles a data model, any table column declared as having an association to a field in another table will be given a two-part, generated column name.  For instance, we happen to know that New York is also known as "The Big Apple", so we can search the `alternateName` table as follows:
+When CDS compiles a data model, any table column declared as having an association to a field in another table will be given a two-part, generated column name.  For instance, we happen to know that New York is also known as "The Big Apple", so we can search the `alternateNames` table as follows:
 
 `https://<hostname>/api/v1/alternate-names?alternateName=Big%20Apple`
 
@@ -293,7 +293,7 @@ BTW: It is at this point we discover that the `ISOLANGUAGE` field has been overl
 <a name="boolean-fields"></a>
 ### Querying Boolean Fields
 
-The `alternateName` table contains four Boolean fields: `ISPREFERREDNAME`, `ISSHORTNAME`, `ISCOLLOQUIAL` and `ISHISTORIC`.
+The `alternateNames` table contains four Boolean fields: `ISPREFERREDNAME`, `ISSHORTNAME`, `ISCOLLOQUIAL` and `ISHISTORIC`.
 
 From the above response, we can see that these field values are not displayed as the expected jeywords `true` and `false`, but simply as `1` and `0`.
 
