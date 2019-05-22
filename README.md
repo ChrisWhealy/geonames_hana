@@ -288,7 +288,7 @@ For ease of use, the configuration allows you simply to use the expected field n
 
 This then returns an array containing 266 different names for New York.
 
-BTW: It is at this point we discover that the `ISOLANGUAGE` field has been overloaded and could contain a variety of values other than a 2- or 3-character ISO language code.  (See the documentation [`Geonames.cds`](./db/Geonames.cds) for details)
+BTW: It is at this point we discover that the `ISOLANGUAGE` field has been overloaded and could contain a variety of values other than a 2- or 3-character ISO language code.  (See the documentation for the entity `AlternateNames` in [`Geonames.cds`](./db/Geonames.cds#L55) for details)
 
 <a name="boolean-fields"></a>
 ### Querying Boolean Fields
