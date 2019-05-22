@@ -14,7 +14,7 @@ const Config = require('../config/config.js')
 
 /***********************************************************************************************************************
  * Handle a text file stream encountered within a ZIP file
- * When the read stream finishes, update the relavant eTag field in the country table
+ * When the read stream finishes, update the relevant eTag field in the country table
  */
 const handleTextFile =
   tableConfig =>

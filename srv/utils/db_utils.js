@@ -58,7 +58,6 @@ class Upsert extends Writable {
     this._colReducer = reduceUsingColsFrom(tableConfig.colNames)
     this._rowCount   = 0
     this._genLogMsg  = genWsMsg("country", this._iso2)
-    this._logger     = isNullOrUndef(this._ws) ? console.log : this._ws.send
   }
 
  // Put each row to the buffer.  Then when the buffer is full, dump it to HANA
@@ -88,12 +87,16 @@ class Upsert extends Writable {
 
  // Finally, ensure there's nothing left over in the buffer
   _final(cb) {
-    //console.log(JSON.stringify(this._ws, null, 2))
-    //this._logger(this._genLogMsg(`${this._rowCount + this._buffer.length} rows written`))
+    // Notify client that this table has been updated
+    // TODO
+    // Need to address at the fact that this message will be sent to the client twice per country: once for the country
+    // data and once for the alternate names data.  At the moment, the table name is not part of the message, so it
+    // will appear to the client that the same country has been updated twice.
+    this._ws.send(this._genLogMsg(`${this._rowCount + this._buffer.length} rows written`))
 
-    this._buffer.length > 0
-    ? this._writeBufferToDb().then(() => cb())
-    : cb()
+    return this._buffer.length > 0
+           ? this._writeBufferToDb().then(() => cb())
+           : cb()
   }
 }
 
