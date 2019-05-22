@@ -142,6 +142,7 @@ Since the data on <http://geonames.org> is crowd-sourced, it changes regularly. 
 From the HTTP server's `/admin` page, you can see a list of all the countries and the timestamp of when each country's data was last refreshed.  Simply hit the "Refresh Server Data" button and as long a gap of at least 1440 minutes has elapsed, the HANA database will be updated from the latest country files available on <http://geonames.org>
 
 Detailed documentation for the data model can be found [here](./docs/datamodel.md)
+
 [Top](#user-content-top)
 
 
