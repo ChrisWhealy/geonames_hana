@@ -101,7 +101,7 @@ When the server starts, an HTTP server is made available that responds to read-o
 
 Every 24 hours (1440 minutes) the data in the HANA database needs to be refreshed.  This is done from the `/admin` page.  It is not possible to refresh the data more often than once in any given 24 hour period.
 
-When loading all the country data into a productive HANA instance, synchronisation takes between 12 and 15 minutes; however, if you are using a trial HANA instance, it could be as long as 30 minutes.
+When loading all the country data into a productive HANA instance, the refresh can take around 15 to 18 minutes; however, if you are using a trial HANA instance, it could take as long as 30 minutes.
 
 Also, the GeoNames website does not allow more than about 5 open sockets from the same IP address; hence, all download requests must be grouped into batches of 5.  This is the main reason for why the refresh process takes as long as it does.
 
