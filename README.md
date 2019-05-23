@@ -9,10 +9,10 @@ An NodeJS HTTP server that provides a wide range of geopolitical information ava
 * [Description](#user-content-description)
 * [Requirements](#user-content-requirements)
 * [Download](#user-content-download)
-* [Configuration](#user-content-configuration)
+* [Initial Deployment](#user-content-initial-deployment)
 * [Functionality](#user-content-functionality)
-    * [Startup](#user-content-startup)
-    * [Refresh Period](#user-content-refresh)
+    * [Refreshing The HANA Data](#user-content-refresh-db)
+    * [Refresh Period](#user-content-refresh-period)
     * [HANA Write Batch Size](#user-content-batch-size)
 * [Data Model](#user-content-datamodel)
 * [API](#user-content-api)
@@ -28,7 +28,7 @@ An NodeJS HTTP server that provides a wide range of geopolitical information ava
 <a name="description"></a>
 ## Description
 
-The HTTP server responds to read-only, RESTful queries and supplies a wide range of geopolitical information available from <http://geonames.org>
+`geonames_hana` is an HTTP server that responds to read-only, RESTful queries and supplies a wide range of geopolitical information from a HANA database.  This data has been imported from <http://geonames.org>
 
 This server is designed for public access, therefore, incoming requests do not require any authentication.  
 
@@ -60,24 +60,21 @@ Clone this repository into Web IDE Full-Stack
 
 
 <!-- *********************************************************************** -->
-<a name="configuration"></a>
-## Configuration
-
-***IMPORTANT***  
-Some of the data loaded into the HANA database changes so infrequently, that it can be considered static.  Therefore, this data has been hard-coded into [`.csv`](./db/src/csv) files that are part of the CDS data model definition.
+<a name="initial-deployment"></a>
+## Initial Deployment
 
 1. Build and deploy the `/db` folder.  This will deploy the CDS data model to your HANA instance and load ***some*** of the tables with static data
 1. Run the `/srv` service to start the server.  When this server starts for the very first time, the two main database tables will be empty.  Go to the `/admin` screen and press the "Refresh Server Data" button.  
-    This will download all the relevant ZIP files from <http://geonames.org> (approximately 500 files - 2 per country), unzip them, and transfer the tab-delimited text data into the two main database tables:
+    This will download two ZIP files per country from <http://geonames.org> (approximately 500 files), unzip each one, then transfer the tab-delimited text data into the two main database tables:
     * `ORG_GEONAMES_GEONAMES` 
     * `ORG_GEONAMES_ALTERNATENAMES`
 
 ***WARNING***  
-The `ORG_GEONAMES_BASE_GEO_COUNTRIES` table contains data not only for all 252 countries in the world, but also a special country with the non-standard country code `XX`.
+The `ORG_GEONAMES_BASE_GEO_COUNTRIES` table contains data for not only all 252 countries in the world, but also a special country with the non-standard ISO country code `XX`.
 
-This country code exists in order to identify geopolitical information that does ***not*** belong to any particular country (such as underwater features that exist in international waters).  However, the geopolitical data falling into this category is ***not*** downloaded from the expected `XX.zip` file, but instead from `no-country.zip`.
+This country code exists in order to identify geopolitical information that does ***not*** belong to any particular country (such as underwater features in international waters).  However, the geopolitical data falling into this category is ***not*** downloaded from the expected `XX.zip` file, but instead from `no-country.zip`.
 
-Data belonging to country `XX` must be treated as a special case in various parts of the coding (E.G. in [`srv/loader.js`](./srv/loader.js#L26))
+Data belonging to country `XX` must be treated as a special case in various parts of the coding (E.G. See [`srv/loader.js`](./srv/loader.js#L25))
 
 [Top](#user-content-top)
 
@@ -87,24 +84,24 @@ Data belonging to country `XX` must be treated as a special case in various part
 <a name="functionality"></a>
 ## Functionality
 
-<a name="startup"></a>
-### Startup
+<a name="refresh-db"></a>
+### Refreshing The HANA Data
 
-When the server starts, an HTTP server is made available that responds to read-only RESTful queries.
+The data in <http://geonames.org> is crowd-sourced and typically changes every day.  Therefore, it is necessary to define a refresh period, after which, the duplicated data in the HANA database must be refreshed.  The refresh is done from the `/admin` page.
 
-Every 24 hours (1440 minutes) the data in the HANA database needs to be refreshed.  This is done from the `/admin` page.  It is not possible to refresh the data more often than once in any given 24 hour period.
+As the refresh runs, progress messages will appear in the two right-hand columns of the table shown below.  First, there will be a message saying how many bytes have been unzipped, and then once this data has been processed, the message will change to show the number of rows written to HANA for that particular country.
 
-When loading all the country data into a productive HANA instance, the refresh can take around 15 to 18 minutes; however, if you are using a trial HANA instance, it could take as long as 30 minutes.
+![Admin refresh screen](./docs/admin.png)
 
-Also, the GeoNames website does not allow more than about 5 open sockets from the same IP address; hence, all download requests must be grouped into batches of 5.  This is the main reason for why the refresh process takes as long as it does.
+When loading all the country data into a productive HANA instance, the refresh can take between 15 to 18 minutes to complete; however, if you are using a trial HANA instance, it could take as long as 30 minutes.
 
 ***IMPORTANT***  
+The GeoNames website does not allow more than about 5 open sockets from the same IP address; hence, all download requests must be grouped into batches of 5.  This is the main reason for why the refresh process takes as long as it does.
+
 Occasionally, the Geonames server will unexpectedly close an open socket, thus killing the server start up process.  If this happens, simply restart the server and restart the synchronisation process
 
-<a name="refresh"></a>
+<a name="refresh-period"></a>
 ### Refresh Period
-
-The data in <http://geonames.org> is crowd-sourced and typically changes every day.  Therefore, it is necessary to define a refresh period, after which, the duplicated data in the HANA database must be refreshed.
 
 The refresh period is defined in minutes at the start of file [`srv/config/config.js`](./srv/config/config.js).
 
@@ -113,14 +110,14 @@ The refresh period is defined in minutes at the start of file [`srv/config/confi
 const refreshFrequency = 1440
 ```
 
-By default, it is set to 24 hours (1440 minutes)
+By default, it is set to 24 hours (1440 minutes).  It is not possible to refresh the data more often than once in any given refresh period.
 
 It is possible however that the data for a certain country has not changed within the last 24 hours.  Therefore, the requests to download a country's ZIP are always made with the `'If-None-Match'` HTTP header field set to the eTag value returned from the last time this ZIP was downloaded.
 
 <a name="batch-size"></a>
 ### HANA write batch size
 
-By default, when writing data to HANA, table rows are grouped into batches of 20,000 rows.  If needed, the batch size can be changed by altering the value of `hanaWriteBatchSize` at the start of file [`srv/config/config.js`](./srv/config/config.js).
+By default, when writing data to HANA, table rows are grouped into batches of 20,000.  If needed, the batch size can be changed by altering the value of `hanaWriteBatchSize` at the start of file [`srv/config/config.js`](./srv/config/config.js).
 
 ```javascript
 // Number of rows to write to HANA in a single batch
@@ -142,6 +139,10 @@ Since the data on <http://geonames.org> is crowd-sourced, it changes regularly. 
 From the HTTP server's `/admin` page, you can see a list of all the countries and the timestamp of when each country's data was last refreshed.  Simply hit the "Refresh Server Data" button and as long a gap of at least 1440 minutes has elapsed, the HANA database will be updated from the latest country files available on <http://geonames.org>
 
 Detailed documentation for the data model can be found [here](./docs/datamodel.md)
+
+***IMPORTANT***  
+Some of the Geonames data loaded into the HANA database changes so infrequently, that it can be considered static.  Therefore, this data has been hard-coded into `.csv` files within the CDS data model definition.  In the very unlikely event that this data needs to change, then the relevant `.csv` files in the [`db/src/csv`](./db/src/csv) directory must be edited, the CDS model rebuilt and then deployed again to HANA
+
 
 [Top](#user-content-top)
 
