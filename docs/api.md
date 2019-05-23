@@ -67,7 +67,7 @@ The property names of the returned JSON objects are the field names used in the 
 
 For example, the 3-character language code in the `languages` table is stored in field `iso639-3`.  Such field names are both technical and obscure, and therefore don't improve the API's usability.  Consequently, alternate, human-readable names have been configured that can be used in the API as more user-friendly alternatives.
 
-These alternative names are listed in file [`srv/config/config.js`](./srv/config/config.js).  Look at the definition of object `api_v1`.  This object contains multiple properties whose names define the URL paths used to read a particular table.
+These alternative names are listed in file [`srv/config/config.js`](../srv/config/config.js).  Look at the definition of object `api_v1`.  This object contains multiple properties whose names define the URL paths used to read a particular table.
 
 Each pathname property is itself an object containing a `parameters` property.  For instance, part of the pathname object for `api/v1/countries` contains a property called `parameters` that itself is another object:
 
@@ -128,7 +128,7 @@ This then generates the following result:
 ]
 ```
 
-From this response, we can see that the id of New York is  `5128581` in the `geonames` table; however, the table column name is `GEONAMEID_GEONAMEID`, not the expected `GEONAMEID`.  This is due to the declaration of field `GeonameId` in in [`Geonames.cds`](./db/Geonames.cds#L95)
+From this response, we can see that the id of New York is  `5128581` in the `geonames` table; however, the table column name is `GEONAMEID_GEONAMEID`, not the expected `GEONAMEID`.  This is due to the declaration of field `GeonameId` in in [`Geonames.cds`](../db/Geonames.cds#L95)
 
 For ease of use, the configuration allows you simply to use the expected field name, instead of the longer generated name.  We can now discover all the alternate names for New York by issuing the URL:
 
@@ -136,7 +136,7 @@ For ease of use, the configuration allows you simply to use the expected field n
 
 This then returns an array containing 266 different names for New York.
 
-BTW: It is at this point we discover that the `ISOLANGUAGE` field has been overloaded and could contain a variety of values other than a 2- or 3-character ISO language code.  (See the documentation for the entity `AlternateNames` in [`Geonames.cds`](./db/Geonames.cds#L55) for details)
+BTW: It is at this point we discover that the `ISOLANGUAGE` field has been overloaded and could contain a variety of values other than a 2- or 3-character ISO language code.  (See the documentation for the entity `AlternateNames` in [`Geonames.cds`](../db/Geonames.cds#L55) for details)
 
 <a name="boolean-fields"></a>
 ### Querying Boolean Fields
@@ -175,7 +175,7 @@ The operators that are permitted for a given parameter are defined in the `opera
 
 These operators can be specified either as the mathematical symbol (`=`, `>`, `<=` etc), or as their character equivalents (`EQ`, `GT`, `LTE` etc)
 
-Refer to the `numericOperatorsMap` object in file [`srv/config/config.js`](./srv/config/config.js) for a complete list of the permitted operators.
+Refer to the `numericOperatorsMap` object in file [`srv/config/config.js`](../srv/config/config.js) for a complete list of the permitted operators.
 
 [Top](#user-content-top)
 
