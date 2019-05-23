@@ -103,7 +103,7 @@ Occasionally, the Geonames server will unexpectedly close an open socket, thus k
 <a name="refresh-period"></a>
 ### Refresh Period
 
-The refresh period is defined in minutes at the start of file [`srv/config/config.js`](./srv/config/config.js).
+The refresh period is defined in minutes at the start of file [`srv/config/config_settings.js`](./srv/config/config_settings.js).
 
 ```javascript
 // DB refresh period in minutes
@@ -117,7 +117,7 @@ It is possible however that the data for a certain country has not changed withi
 <a name="batch-size"></a>
 ### HANA write batch size
 
-By default, when writing data to HANA, table rows are grouped into batches of 20,000.  If needed, the batch size can be changed by altering the value of `hanaWriteBatchSize` at the start of file [`srv/config/config.js`](./srv/config/config.js).
+By default, when writing data to HANA, table rows are grouped into batches of 20,000.  If needed, the batch size can be changed by altering the value of `hanaWriteBatchSize` at the start of file [`srv/config/config_settings.js`](./srv/config/config_settings.js).
 
 ```javascript
 // Number of rows to write to HANA in a single batch
