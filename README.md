@@ -40,10 +40,14 @@ This server is designed for public access, therefore, incoming requests do not r
 
 In order to implement this server, you will need:
 
-1. A HANA instance.  A productive HANA instance is preferable, but a trial HANA instance will suffice.
-1. An HDI container - the default name for this container being `geonames-hdi`.  
-    Its fine to use a different HDI container name, but you must then change the name `geonames-hdi` where it appears in lines 21 and 23 of `mta.yaml`
-1. Access to SAP Web IDE Full-Stack.  Web IDE must be configured to connect to the Cloud Foundry account in which the above HDI Container lives
+1. **A HANA instance**  
+    A productive HANA instance is preferable, but a trial HANA instance will suffice.
+
+1. **An HDI container**  
+    The default name for this container is `geonames-hdi` but if necessary, you change it by editing lines 21 and 23 of [`mta.yaml`](./mta.yaml)
+
+1. **Access to SAP Web IDE Full-Stack**  
+    Web IDE Full-stack must be configured to connect to the Cloud Foundry account in which the above HDI Container lives
 
 [Top](#user-content-top)
 
@@ -63,18 +67,23 @@ Clone this repository into Web IDE Full-Stack
 <a name="initial-deployment"></a>
 ## Initial Deployment
 
-1. Build and deploy the `/db` folder.  This will deploy the CDS data model to your HANA instance and load ***some*** of the tables with static data
-1. Run the `/srv` service to start the server.  When this server starts for the very first time, the two main database tables will be empty.  Go to the `/admin` screen and press the "Refresh Server Data" button.  
-    This will download two ZIP files per country from <http://geonames.org> (approximately 500 files), unzip each one, then transfer the tab-delimited text data into the two main database tables:
+1. **Build and deploy the `/db` folder**  
+    This will deploy the CDS data model to your HANA instance and load ***some*** of the tables with static data
+
+1. **Run the `/srv` service to start the server**  
+    When this server starts for the very first time, the two main database tables containing the dynamic data will be empty.  To populate (or refresh) these two tables, go to the `/admin` screen and press the "Refresh Server Data" button.  This will download two ZIP files per country from <http://geonames.org> (approximately 500 files), unzip each one, then transfer the tab-delimited text data into the two main database tables:
     * `ORG_GEONAMES_GEONAMES` 
     * `ORG_GEONAMES_ALTERNATENAMES`
 
-***WARNING***  
-The `ORG_GEONAMES_BASE_GEO_COUNTRIES` table contains data for not only all 252 countries in the world, but also a special country with the non-standard ISO country code `XX`.
+### The "No Country" Country
 
-This country code exists in order to identify geopolitical information that does ***not*** belong to any particular country (such as underwater features in international waters).  However, the geopolitical data falling into this category is ***not*** downloaded from the expected `XX.zip` file, but instead from `no-country.zip`.
+The `ORG_GEONAMES_BASE_GEO_COUNTRIES` table contains one row for each of the 252 countries in the world.  However, there is also a special "no country" country that uses the non-standard ISO code `XX`.
 
-Data belonging to country `XX` must be treated as a special case in various parts of the coding (E.G. See [`srv/loader.js`](./srv/loader.js#L25))
+This is a dummy country code and from a technical perspective, is needed to satisfy the foreign key requirements of the data model; however, it is also needed because data is present for geopolitical features that do ***not*** belong to any particular country (such as underwater features in international waters).
+
+Again, to satisfy foreign key requirements, country `XX` has been arbitrarily assigned to continent code `EU` for Europe.
+
+And just to keep you on your toes, the geopolitical data belonging to country `XX` is ***not*** downloaded from the expected `XX.zip` file, but instead from `no-country.zip`.  Consequently, there are several places in the coding where data belonging to country `XX` must be treated as a special case (E.G. In [`srv/loader.js`](./srv/loader.js#L25) or [`srv/admin.html`](./srv/admin.html))
 
 [Top](#user-content-top)
 
