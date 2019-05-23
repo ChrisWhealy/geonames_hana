@@ -12,6 +12,7 @@ const Unzip  = require('unzip-stream')
 const HTTP   = require('http')
 const Config = require('./config/config.js')
 const HANA   = require('./utils/hana_transform.js')
+const WS     = require('./utils/ws_utils.js')
 
 const geonames_path  = '/export/dump/'
 const altnames_path  = `${geonames_path}alternatenames/`
@@ -20,9 +21,7 @@ const startedAt = Date.now()
 const separator = "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// Partial function that returns an API request handler for a given API config object
-const genWsMsg = (msgType, msgCountry) => msgPayload => JSON.stringify({type: msgType, country: msgCountry, payload: msgPayload})
-
+// Handle the special case of country XX that does not map to country file XX.zip
 const mapCountryCode = iso2 => iso2 === 'XX' ? 'no-country' : iso2
 
 // How many whole minutes have elapsed since some particular time in the past?
@@ -74,11 +73,11 @@ const getUrl = request => `${request.agent.protocol}//${request._headers.host}${
 var fetchZipFile =
   (geonamesPath, textStreamHandler) =>
     (ws, countryObj) => {
-      let wsCountry = genWsMsg('country', countryObj.ISO2)
-
       // Are we fetching a country ZIP file or an alternate name ZIP file?
       let isAlternateNameFile = geonamesPath.indexOf("alternate") > -1
       let lastRefreshTime     = isAlternateNameFile ? countryObj.ALTNAMESETAGTIME : countryObj.COUNTRYETAGTIME
+
+      let wsMsg = WS.genWsMsg(isAlternateNameFile ? 'altname' : 'country', countryObj.ISO2)
 
       return new Promise((resolve, reject) => {
         // Using the appropriate eTag time field, check whether or not a refresh is needed
@@ -87,7 +86,7 @@ var fetchZipFile =
             buildHttpOptions(countryObj, geonamesPath, isAlternateNameFile)
           , response => {
               var sourceURL = getUrl(response.req)
-              ws.send(wsCountry(`Fetching ${sourceURL}`))
+              ws.send(wsMsg(`Fetching ${sourceURL}`))
       
               // -----------------------------------------------------------------------------------------------------------
               // The HTTP request might fail...
@@ -97,7 +96,7 @@ var fetchZipFile =
                 response.statusCode === 304
                 // Nope
                 ? (_ => resolve())
-                  (ws.send(wsCountry("Unchanged since last access")))
+                  (ws.send(wsMsg("Unchanged since last access")))
                 // Yup, so did the download succeed?
                 : response.statusCode === 200
                   // -------------------------------------------------------------------------------------------------------
@@ -105,7 +104,7 @@ var fetchZipFile =
                   ? response
                       // Unzip the HTTP response stream
                       .pipe((_ => Unzip.Parse())
-                            (ws.send(wsCountry(`Unzipping ${response.headers["content-length"]} bytes`))))
+                            (ws.send(wsMsg(`Unzipping ${response.headers["content-length"]} bytes`))))
                       // Then, when we encounter a file within the unzipped stream...
                       .on('entry'
                          , entry =>
@@ -133,7 +132,7 @@ var fetchZipFile =
         }
         // This file does not need to be refreshed because the refresh period has not yet elapsed
         else {
-          ws.send(wsCountry(`Refresh period elapses in ${Config.refreshFrequency - minutesBetweenNowAnd(lastRefreshTime)} minutes`))
+          ws.send(wsMsg(`Refresh period elapses in ${Config.refreshFrequency - minutesBetweenNowAnd(lastRefreshTime)} minutes`))
           resolve()
         }
       })

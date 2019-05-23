@@ -18,13 +18,13 @@ const Config = require('../config/config.js')
  */
 const handleTextFile =
   tableConfig =>
-    (ws, entry, countryObj, isAltNames, etag) =>
+    (ws, entry, countryObj, isAltName, etag) =>
       entry
         .pipe(ES.split())
-        .pipe(new DB.Upsert({webSocket: ws, tableConfig: tableConfig, iso2: countryObj.ISO2}))
+        .pipe(new DB.Upsert({webSocket: ws, tableConfig: tableConfig, iso2: countryObj.ISO2, isAltName: isAltName}))
         .on('finish', () => {
           // Update the appropriate eTag value and time fields
-          if (isAltNames) {
+          if (isAltName) {
             countryObj.ALTNAMESETAG     = etag
             countryObj.ALTNAMESETAGTIME = Date.now()
           }

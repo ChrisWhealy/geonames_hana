@@ -9,7 +9,8 @@
  **/
 
 const { Writable } = require('stream')
-const cds          = require('@sap/cds')
+const CDS          = require('@sap/cds')
+const WS           = require('./ws_utils.js')
 
 const { isNotNullOrUndef
       , push
@@ -17,8 +18,6 @@ const { isNotNullOrUndef
       } = require('./functional_tools.js')
 
 const config = require('../config/config.js')
-
-const genWsMsg = (msgType, msgCountry) => msgPayload => JSON.stringify({type: msgType, country: msgCountry, payload: msgPayload})
 
 const columnList      = cols => cols.filter(isNotNullOrUndef)
 const genColumnList   = cols => columnList(cols).join(',')
@@ -45,6 +44,7 @@ class Upsert extends Writable {
   , tableConfig = {}
   , iso2        = ""
   , webSocket   = null
+  , isAltName   = false
   }) {
     // Since we're extending an existing class, we must call that class's constructor
     super()
@@ -57,7 +57,8 @@ class Upsert extends Writable {
     this._upsert     = genUpsertFrom(tableConfig.dbTableName, tableConfig.colNames)
     this._colReducer = reduceUsingColsFrom(tableConfig.colNames)
     this._rowCount   = 0
-    this._genLogMsg  = genWsMsg("country", this._iso2)
+    this._isAltName  = isAltName
+    this._genLogMsg  = WS.genWsMsg(this._isAltName ? 'altname' : 'country', this._iso2)
   }
 
  // Put each row to the buffer.  Then when the buffer is full, dump it to HANA
@@ -82,16 +83,12 @@ class Upsert extends Writable {
  // Write the buffer contents to HANA, and flush the buffer
   _writeBufferToDb() {
     this._rowCount += this._buffer.length
-    return cds.run(this._upsert, this._buffer.splice(0)).catch(console.error)
+    return CDS.run(this._upsert, this._buffer.splice(0)).catch(console.error)
   }
 
  // Finally, ensure there's nothing left over in the buffer
   _final(cb) {
-    // Notify client that this table has been updated
-    // TODO
-    // Need to address at the fact that this message will be sent to the client twice per country: once for the country
-    // data and once for the alternate names data.  At the moment, the table name is not part of the message, so it
-    // will appear to the client that the same country has been updated twice.
+    // Notify the client of the number of rows written to this particular table
     this._ws.send(this._genLogMsg(`${this._rowCount + this._buffer.length} rows written`))
 
     return this._buffer.length > 0
@@ -138,7 +135,7 @@ const invokeApiInDb =
   (apiConfig, validatedUrl) =>
     (sqlGenFn =>
       (sql =>
-        (_ => cds.run(sql).catch(console.error))
+        (_ => CDS.run(sql).catch(console.error))
         (console.log(`Executing SQL statement ${sql}`)))
       (sqlGenFn(validatedUrl, apiConfig)))
     (validatedUrl.keys.length > 0 ? genSqlRead : genSqlQuery)

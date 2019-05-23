@@ -29,7 +29,8 @@
 
   const push = (arr, el) => (_ => arr)(arr.push(el))
 
-  const countryRowId = iso2 => `country-row-${iso2}`
+  const countryRowId  = iso2 => `country-row-${iso2}`
+  const altNamesRowId = iso2 => `alt-names-row-${iso2}`
   
   const emptyElements = [
     'area', 'base', 'basefont', 'br', 'col', 'frame', 'hr', 'img'
@@ -58,6 +59,7 @@
                        , td(country.COUNTRYNAME)
                        , td(new Date(country.COUNTRYETAGTIME))
                        , td("", [`id="${countryRowId(country.ISO2)}"`])
+                       , td("", [`id="${altNamesRowId(country.ISO2)}"`])
                        ]))
       , [])
 
@@ -73,15 +75,19 @@
     
     switch(msg.type) {
       case "countryList":
-        var tableHdr  = tr([ th("ISO2")
-                           , th("Country")
-                           , th("Last Updated")
-                           , th("Action")]
-                           )
+        var tableHdr1 = tr([ th("ISO2", ["rowspan='2'"])
+                           , th("Country", ["rowspan='2'"])
+                           , th("Last Updated", ["rowspan='2'"])
+                           , th("Action", ["colspan='2'"])
+                           ])
+        var tableHdr2 = tr([ th("Country") 
+                           , th('Alt Names')
+                           ])
         var tableRows = genCountryTableRows(msg.payload)
 
-        document.getElementById("country-table").innerHTML = table( [tableHdr].concat(tableRows)
-                                                                  , ["cellpadding='3'", "cellspacing='0'", "border='1'"])
+        document.getElementById("country-table").innerHTML =
+          table( [tableHdr1, tableHdr2].concat(tableRows)
+               , ["cellpadding='3'", "cellspacing='0'", "border='1'"])
 
         break
     
@@ -89,6 +95,14 @@
         // Skip the "no country" country
         if (msg.country !== "XX") {
           document.getElementById(countryRowId(msg.country)).innerText = msg.payload
+        }
+        
+        break
+
+      case "altname":
+        // Skip the "no country" country
+        if (msg.country !== "XX") {
+          document.getElementById(altNamesRowId(msg.country)).innerText = msg.payload
         }
         
         break
