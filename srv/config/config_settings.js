@@ -5,8 +5,8 @@
 // API version number that must appear after the hostname at the start of all API requests
 const apiVersionPrefix = '/api/v1/'
 
-// DB refresh period in minutes
-const refreshFrequency = 1440
+// DB refresh period in minutes - 23.5 hours
+const refreshFrequency = 1410
 
 // Number of rows to write to HANA in a single batch
 const hanaWriteBatchSize = 20000
