@@ -107,7 +107,7 @@ When loading all the country data into a productive HANA instance, the refresh c
 ***IMPORTANT***  
 The GeoNames website does not allow more than about 5 open sockets from the same IP address; hence, all download requests must be grouped into batches of 5.  This is the main reason for why the refresh process takes as long as it does.
 
-Occasionally, the Geonames server will unexpectedly close an open socket, thus killing the server start up process.  If this happens, simply restart the server and restart the synchronisation process
+Occasionally, the Geonames server will unexpectedly close an open socket, thus killing the refresh process and possibly crashing the server.  If this happens, simply restart the server and restart the synchronisation process
 
 <a name="refresh-period"></a>
 ### Refresh Period
@@ -115,11 +115,17 @@ Occasionally, the Geonames server will unexpectedly close an open socket, thus k
 The refresh period is defined in minutes at the start of file [`srv/config/config_settings.js`](./srv/config/config_settings.js).
 
 ```javascript
-// DB refresh period in minutes
-const refreshFrequency = 1440
+// DB refresh period in minutes - 23.5 hours
+const refreshFrequency = 1410
 ```
 
-By default, it is set to 24 hours (1440 minutes).  It is not possible to refresh the data more often than once in any given refresh period.
+By default, the refresh period is set to the slightly non-intuitive value of 23½ hours (1410 minutes).
+
+The reason for this is that since a database refresh can take up to half an hour to complete, the next refresh job should not be run until 24 hours after that previous refresh ***completed*** (not started).
+
+Therefore, having a refresh period of 23½ hours, plus 30 minutes execution time equals roughly 24 hours.
+
+It is not possible to refresh the data more often than once in any given refresh period.
 
 It is possible however that the data for a certain country has not changed within the last 24 hours.  Therefore, the requests to download a country's ZIP are always made with the `'If-None-Match'` HTTP header field set to the eTag value returned from the last time this ZIP was downloaded.
 
@@ -143,9 +149,9 @@ const hanaWriteBatchSize = 20000
 
 The CDS data model is derived from the table structure used by <http://geonames.org>.  This geopolitical information is both crowd-sourced and public.
 
-Since the data on <http://geonames.org> is crowd-sourced, it changes regularly.  Consequently, the data in the HANA database will potentially become stale after 24 hours (or 1440 minutes).
+Since the data on <http://geonames.org> is crowd-sourced, it changes regularly.  Consequently, the data in the HANA database will potentially become stale after 24 hours.
 
-From the HTTP server's `/admin` page, you can see a list of all the countries and the timestamp of when each country's data was last refreshed.  Simply hit the "Refresh Server Data" button and as long a gap of at least 1440 minutes has elapsed, the HANA database will be updated from the latest country files available on <http://geonames.org>
+From the HTTP server's `/admin` page, you can see a list of all the countries and the timestamp of when each country's data was last refreshed.  Simply hit the "Refresh Server Data" button, and as long the refresh period has elapsed, the HANA database will be updated from the latest country and alternate names files available on <http://geonames.org>
 
 Detailed documentation for the data model can be found [here](./docs/datamodel.md)
 
