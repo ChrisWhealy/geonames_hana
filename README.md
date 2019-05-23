@@ -127,7 +127,7 @@ Therefore, having a refresh period of 23½ hours, plus 30 minutes execution time
 
 It is not possible to refresh the data more often than once in any given refresh period.
 
-It is possible however that the data for a certain country has not changed within the last 24 hours.  Therefore, the requests to download a country's ZIP are always made with the `'If-None-Match'` HTTP header field set to the eTag value returned from the last time this ZIP was downloaded.
+It is possible however that the data for a certain country has not changed within the last 24 hours.  Therefore, the requests to download a country's ZIP file are always made with the `'If-None-Match'` HTTP header field set to the eTag value returned from the last time this ZIP file was requested.
 
 <a name="batch-size"></a>
 ### HANA write batch size
@@ -147,9 +147,9 @@ const hanaWriteBatchSize = 20000
 <a name="datamodel"></a>
 ## Data Model
 
-The CDS data model is derived from the table structure used by <http://geonames.org>.  This geopolitical information is both crowd-sourced and public.
+The CDS data model is derived from the table structure used by <http://geonames.org>.
 
-Since the data on <http://geonames.org> is crowd-sourced, it changes regularly.  Consequently, the data in the HANA database will potentially become stale after 24 hours.
+Since this data is crowd-sourced, it changes regularly.  <http://geonames.org> batch all changes to their data and make new country files available every day.  Therefore, to keep the data in the HANA database up to date, it should be refreshed daily.
 
 From the HTTP server's `/admin` page, you can see a list of all the countries and the timestamp of when each country's data was last refreshed.  Simply hit the "Refresh Server Data" button, and as long the refresh period has elapsed, the HANA database will be updated from the latest country and alternate names files available on <http://geonames.org>
 
@@ -182,7 +182,7 @@ Detailed documentation for the API can be found [here](./docs/api.md)
 
 1. Only one parenthesised value can be specified for a given query string parameter
 
-1. If the server remains running for more than 24 hours (the default refresh period), the data in the database will need to be refreshed.  This is done by visiting the `/admin` page and pressing "Refresh Server Data"
+1. The data in the database should be refreshed on a daily basis.  This is done by visiting the `/admin` page and pressing "Refresh Server Data"
 
 [Top](#user-content-top)
 
