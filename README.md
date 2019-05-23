@@ -40,10 +40,14 @@ This server is designed for public access, therefore, incoming requests do not r
 
 In order to implement this server, you will need:
 
-1. A HANA instance.  A productive HANA instance is preferable, but a trial HANA instance will suffice.
-1. An HDI container - the default name for this container being `geonames-hdi`.  
-    Its fine to use a different HDI container name, but you must then change the name `geonames-hdi` where it appears in lines 21 and 23 of `mta.yaml`
-1. Access to SAP Web IDE Full-Stack.  Web IDE must be configured to connect to the Cloud Foundry account in which the above HDI Container lives
+1. **A HANA instance**  
+    A productive HANA instance is preferable, but a trial HANA instance will suffice.
+
+1. **An HDI container**  
+    The default name for this container is `geonames-hdi` but if necessary, you change it by editing lines 21 and 23 of [`mta.yaml`](./mta.yaml)
+
+1. **Access to SAP Web IDE Full-Stack**  
+    Web IDE Full-stack must be configured to connect to the Cloud Foundry account in which the above HDI Container lives
 
 [Top](#user-content-top)
 
@@ -63,18 +67,23 @@ Clone this repository into Web IDE Full-Stack
 <a name="initial-deployment"></a>
 ## Initial Deployment
 
-1. Build and deploy the `/db` folder.  This will deploy the CDS data model to your HANA instance and load ***some*** of the tables with static data
-1. Run the `/srv` service to start the server.  When this server starts for the very first time, the two main database tables will be empty.  Go to the `/admin` screen and press the "Refresh Server Data" button.  
-    This will download two ZIP files per country from <http://geonames.org> (approximately 500 files), unzip each one, then transfer the tab-delimited text data into the two main database tables:
+1. **Build and deploy the `/db` folder**  
+    This will deploy the CDS data model to your HANA instance and load ***some*** of the tables with static data
+
+1. **Run the `/srv` service to start the server**  
+    When this server starts for the very first time, the two main database tables containing the dynamic data will be empty.  To populate (or refresh) these two tables, go to the `/admin` screen and press the "Refresh Server Data" button.  This will download two ZIP files per country from <http://geonames.org> (approximately 500 files), unzip each one, then transfer the tab-delimited text data into the two main database tables:
     * `ORG_GEONAMES_GEONAMES` 
     * `ORG_GEONAMES_ALTERNATENAMES`
 
-***WARNING***  
-The `ORG_GEONAMES_BASE_GEO_COUNTRIES` table contains data for not only all 252 countries in the world, but also a special country with the non-standard ISO country code `XX`.
+### The "No Country" Country
 
-This country code exists in order to identify geopolitical information that does ***not*** belong to any particular country (such as underwater features in international waters).  However, the geopolitical data falling into this category is ***not*** downloaded from the expected `XX.zip` file, but instead from `no-country.zip`.
+The `ORG_GEONAMES_BASE_GEO_COUNTRIES` table contains one row for each of the 252 countries in the world.  However, there is also a special "no country" country that uses the non-standard ISO code `XX`.
 
-Data belonging to country `XX` must be treated as a special case in various parts of the coding (E.G. See [`srv/loader.js`](./srv/loader.js#L25))
+This is a dummy country code and from a technical perspective, is needed to satisfy the foreign key requirements of the data model; however, it is also needed because data is present for geopolitical features that do ***not*** belong to any particular country (such as underwater features in international waters).
+
+Again, to satisfy foreign key requirements, country `XX` has been arbitrarily assigned to continent code `EU` for Europe.
+
+And just to keep you on your toes, the geopolitical data belonging to country `XX` is ***not*** downloaded from the expected `XX.zip` file, but instead from `no-country.zip`.  Consequently, there are several places in the coding where data belonging to country `XX` must be treated as a special case (E.G. In [`srv/loader.js`](./srv/loader.js#L25) or [`srv/admin.html`](./srv/admin.html))
 
 [Top](#user-content-top)
 
@@ -98,7 +107,7 @@ When loading all the country data into a productive HANA instance, the refresh c
 ***IMPORTANT***  
 The GeoNames website does not allow more than about 5 open sockets from the same IP address; hence, all download requests must be grouped into batches of 5.  This is the main reason for why the refresh process takes as long as it does.
 
-Occasionally, the Geonames server will unexpectedly close an open socket, thus killing the server start up process.  If this happens, simply restart the server and restart the synchronisation process
+Occasionally, the Geonames server will unexpectedly close an open socket, thus killing the refresh process and possibly crashing the server.  If this happens, simply restart the server and restart the synchronisation process
 
 <a name="refresh-period"></a>
 ### Refresh Period
@@ -106,11 +115,17 @@ Occasionally, the Geonames server will unexpectedly close an open socket, thus k
 The refresh period is defined in minutes at the start of file [`srv/config/config_settings.js`](./srv/config/config_settings.js).
 
 ```javascript
-// DB refresh period in minutes
-const refreshFrequency = 1440
+// DB refresh period in minutes - 23.5 hours
+const refreshFrequency = 1410
 ```
 
-By default, it is set to 24 hours (1440 minutes).  It is not possible to refresh the data more often than once in any given refresh period.
+By default, the refresh period is set to the slightly non-intuitive value of 23½ hours (1410 minutes).
+
+The reason for this is that since a database refresh can take up to half an hour to complete, the next refresh job should not be run until 24 hours after that previous refresh ***completed*** (not started).
+
+Therefore, having a refresh period of 23½ hours, plus 30 minutes execution time equals roughly 24 hours.
+
+It is not possible to refresh the data more often than once in any given refresh period.
 
 It is possible however that the data for a certain country has not changed within the last 24 hours.  Therefore, the requests to download a country's ZIP are always made with the `'If-None-Match'` HTTP header field set to the eTag value returned from the last time this ZIP was downloaded.
 
@@ -134,9 +149,9 @@ const hanaWriteBatchSize = 20000
 
 The CDS data model is derived from the table structure used by <http://geonames.org>.  This geopolitical information is both crowd-sourced and public.
 
-Since the data on <http://geonames.org> is crowd-sourced, it changes regularly.  Consequently, the data in the HANA database will potentially become stale after 24 hours (or 1440 minutes).
+Since the data on <http://geonames.org> is crowd-sourced, it changes regularly.  Consequently, the data in the HANA database will potentially become stale after 24 hours.
 
-From the HTTP server's `/admin` page, you can see a list of all the countries and the timestamp of when each country's data was last refreshed.  Simply hit the "Refresh Server Data" button and as long a gap of at least 1440 minutes has elapsed, the HANA database will be updated from the latest country files available on <http://geonames.org>
+From the HTTP server's `/admin` page, you can see a list of all the countries and the timestamp of when each country's data was last refreshed.  Simply hit the "Refresh Server Data" button, and as long the refresh period has elapsed, the HANA database will be updated from the latest country and alternate names files available on <http://geonames.org>
 
 Detailed documentation for the data model can be found [here](./docs/datamodel.md)
 
