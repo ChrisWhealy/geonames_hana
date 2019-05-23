@@ -29,8 +29,16 @@
 
   const push = (arr, el) => (_ => arr)(arr.push(el))
 
-  const countryRowId  = iso2 => `country-row-${iso2}`
-  const altNamesRowId = iso2 => `alt-names-row-${iso2}`
+  const genRowIdFn   = type => iso2 => `${type}-row-${iso2}`
+  const serialise    = separator => stuff => isArray(stuff) ? stuff.join(separator) : stuff
+  const concat       = serialise("")
+  const join         = serialise(" ")
+  
+  const showActionMsg =
+    msg =>
+      (rowIdFn => document.getElementById(rowIdFn(msg.country)).innerText = msg.payload)
+      (genRowIdFn(msg.type))
+
   
   const emptyElements = [
     'area', 'base', 'basefont', 'br', 'col', 'frame', 'hr', 'img'
@@ -42,7 +50,7 @@
   const genHtmlEl =
     elName =>
       (content, parms) =>
-        `<${elName} ${isUndefined(parms) ? "" : parms.join(" ")}>${isEmptyElement(elName) ? "" : `${isArray(content) ? content.join("") : content}</${elName}>`}`
+        `<${elName} ${isUndefined(parms) ? "" : join(parms)}>${isEmptyElement(elName) ? "" : `${concat(content)}</${elName}>`}`
   
   const td    = genHtmlEl("td")
   const th    = genHtmlEl("th")
@@ -58,15 +66,15 @@
         : push(acc, tr([ td(country.ISO2)
                        , td(country.COUNTRYNAME)
                        , td(new Date(country.COUNTRYETAGTIME))
-                       , td("", [`id="${countryRowId(country.ISO2)}"`])
-                       , td("", [`id="${altNamesRowId(country.ISO2)}"`])
+                       , td("", `id="${genRowIdFn('country')(country.ISO2)}"`)
+                       , td("", `id="${genRowIdFn('altname')(country.ISO2)}"`)
                        ]))
       , [])
 
   var ws = new WebSocket(`wss://${document.location.hostname}/ws/updateServer`)
  
-  ws.onopen  = evt => console.log(`WebSocket connection opened\n${JSON.stringify(evt, null, 2)}`)
-  ws.onclose = evt => console.log(`WebSocket connection closed\n${JSON.stringify(evt, null, 2)}`)
+  ws.onopen  = evt => console.log(`WebSocket connection opened`)
+  ws.onclose = evt => console.log(`WebSocket connection closed`)
   ws.onerror = err => console.error(`Error in WebSocket connection: ${JSON.stringify(err, null, 2)}`)
 
   ws.onmessage = evt => {
@@ -75,10 +83,11 @@
     
     switch(msg.type) {
       case "countryList":
-        var tableHdr1 = tr([ th("ISO2", ["rowspan='2'"])
-                           , th("Country", ["rowspan='2'"])
-                           , th("Last Updated", ["rowspan='2'"])
-                           , th("Action", ["colspan='2'"])
+        // Generate the country list table
+        var tableHdr1 = tr([ th("ISO2",         "rowspan='2'")
+                           , th("Country",      "rowspan='2'")
+                           , th("Last Updated", "rowspan='2'")
+                           , th("Action",       "colspan='2'")
                            ])
         var tableHdr2 = tr([ th("Country") 
                            , th('Alt Names')
@@ -92,17 +101,10 @@
         break
     
       case "country":
-        // Skip the "no country" country
-        if (msg.country !== "XX") {
-          document.getElementById(countryRowId(msg.country)).innerText = msg.payload
-        }
-        
-        break
-
       case "altname":
-        // Skip the "no country" country
+        // Update the country or altname action message for all countries except the "no country" country
         if (msg.country !== "XX") {
-          document.getElementById(altNamesRowId(msg.country)).innerText = msg.payload
+          showActionMsg(msg)
         }
         
         break
