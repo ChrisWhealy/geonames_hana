@@ -185,11 +185,11 @@ By placing parentheses around the value, you can specify the operator first, fol
 
 `(<operator>,<value>)`
 
-The operators permitted for a given parameter are defined in the `operators` property of the `parameters` object with each pathname object.  In the above example, the `population` property is configured to accept any operator in `numericOperatorsMap`.  See [`srv/config/geonames.js`](../srv/config/geonames.js#L31) for details.
+The operators permitted for a given parameter are defined in the `operators` property of the `parameters` object within each pathname object.  In the above example, the `population` property is configured to accept any operator found in the map `numericOperatorsMap`.  See [`srv/config/geonames.js`](../srv/config/geonames.js#L31) for details.
 
 These operators can be specified either as the mathematical symbol (`=`, `>`, `<=` etc), or as their character equivalents (`EQ`, `GT`, `LTE` etc)
 
-If a query string parameter value contains a non-permitted operator, then this will generate an HTTP 400 "Bad Request" response.
+If such a query string parameter value contains a non-permitted operator, then this will generate an HTTP 400 "Bad Request" response with an explanatory error message.
 
 Refer to the `numericOperatorsMap` object in file [`srv/config/config_settings.js`](../srv/config/config_settings.js#L25) for a complete list of the permitted operators.
 
