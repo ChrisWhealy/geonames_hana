@@ -147,7 +147,7 @@ const hanaWriteBatchSize = 20000
 <a name="row-limit"></a>
 ### Query Response Limit
 
-The maximum number of rows returned by a query has been hardcoded to `1000`.  This value can be changed by altering the value of `rowLimit` at the start of file [`srv/config/config_settings.js`](./srv/config/config_settings.js#15).
+The maximum number of rows returned by a query has been hardcoded to `1000`.  This value can be changed by altering the value of `rowLimit` at the start of file [`srv/config/config_settings.js`](./srv/config/config_settings.js#L15).
 
 ```javascript
 // Return no more than this number of rows from a generic query
