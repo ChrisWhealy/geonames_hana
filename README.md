@@ -172,7 +172,7 @@ Detailed documentation for the data model can be found [here](./docs/datamodel.m
 ***IMPORTANT***  
 Some of the Geonames data loaded into the HANA database changes so infrequently that it can be considered static.  Therefore, this data has been hardcoded into `.csv` files within the CDS data model definition.
 
-In the very unlikely event that this data needs to change (E.G. maybe you discovered Atlantis over the weekend and need to add a new continent to the [`db/Geographic.cds`](./db/Geographic.cds) table), then the relevant `.csv` files in the [`db/src/csv`](./db/src/csv) directory must be edited, the CDS model rebuilt and then redeployed to HANA
+In the very unlikely event that this data needs to change (E.G. maybe you discovered Atlantis over the weekend and need to add a new continent to the [`Continents`](./db/Geographic.cds) table), then the relevant `.csv` files in the [`db/src/csv`](./db/src/csv) directory must be edited, the CDS model rebuilt and then redeployed to HANA
 
 
 [Top](#user-content-top)
