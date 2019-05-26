@@ -6,6 +6,7 @@ Documentation for the HTTP API for requesting geopolitical data from the `geonam
 
 ## Table of Contents
 
+* [General Behaviour](#user-content-general-behaviour)
 * [Simple Query](#user-content-simple-query)
 * [Simple Read](#user-content-simple-read)
 * [Parameterised Query](#user-content-parameterised-query)
@@ -24,6 +25,7 @@ The server accepts non-modifying HTTP requests.  Query or read requests will be 
 
 When specifying parameter names in a query string, you must use either the camel-cased version of the property name seen in the returned JSON object (always starting with a lower-case letter), or if defined, you can use a convenience property name described [below](#user-content-alt-field-names).
 
+<a name="general-behaviour"></a>
 ### General API Behaviour
 
 * All queries have a hardcoded limit of 1000 rows
