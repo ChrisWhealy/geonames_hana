@@ -13,7 +13,7 @@ Documentation for the HTTP API for requesting geopolitical data from the `geonam
 * [Alternative API Field Names](#user-content-alt-field-names)
 * [API Field Names for Generated HANA DB Column Names](#user-content-gen-field-names)
 * [Querying Boolean Fields](#user-content-boolean-fields)
-* [Operator Values in Query String Fields](#user-content-op-values)
+* [Operators in Query String Parameter Values](#user-content-op-values)
 
 
 
@@ -28,10 +28,10 @@ When specifying parameter names in a query string, you must use either the camel
 <a name="general-behaviour"></a>
 ### General API Behaviour
 
-* All queries have a hardcoded limit of 1000 rows
-* All data is returned as a JSON array
-* An array containing zero items means that no data was found to match the query string parameters
-* An HTTP 400 "Bad Request" will be returned if a non-permitted operator is used for a parameter value
+* All query responses are limited to 1000 rows.  This limit is hardcoded.
+* All data is returned in JSON format as an array of row objects
+* If no data is found to match a query, an empty array will be returned
+* An HTTP 400 "Bad Request" will be returned if a non-permitted operator is used for a parameter value.  See [Operators in Query String Parameter Values](#user-content-op-values) for more details
 
 <a name="simple-query"></a>
 ### Simple Query
@@ -171,7 +171,7 @@ Instead, you must issue this query:
 At the time of writing, this query returns an array containing a single element.
 
 <a name="op-values"></a>
-### Operator Values in Query String Fields
+### Operators in Query String Parameter Values
 
 Often you will need to issue a query that tests a value using some operator other than simple equivalence (`=`)
 
