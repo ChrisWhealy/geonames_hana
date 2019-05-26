@@ -1,7 +1,7 @@
 <a name="top"></a>
 # geonames\_hana
 
-An NodeJS HTTP server that provides a wide range of geopolitical information available from <http://geonames.org>
+An NodeJS HTTP server that provides a wide range of geopolitical information from a HANA database that has been replicated from <http://geonames.org>
 
 
 ## Table of Contents
@@ -14,6 +14,7 @@ An NodeJS HTTP server that provides a wide range of geopolitical information ava
     * [Refreshing The HANA Data](#user-content-refresh-db)
     * [Refresh Period](#user-content-refresh-period)
     * [HANA Write Batch Size](#user-content-batch-size)
+    * [Query Response Limit](#user-content-row-limit)
 * [Data Model](#user-content-datamodel)
 * [API](#user-content-api)
 * [Limitations](#user-content-limitations)
@@ -112,7 +113,7 @@ Occasionally, the Geonames server will unexpectedly close an open socket, thus k
 <a name="refresh-period"></a>
 ### Refresh Period
 
-The refresh period is defined in minutes at the start of file [`srv/config/config_settings.js`](./srv/config/config_settings.js).
+The refresh period is defined in minutes at the start of file [`srv/config/config_settings.js`](./srv/config/config_settings.js#L9).
 
 ```javascript
 // DB refresh period in minutes - 23.5 hours
@@ -129,10 +130,12 @@ It is not possible to refresh the data more often than once in any given refresh
 
 It is possible however that the data for a certain country has not changed within the last 24 hours.  Therefore, the requests to download a country's ZIP file are always made with the `'If-None-Match'` HTTP header field set to the eTag value returned from the last time this ZIP file was requested.
 
+[Top](#user-content-top)
+
 <a name="batch-size"></a>
 ### HANA write batch size
 
-By default, when writing data to HANA, table rows are grouped into batches of 20,000.  If needed, the batch size can be changed by altering the value of `hanaWriteBatchSize` at the start of file [`srv/config/config_settings.js`](./srv/config/config_settings.js).
+By default, when writing data to HANA, table rows are grouped into batches of 20,000.  If needed, the batch size can be changed by altering the value of `hanaWriteBatchSize` at the start of file [`srv/config/config_settings.js`](./srv/config/config_settings.js#L12).
 
 ```javascript
 // Number of rows to write to HANA in a single batch
@@ -141,6 +144,17 @@ const hanaWriteBatchSize = 20000
 
 [Top](#user-content-top)
 
+<a name="row-limit"></a>
+### Query Response Limit
+
+The maximum number of rows returned by a query has been hardcoded to `1000`.  This value can be changed by altering the value of `rowLimit` at the start of file [`srv/config/config_settings.js`](./srv/config/config_settings.js#15).
+
+```javascript
+// Return no more than this number of rows from a generic query
+const rowLimit = 1000
+```
+
+[Top](#user-content-top)
 
 
 <!-- *********************************************************************** -->
@@ -156,7 +170,9 @@ From the HTTP server's `/admin` page, you can see a list of all the countries an
 Detailed documentation for the data model can be found [here](./docs/datamodel.md)
 
 ***IMPORTANT***  
-Some of the Geonames data loaded into the HANA database changes so infrequently, that it can be considered static.  Therefore, this data has been hard-coded into `.csv` files within the CDS data model definition.  In the very unlikely event that this data needs to change, then the relevant `.csv` files in the [`db/src/csv`](./db/src/csv) directory must be edited, the CDS model rebuilt and then deployed again to HANA
+Some of the Geonames data loaded into the HANA database changes so infrequently that it can be considered static.  Therefore, this data has been hardcoded into `.csv` files within the CDS data model definition.
+
+In the very unlikely event that this data needs to change (E.G. maybe you discovered Atlantis over the weekend and need to add a new continent to the [`db/Geographic.cds`](./db/Geographic.cds) table), then the relevant `.csv` files in the [`db/src/csv`](./db/src/csv) directory must be edited, the CDS model rebuilt and then redeployed to HANA
 
 
 [Top](#user-content-top)
@@ -182,7 +198,13 @@ Detailed documentation for the API can be found [here](./docs/api.md)
 
 1. Only one parenthesised value can be specified for a given query string parameter
 
+1. There is currently no mechanism for returning:
+    * A count of the number rows matching a given query
+    * More than 1000 rows (at least not without changing this hard-coded limit)
+    * Returning large responses as separate batches
+
 1. The data in the database should be refreshed on a daily basis.  This is done by visiting the `/admin` page and pressing "Refresh Server Data"
+
 
 [Top](#user-content-top)
 
@@ -192,9 +214,7 @@ Detailed documentation for the API can be found [here](./docs/api.md)
 <a name="issues"></a>
 ## Known Issues
 
-None so far...
-
-:-)
+As a minor point, no authentication is currently needed to access the `/admin` page.  Since this page is used ***only*** for refreshing the server data, this fact does not constitute a security issue since you cannot start or stop the server from this page.
 
 [Top](#user-content-top)
 
