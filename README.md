@@ -201,7 +201,7 @@ Detailed documentation for the API can be found [here](./docs/api.md)
 1. There is currently no mechanism for returning:
     * A count of the number rows matching a given query
     * More than 1000 rows (at least not without changing this hard-coded limit)
-    * Returning large responses as separate batches
+    * Large responses as separate batches
 
 1. The data in the database should be refreshed on a daily basis.  This is done by visiting the `/admin` page and pressing "Refresh Server Data"
 
