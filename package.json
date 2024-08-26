@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "dependencies": {
     "@sap/cds": "3.x",
-    "unzip-stream": "0.3.0"
+    "unzip-stream": "0.3.2"
   },
   "author": {
     "name": "Chris Whealy",
